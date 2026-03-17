@@ -83,7 +83,8 @@
         OperatorID: '',
         OperatingModeID: '',
         OperatingModeDescription: '',
-        OperatingInstructions: ''
+        OperatingInstructions: '',
+        UpdateCount: 0  // For optimistic concurrency control
     };
 
     function resetAccountMaintenanceState() {
@@ -100,7 +101,8 @@
             OperatorID: '',
             OperatingModeID: '',
             OperatingModeDescription: '',
-            OperatingInstructions: ''
+            OperatingInstructions: '',
+            UpdateCount: 0  // For optimistic concurrency control
         };
         currentMode = 'VIEW';
     }
@@ -223,6 +225,408 @@
         container.appendChild(alertDiv);
 
         // AUTO-DISMISS REMOVED: Banner stays until user clicks 'X'.
+    }
+
+    // ============================================================================
+    // SIDEBAR FUNCTIONS (same approach as Client Maintenance)
+    // ============================================================================
+    
+    const MODULE_ID = '1300'; // Account Maintenance module ID
+    
+    /**
+     * Load the entire sidebar via AJAX (same as Client Maintenance)
+     * This fetches server-rendered HTML from /SideBar/Index which includes
+     * properly formatted recent activities with names
+     */
+    async function loadSidebar() {
+        const sidebarContainer = document.getElementById('sidebarContainer');
+        if (!sidebarContainer) {
+            console.warn('[AccountMaintenance] sidebarContainer not found, falling back to loadRecentActivities');
+            await loadRecentActivities();
+            return;
+        }
+        
+        try {
+            console.log('[AccountMaintenance] Loading sidebar via /SideBar/Index');
+            const params = new URLSearchParams({
+                ModuleID: MODULE_ID,
+                OurBranchID: ''
+            });
+            
+            const response = await fetch(`/SideBar/Index?${params.toString()}`, {
+                method: 'GET',
+                credentials: 'same-origin',
+                headers: {
+                    'Accept': 'text/html'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Failed to load sidebar (${response.status})`);
+            }
+            
+            const html = await response.text();
+            sidebarContainer.innerHTML = html;
+            
+            console.log('[AccountMaintenance] Sidebar loaded successfully');
+            
+            // Re-wire sidebar event handlers after loading new HTML
+            wireSidebarAfterLoad();
+            
+            // Initialize sidebar manager if available
+            if (window.SidebarManager && typeof window.SidebarManager.init === 'function') {
+                window.SidebarManager.init();
+            }
+        } catch (error) {
+            console.error('[AccountMaintenance] Error loading sidebar:', error);
+            // Fallback to client-side recent activities loading
+            await loadRecentActivities();
+        }
+    }
+    
+    /**
+     * Wire sidebar event handlers after dynamic load
+     */
+    function wireSidebarAfterLoad() {
+        // Wire sidebar toggle (for new dynamically loaded sidebar)
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.getElementById('main-sidebar');
+        
+        if (sidebarToggle && sidebar) {
+            sidebarToggle.onclick = function() {
+                sidebar.classList.toggle('collapsed');
+                const mainContainer = document.querySelector('.main-container');
+                if (mainContainer) mainContainer.classList.toggle('sidebar-collapsed');
+            };
+        }
+        
+        // Wire data-child-form items (submodule items from _SideBarPartial)
+        document.querySelectorAll('.sidebar-item[data-child-form], .sidebar-item--enhanced[data-child-form]').forEach(item => {
+            item.addEventListener('click', function (e) {
+                e.stopPropagation();
+                const sidebar = document.getElementById('main-sidebar');
+                if (sidebar && sidebar.classList.contains('collapsed')) {
+                    sidebar.classList.remove('collapsed');
+                    document.querySelector('.main-container')?.classList.remove('sidebar-collapsed');
+                }
+
+                document.querySelectorAll('.sidebar-item, .sidebar-item--enhanced').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+
+                const childKey = this.getAttribute('data-child-form');
+                if (childKey === 'blocking-unblocking') {
+                    showBlockingConfirmation();
+                } else if (childKey) {
+                    openChildForm(childKey);
+                }
+            });
+        });
+
+        // Wire data-submodule items (legacy hardcoded items if still present)
+        document.querySelectorAll('.sidebar-item[data-submodule], .sidebar-item--enhanced[data-submodule]').forEach(item => {
+            item.addEventListener('click', function (e) {
+                e.stopPropagation();
+                const sidebar = document.getElementById('main-sidebar');
+                if (sidebar && sidebar.classList.contains('collapsed')) {
+                    sidebar.classList.remove('collapsed');
+                    document.querySelector('.main-container')?.classList.remove('sidebar-collapsed');
+                }
+
+                document.querySelectorAll('.sidebar-item, .sidebar-item--enhanced').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+
+                const submoduleName = this.getAttribute('data-submodule');
+                if (submoduleName) {
+                    loadSubmoduleView(submoduleName);
+                }
+            });
+        });
+        
+        // Wire recent activities click handlers
+        const recentContainer = document.querySelector('[data-recent-activities-container]');
+        if (recentContainer) {
+            recentContainer.querySelectorAll('[data-accessedfields]').forEach(item => {
+                item.addEventListener('click', async function() {
+                    const accessedFields = this.getAttribute('data-accessedfields') || '';
+                    // Parse AccountID from accessedFields (format: "AccountID:xxxx")
+                    const match = accessedFields.match(/AccountID[:\s]*([^\s,;]+)/i);
+                    if (match) {
+                        const accountId = match[1];
+                        const accountIdInput = document.getElementById('AccountID');
+                        if (accountIdInput) accountIdInput.value = accountId;
+                        currentMode = 'VIEW';
+                        await loadAccountDetails(accountId);
+                        updateButtonStates();
+                    }
+                });
+            });
+        }
+        
+        // Re-wire nav section toggles
+        document.querySelectorAll('[data-nav-section] .nav-header').forEach(header => {
+            header.style.cursor = 'pointer';
+            header.addEventListener('click', function(e) {
+                if (e.target.closest('.nav-arrow')) return;
+                const section = this.closest('[data-nav-section]');
+                if (section) {
+                    const items = section.querySelector('.nav-items');
+                    const arrow = section.querySelector('.nav-arrow');
+                    if (items) {
+                        const isHidden = items.hasAttribute('hidden');
+                        if (isHidden) {
+                            items.removeAttribute('hidden');
+                            items.classList.add('is-visible');
+                            if (arrow) arrow.setAttribute('aria-expanded', 'true');
+                        } else {
+                            items.setAttribute('hidden', '');
+                            items.classList.remove('is-visible');
+                            if (arrow) arrow.setAttribute('aria-expanded', 'false');
+                        }
+                    }
+                }
+            });
+        });
+        
+        // Re-wire nav arrow buttons
+        document.querySelectorAll('[data-nav-section] .nav-arrow').forEach(arrow => {
+            arrow.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const section = this.closest('[data-nav-section]');
+                if (section) {
+                    const items = section.querySelector('.nav-items');
+                    if (items) {
+                        const isHidden = items.hasAttribute('hidden');
+                        if (isHidden) {
+                            items.removeAttribute('hidden');
+                            items.classList.add('is-visible');
+                            this.setAttribute('aria-expanded', 'true');
+                        } else {
+                            items.setAttribute('hidden', '');
+                            items.classList.remove('is-visible');
+                            this.setAttribute('aria-expanded', 'false');
+                        }
+                    }
+                }
+            });
+        });
+    }
+
+    // ============================================================================
+    // RECENT ACTIVITIES FUNCTIONS
+    // ============================================================================
+    
+    /**
+     * Track recent activity and refresh the sidebar
+     * Uses same approach as Client Maintenance - call loadSidebar() to refresh
+     * @param {string} accountId - The account ID to track
+     * @param {string} accountName - The account name for display
+     */
+    async function addRecentActivityAndRefreshSidebar(accountId, accountName) {
+        if (!accountId) return;
+        
+        // Get BranchID from state or input field
+        // The SQL function f_GetActivityNarration expects: BranchID:xxxx,AccountID:yyyy
+        // So it can call f_GetAccountName(@PARAM1, @PARAM2) where @PARAM1=BranchID, @PARAM2=AccountID
+        const branchId = window.AccountMaintenanceState?.OurBranchID || 
+                         document.getElementById('BranchID')?.value || '';
+        
+        // Format: BranchID:xxxx,AccountID:yyyy (same as modules 1300, 1600, 1800, 4000, 4300)
+        const accessedFields = `BranchID:${branchId},AccountID:${accountId}`;
+        
+        console.log('[AccountMaintenance] Adding recent activity:', { branchId, accountId, accountName, accessedFields, moduleId: MODULE_ID });
+        
+        try {
+            const response = await fetch('/SideBar/AddRecentActivity', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    ModuleID: MODULE_ID,
+                    AccessedFields: accessedFields,
+                    Narration: accountName || '' // Fallback if SP doesn't populate it
+                })
+            });
+            
+            const result = await response.json();
+            console.log('[AccountMaintenance] AddRecentActivity response:', result);
+            
+            if (response.ok) {
+                const success = result.ResponseCode === '00' || result.responseCode === '00' || 
+                                result.Success === true || result.success === true;
+                
+                if (success) {
+                    console.log('[AccountMaintenance] Recent activity tracked successfully, reloading sidebar...');
+                    // Reload the entire sidebar (same as Client Maintenance)
+                    await loadSidebar();
+                } else {
+                    console.warn('[AccountMaintenance] Recent activity tracking failed:', result);
+                }
+            } else {
+                console.warn('[AccountMaintenance] AddRecentActivity failed:', response.status, result);
+            }
+        } catch (error) {
+            console.warn('[AccountMaintenance] Error tracking recent activity:', error);
+        }
+    }
+    
+    /**
+     * Render recent activities in the sidebar
+     * @param {Array} activities - Array of activity objects
+     */
+    function renderRecentActivities(activities) {
+        // Try multiple possible selectors for the container
+        let container = document.querySelector('[data-recent-activities-container]');
+        if (!container) {
+            container = document.getElementById('nav-recent');
+        }
+        
+        if (!container) {
+            console.warn('[AccountMaintenance] Recent activities container not found for rendering');
+            return;
+        }
+        
+        console.log('[AccountMaintenance] renderRecentActivities called with', 
+            Array.isArray(activities) ? activities.length : 0, 'activities');
+        
+        if (!Array.isArray(activities) || activities.length === 0) {
+            container.innerHTML = '<div class="sidebar-item sidebar-item--enhanced text-muted" style="padding: 8px 12px; font-size: 12px;">No recent activities</div>';
+            return;
+        }
+        
+        console.log('[AccountMaintenance] Rendering', activities.length, 'recent activities');
+        
+        // Remove hidden attribute so activities are visible
+        container.removeAttribute('hidden');
+        container.classList.add('is-visible');
+        container.style.pointerEvents = 'auto';
+        
+        // Also expand the parent nav-section
+        const parentSection = container.closest('[data-nav-section]');
+        if (parentSection) {
+            parentSection.classList.add('is-open', 'expanded');
+            const toggle = parentSection.querySelector('.nav-arrow, .nav-arrow--card');
+            if (toggle) toggle.setAttribute('aria-expanded', 'true');
+        }
+        
+        container.innerHTML = activities.map(activity => {
+            // Parse AccessedFields if it's in "AccountID:xxxx" format
+            let accountId = '';
+            
+            if (activity.AccessedFields) {
+                const match = activity.AccessedFields.match(/AccountID[:\s]*([^\s,;]+)/i);
+                if (match) accountId = match[1];
+            }
+            
+            // Fallback to direct properties
+            accountId = accountId || activity.AccountID || activity.RecordID || activity.Key || '';
+            
+            // Get account name from Narration field (where we store it)
+            const accountName = activity.Narration || activity.AccountName || activity.Description || '';
+            
+            // Match exact HTML structure from _SideBarPartial.cshtml (same as Client Maintenance)
+            return `
+                <div class="sidebar-item sidebar-item--static sidebar-item--enhanced" 
+                     style="cursor:pointer;" 
+                     data-recent-account="${accountId}"
+                     data-accessedfields="AccountID:${accountId}"
+                     data-activity-key="AccountID"
+                     data-activity-value="${accountId}">
+                    <div class="sidebar-item__content">
+                        <i class="bi bi-file-earmark-text sidebar-item__icon"></i>
+                        <div class="sidebar-item__text">
+                            <div class="sidebar-item__title">${accountId}</div>
+                            ${accountName ? `<div class="sidebar-item__description"><i class="bi bi-geo-alt me-1"></i>${accountName}</div>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        // Wire click handlers for recent activities
+        container.querySelectorAll('[data-recent-account]').forEach(item => {
+            item.addEventListener('click', async function() {
+                const accountId = this.getAttribute('data-recent-account');
+                if (accountId) {
+                    const accountIdInput = document.getElementById('AccountID');
+                    if (accountIdInput) accountIdInput.value = accountId;
+                    currentMode = 'VIEW';
+                    await loadAccountDetails(accountId);
+                    updateButtonStates();
+                }
+            });
+        });
+    }
+    
+    /**
+     * Load and render recent activities in the sidebar
+     */
+    async function loadRecentActivities() {
+        console.log('[AccountMaintenance] loadRecentActivities() called');
+        
+        // Try multiple possible selectors for the container
+        let container = document.querySelector('[data-recent-activities-container]');
+        if (!container) {
+            container = document.getElementById('nav-recent');
+        }
+        
+        if (!container) {
+            console.warn('[AccountMaintenance] Recent activities container not found in DOM. Available nav-items:', 
+                document.querySelectorAll('.nav-items').length);
+            return;
+        }
+        
+        console.log('[AccountMaintenance] Found recent activities container:', container.id || container.className);
+        
+        const moduleId = '1300'; // Account Maintenance module ID
+        const url = `/SideBar/GetRecentActivities?moduleId=${moduleId}`;
+        
+        console.log('[AccountMaintenance] Fetching recent activities from:', url);
+        
+        try {
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            
+            console.log('[AccountMaintenance] GetRecentActivities response status:', response.status);
+            
+            if (!response.ok) {
+                console.warn('[AccountMaintenance] Recent activities API returned error:', response.status);
+                container.innerHTML = '<div class="sidebar-item sidebar-item--enhanced text-muted" style="padding: 8px 12px; font-size: 12px;">Failed to load activities</div>';
+                return;
+            }
+            
+            const result = await response.json();
+            console.log('[AccountMaintenance] Recent activities response:', result);
+            
+            // Handle various response formats - API returns lowercase 'details'
+            let activities = result.Activities || result.activities || 
+                             result.Data || result.data || 
+                             result.Details || result.details || [];
+            
+            // If activities is a JSON string, parse it
+            if (typeof activities === 'string') {
+                try {
+                    activities = JSON.parse(activities);
+                } catch (e) {
+                    activities = [];
+                }
+            }
+            
+            console.log('[AccountMaintenance] Parsed activities:', activities, 'Count:', Array.isArray(activities) ? activities.length : 0);
+            
+            // Use shared render function
+            renderRecentActivities(activities);
+            
+        } catch (error) {
+            console.error('[AccountMaintenance] Error loading recent activities:', error);
+            const container = document.querySelector('[data-recent-activities-container]');
+            if (container) {
+                container.innerHTML = '<div class="sidebar-item sidebar-item--enhanced text-muted" style="padding: 8px 12px; font-size: 12px;">Error loading activities</div>';
+            }
+        }
     }
 
     function copyThemeVarsToDocument(targetDoc) {
@@ -1426,6 +1830,43 @@
     function wireManualInputListeners() {
         const clientIdInput = document.getElementById('ClientID');
         const productIdInput = document.getElementById('ProductID');
+        const accountIdInput = document.getElementById('AccountID');
+        const accountSearchBtn = document.querySelector('[data-kairo-account-control] .btn-lookup');
+
+        // AccountID F2/Enter key handler - open search or load account
+        if (accountIdInput) {
+            accountIdInput.addEventListener('keydown', async function (event) {
+                if (event.key === 'F2') {
+                    event.preventDefault();
+                    // Open search modal
+                    if (accountSearchBtn) accountSearchBtn.click();
+                } else if (event.key === 'Enter') {
+                    event.preventDefault();
+                    const accountId = this.value.trim();
+                    if (accountId) {
+                        // Load account details directly
+                        currentMode = 'VIEW';
+                        await loadAccountDetails(accountId);
+                        updateButtonStates();
+                    } else {
+                        // Open search modal if no value entered
+                        if (accountSearchBtn) accountSearchBtn.click();
+                    }
+                }
+            });
+            
+            // AccountID blur handler - auto-load account when user tabs out (if value present)
+            accountIdInput.addEventListener('blur', async function () {
+                const accountId = this.value.trim();
+                if (!accountId) return;
+                // Only auto-load if account is not already loaded for this ID
+                if (window.AccountMaintenanceState.AccountID !== accountId && !window.AccountMaintenanceState.isAccountLoaded) {
+                    currentMode = 'VIEW';
+                    await loadAccountDetails(accountId);
+                    updateButtonStates();
+                }
+            });
+        }
 
         // ClientID blur handler - fetch client details when user tabs out
         if (clientIdInput) {
@@ -1503,17 +1944,27 @@
         }
     }
 
-    function init() {
+    async function init() {
+        console.log('[AccountMaintenance] Initializing module...');
         wireNavSections();
         wireSidebarToggle();
-        wireSidebar();
         wireBlockingConfirmation();
         wireLookups();
         wireActionButtons();
         wireManualInputListeners();
 
+        // Load entire sidebar via AJAX (same as Client Maintenance)
+        // This includes submodules AND recent activities with proper Narration
+        console.log('[AccountMaintenance] Loading sidebar...');
+        try {
+            await loadSidebar();
+        } catch (err) {
+            console.warn('[AccountMaintenance] Failed to load sidebar on init:', err);
+        }
+
         // Hide initial loader
         showPageLoader(false);
+        console.log('[AccountMaintenance] Initialization complete');
     }
 
     // Expose core functions to be called from submodules
@@ -1759,6 +2210,23 @@
             // Avoid double wiring
             if (btn.dataset.wired) return;
             btn.dataset.wired = 'true';
+            
+            // Get target input ID 
+            const targetInputId = btn.dataset.targetInput || btn.dataset.lookup;
+            
+            // Wire F2 key on the corresponding input field
+            if (targetInputId) {
+                const inputEl = document.getElementById(targetInputId);
+                if (inputEl && !inputEl.dataset.f2Wired) {
+                    inputEl.dataset.f2Wired = 'true';
+                    inputEl.addEventListener('keydown', function(event) {
+                        if (event.key === 'F2') {
+                            event.preventDefault();
+                            btn.click(); // Trigger the lookup button click
+                        }
+                    });
+                }
+            }
 
             btn.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -2019,7 +2487,7 @@
                         'Address2': ['Address2'],
                         'PhoneHome': ['Phone1', 'PhoneHome'],   // API may return Phone1 or PhoneHome
                         'PhoneWork': ['Phone2', 'PhoneWork'],   // API may return Phone2 or PhoneWork
-                        'FaxNo': ['Fax'],
+                        'FaxNo': ['Fax', 'FaxNo'],              // Form uses FaxNo, API returns Fax
                         'Mobile': ['Mobile', 'MobileNo'],
                         'EmailID': ['Email', 'EmailID'],
                         'ContactPerson': ['ContactPerson']
@@ -2135,122 +2603,201 @@
 
                 // Unpack nested AccountDetails if present (common in Kairo responses like the one provided)
                 if (account.AccountDetails) {
-                    // Flatten the response by merging sub-objects
-                    account = {
-                        ...account,
-                        ...account.AccountDetails,
-                        ...(account.FinancialSummary || {}),
-                        ...(account.Supervision || {})
+                    // Parse FinancialSummary if it's a JSON string
+                    let financialSummary = {};
+                    if (account.FinancialSummary) {
+                        try {
+                            financialSummary = typeof account.FinancialSummary === 'string' 
+                                ? JSON.parse(account.FinancialSummary) 
+                                : account.FinancialSummary;
+                        } catch (e) {
+                            console.warn('[AccountMaintenance] Failed to parse FinancialSummary:', e);
+                        }
+                    }
+                    
+                    // Merge AccountDetails, FinancialSummary, and Supervision into account
+                    // IMPORTANT: Preserve AccountDetails audit fields and UpdateCount as authoritative sources
+                    // Supervision fields may be empty and should not overwrite actual values
+                    const accountDetails = account.AccountDetails || {};
+                    const preservedAuditFields = {
+                        UpdateCount: accountDetails.UpdateCount,
+                        CreatedBy: accountDetails.CreatedBy,
+                        CreatedOn: accountDetails.CreatedOn,
+                        ModifiedBy: accountDetails.ModifiedBy,
+                        ModifiedOn: accountDetails.ModifiedOn,
+                        SupervisedBy: accountDetails.SupervisedBy,
+                        SupervisedOn: accountDetails.SupervisedOn
                     };
+                    
+                    const supervision = account.Supervision || {};
+                    
+                    // Capture root-level fields from Details (e.g., WorkingDate) before merging
+                    const rootLevelFields = {
+                        WorkingDate: account.WorkingDate,
+                        ShowBehindSceneData: account.ShowBehindSceneData,
+                        AllowSpecialInterestRate: account.AllowSpecialInterestRate,
+                        BankID: account.BankID
+                    };
+                    
+                    account = { ...accountDetails, ...financialSummary, ...supervision, ...rootLevelFields };
+                    
+                    // Restore audit fields from AccountDetails (Supervision may have empty values)
+                    Object.entries(preservedAuditFields).forEach(([key, value]) => {
+                        if (value !== undefined && value !== null && value !== '') {
+                            account[key] = value;
+                        }
+                    });
                 }
 
                 if (account) {
+                    console.log('[AccountMaintenance] Parsed account data:', account);
+                    
                     // Update Global State
                     window.AccountMaintenanceState.AccountID = account.AccountID || accountId;
                     window.AccountMaintenanceState.AccountName = account.AccountName || account.AccountTitle || '';
-                    window.AccountMaintenanceState.ProductID = account.ProductID || '';
-                    window.AccountMaintenanceState.ProductName = account.ProductName || account.Product || '';
-                    window.AccountMaintenanceState.ClientID = account.ClientID || '';
-                    // Handle fallback or explicit BranchID + description
-                    window.AccountMaintenanceState.OurBranchID = account.OurBranchID || account.BranchID || window.AccountMaintenanceState.OurBranchID || '';
-                    window.AccountMaintenanceState.BranchName = account.BranchName || account.BranchDescription || '';
-                    window.AccountMaintenanceState.CurrencyID = account.CurrencyID || '';
-                    window.AccountMaintenanceState.isAccountLoaded = true;
+                            window.AccountMaintenanceState.ProductID = account.ProductID || '';
+                            window.AccountMaintenanceState.ProductName = account.ProductName || account.Product || '';
+                            window.AccountMaintenanceState.ClientID = account.ClientID || '';
+                            // Handle fallback or explicit BranchID + description
+                            window.AccountMaintenanceState.OurBranchID = account.OurBranchID || account.BranchID || window.AccountMaintenanceState.OurBranchID || '';
+                            window.AccountMaintenanceState.BranchName = account.BranchName || account.BranchDescription || '';
+                            window.AccountMaintenanceState.CurrencyID = account.CurrencyID || '';
+                            window.AccountMaintenanceState.UpdateCount = account.UpdateCount || 0;  // Store for concurrency control
+                            window.AccountMaintenanceState.isAccountLoaded = true;
+                            
+                            console.log('[AccountMaintenance] Stored UpdateCount:', window.AccountMaintenanceState.UpdateCount);
 
-                    // Comprehensive field mapping for UI elements matching API properties
-                    const fieldMap = {
-                        'BranchID': 'OurBranchID',
-                        'AccountTitle': 'AccountName',
-                        'Product': 'ProductName',
-                        'SalesOfficerID': 'AccountOfficerID', // UI ID -> JSON Property
-                        'SalesOfficerName': 'AccountOfficerName',
-                        'AccountTypeID': 'AccountClassID',
-                        'AccountTypeName': 'AccountClassName',
-                        'PhoneHome': 'Phone1',
-                        'PhoneWork': 'Phone2',
-                        'Fax': 'FaxNo', // If needed
-                        // Audit Trail field mappings (UI ID -> API field name)
-                        'CreatedBy': 'MakerID',
-                        'CreatedOn': 'MakerDT',
-                        'ModifiedBy': 'CheckerID',
-                        'ModifiedOn': 'CheckerDT',
-                        'SupervisedBy': 'SupervisorID',
-                        'SupervisedOn': 'SupervisorDT'
-                    };
+                            // Comprehensive field mapping for UI elements matching API properties
+                            const fieldMap = {
+                                'BranchID': 'OurBranchID',
+                                'AccountTitle': 'AccountName',
+                                'Product': 'ProductName',
+                                // Note: SalesOfficerID and SalesOfficerName are direct matches in API
+                                // AccountOfficerID is a separate field (Account Officer, not Sales Officer)
+                                'AccountTypeID': 'AccountClassID',
+                                'AccountTypeName': 'AccountClassName',
+                                'PhoneHome': 'Phone1',
+                                'PhoneWork': 'Phone2',
+                                'FaxNo': 'Fax', // UI uses FaxNo, API uses Fax
+                                // Financial Summary field mappings (handling case differences)
+                                'UnclearBalance': 'UnClearBalance', // UI uses "Unclear", API uses "UnClear"
+                                'OpenDate': 'WorkingDate', // UI uses "OpenDate", API uses "WorkingDate"
+                                'CreditRate': 'InterestRate', // Map to InterestRate from AccountDetails
+                                'DebitRate': 'DebitIntRate',
+                                'PenaltyRate': 'PenaltyIntRate',
+                                'PendingCharges': 'PendingCharges', // If present in future
+                                // Audit Trail field mappings - API uses direct field names
+                                // CreatedBy, CreatedOn, ModifiedBy, ModifiedOn are direct matches
+                                // Only add fallback mappings if needed
+                                'SupervisedBy': 'SupervisorID',
+                                'SupervisedOn': 'SupervisorDT'
+                            };
 
-                    // Populate Form Fields (Inputs, Selects, and Display Spans)
-                    const elements = document.querySelectorAll('input:not([type="hidden"]), select, textarea, .behind-scene-value, .audit-value');
+                            // Populate Form Fields (Inputs, Selects, and Display Spans)
+                            const elements = document.querySelectorAll('input:not([type="hidden"]), select, textarea, .behind-scene-value, .audit-value');
 
-                    elements.forEach(el => {
-                        // Use element ID first, then fallback to data-field attribute
-                        const fieldName = el.id || el.dataset.field;
-                        // Skip if no field identifier or is the search trigger
-                        if (!fieldName || fieldName === 'AccountID') return;
+                            elements.forEach(el => {
+                                // Use element ID first, then fallback to data-field attribute
+                                const fieldName = el.id || el.dataset.field;
+                                // Skip if no field identifier or is the search trigger
+                                if (!fieldName || fieldName === 'AccountID') return;
 
-                        // 1. Direct case-insensitive match
-                        let key = Object.keys(account).find(k => k.toLowerCase() === fieldName.toLowerCase());
+                                let key = null;
 
-                        // 2. Mapped match (UI field name -> API field name)
-                        if (!key && fieldMap[fieldName]) {
-                            // Find the actual key in data using the mapped name
-                            key = Object.keys(account).find(k => k.toLowerCase() === fieldMap[fieldName].toLowerCase());
-                        }
+                                // 1. Check if form field has a mapping to a different API field name
+                                if (fieldMap[fieldName]) {
+                                    key = Object.keys(account).find(k => k.toLowerCase() === fieldMap[fieldName].toLowerCase());
+                                }
 
-                        // 2b. Also check data-field attribute for mapping  
-                        if (!key && el.dataset.field && fieldMap[el.id]) {
-                            key = Object.keys(account).find(k => k.toLowerCase() === fieldMap[el.id].toLowerCase());
-                        }
+                                // 2. Direct case-insensitive match
+                                if (!key) {
+                                    key = Object.keys(account).find(k => k.toLowerCase() === fieldName.toLowerCase());
+                                }
 
-                        // 3. Fallback for specific variations if needed
-                        if (!key && fieldName.endsWith('ID')) {
-                            // e.g. CurrencyID -> CurrencyId
-                            key = Object.keys(account).find(k => k.toLowerCase() === fieldName.toLowerCase());
-                        }
+                                // 3. Also check data-field attribute for mapping  
+                                if (!key && el.dataset.field && fieldMap[el.id]) {
+                                    key = Object.keys(account).find(k => k.toLowerCase() === fieldMap[el.id].toLowerCase());
+                                }
 
-                        if (key && account[key] !== null && account[key] !== undefined) {
-                            if (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') {
-                                if (el.type === 'checkbox') {
-                                    el.checked = account[key] === true || account[key] === 1 || String(account[key]).toLowerCase() === 'true';
-                                } else if (el.tagName === 'SELECT') {
-                                    // For SELECT elements, ensure the option exists before setting
-                                    const value = String(account[key]);
-                                    const optionExists = Array.from(el.options).some(opt => opt.value === value);
+                                // 4. Fallback for specific variations if needed
+                                if (!key && fieldName.endsWith('ID')) {
+                                    key = Object.keys(account).find(k => k.toLowerCase() === fieldName.toLowerCase());
+                                }
 
-                                    if (!optionExists && value) {
-                                        // Try to find a corresponding Name field for the label
-                                        const nameKey = key.replace(/ID$/i, 'Name');
-                                        const label = account[nameKey] || value;
+                                // 5. Special fallback for CreatedOn (try MakerDT, CreatedOn, etc.)
+                                if (!key && fieldName === 'CreatedOn') {
+                                    key = Object.keys(account).find(k => k.toLowerCase() === 'makerdt')
+                                        || Object.keys(account).find(k => k.toLowerCase() === 'createdon');
+                                }
 
-                                        // Add the missing option
-                                        const newOption = document.createElement('option');
-                                        newOption.value = value;
-                                        newOption.textContent = label;
-                                        el.appendChild(newOption);
-                                        console.log(`[AccountMaintenance] Added missing option to ${fieldName}: ${value} (${label})`);
+                                // 6. Special fallback for ModifiedOn (try CheckerDT, ModifiedOn, etc.)
+                                if (!key && fieldName === 'ModifiedOn') {
+                                    key = Object.keys(account).find(k => k.toLowerCase() === 'checkerdt')
+                                        || Object.keys(account).find(k => k.toLowerCase() === 'modifiedon');
+                                }
+
+                                // 7. Special fallback for PendingCharges (try PendingCharges, PendingCharge, etc.)
+                                if (!key && fieldName === 'PendingCharges') {
+                                    key = Object.keys(account).find(k => k.toLowerCase() === 'pendingcharges')
+                                        || Object.keys(account).find(k => k.toLowerCase() === 'pendingcharge');
+                                }
+
+                                if (key && account[key] !== null && account[key] !== undefined && account[key] !== '') {
+                                    // Detect date fields by field name pattern
+                                    const isDateTimeField = /^(Created|Modified|Supervised|Opened|Closed)On$/i.test(fieldName) ||
+                                        /^(Created|Modified|Supervised|Opened|Closed)On$/i.test(key) ||
+                                        fieldName.toLowerCase() === 'opendate' || key.toLowerCase() === 'workingdate';
+                                    const isDateField = /Date$/i.test(fieldName) || /Date$/i.test(key);
+                                    
+                                    // Detect numeric/balance fields that should be comma-formatted
+                                    const isNumericField = /Balance|Amount|Lien|Interest|Charges|Power|Credits|Debits/i.test(fieldName) ||
+                                        /Balance|Amount|Lien|Interest|Charges|Power|Credits|Debits/i.test(key);
+                                    
+                                    if (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') {
+                                        if (el.type === 'checkbox') {
+                                            el.checked = account[key] === true || account[key] === 1 || String(account[key]).toLowerCase() === 'true';
+                                        } else if (el.tagName === 'SELECT') {
+                                            // For SELECT elements, ensure the option exists before setting
+                                            const value = String(account[key]);
+                                            const optionExists = Array.from(el.options).some(opt => opt.value === value);
+
+                                            if (!optionExists && value) {
+                                                // Try to find a corresponding Name field for the label
+                                                const nameKey = key.replace(/ID$/i, 'Name');
+                                                const label = account[nameKey] || value;
+
+                                                // Add the missing option
+                                                const newOption = document.createElement('option');
+                                                newOption.value = value;
+                                                newOption.textContent = label;
+                                                el.appendChild(newOption);
+                                                console.log(`[AccountMaintenance] Added missing option to ${fieldName}: ${value} (${label})`);
+                                            }
+                                            el.value = value;
+                                        } else {
+                                            el.value = account[key];
+                                        }
+                                    } else {
+                                        // For spans or divs (display only) - apply formatting
+                                        let displayValue = account[key];
+                                        if (isDateTimeField && window.GlobalUtils?.formatDateTime) {
+                                            displayValue = window.GlobalUtils.formatDateTime(account[key]);
+                                        } else if (isDateField && window.GlobalUtils?.formatDate) {
+                                            displayValue = window.GlobalUtils.formatDate(account[key]);
+                                        } else if (isNumericField) {
+                                            // Format numbers with commas
+                                            const num = parseFloat(account[key]);
+                                            if (!isNaN(num)) {
+                                                displayValue = num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+                                            }
+                                        }
+                                        el.textContent = displayValue;
                                     }
+                                }
+                            });
 
-                                    el.value = value;
-                                } else {
-                                    el.value = account[key];
-                                }
-                                // Dispatch change events for inputs
-                                el.dispatchEvent(new Event('change', { bubbles: true }));
-                            } else {
-                                // Handle display spans (Account Snapshot, Audit Trail)
-                                // Format numeric balance fields with proper number formatting
-                                const numericFields = ['ClearBalance', 'AvailableBalance', 'TotalBalance', 'UnclearBalance',
-                                    'FreezedAmount', 'SystemLien', 'DrawingPower', 'MinimumBalance'];
-                                const fieldId = el.id || '';
-                                if (numericFields.includes(fieldId) && !isNaN(parseFloat(account[key]))) {
-                                    // Format as number with 2 decimal places and comma separators
-                                    const num = parseFloat(account[key]);
-                                    el.textContent = num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                                } else {
-                                    el.textContent = account[key];
-                                }
-                            }
-                        }
-                    });
+                            // Patch SalesOfficerName and LiquidationAccountName if missing
+                            await patchOfficerAndLiquidationNames(account);
 
                     // Populate ClientID input if not already set
                     if (account.ClientID) {
@@ -2274,6 +2821,15 @@
                         useInlineAlert: true
                     });
 
+                    // Track recent activity for quick access later
+                    const finalAccountId = account.AccountID || accountId;
+                    console.log('[AccountMaintenance] About to track recent activity for:', finalAccountId);
+                    try {
+                        await addRecentActivityAndRefreshSidebar(finalAccountId, account.AccountName || '');
+                    } catch (err) {
+                        console.warn('[AccountMaintenance] Failed to track recent activity:', err);
+                    }
+
                     // Update button states after successful load
                     updateButtonStates();
                 } else {
@@ -2289,6 +2845,127 @@
             showErrorMessage('Error loading account details: ' + error.message, { useInlineAlert: true });
         } finally {
             showPageLoader(false);
+        }
+    }
+
+    /**
+     * Helper to patch SalesOfficerName and LiquidationAccountName if missing
+     * Fetches the name from the lookup endpoint using the ID
+     * @param {Object} account - The account data object
+     */
+    async function patchOfficerAndLiquidationNames(account) {
+        // Patch SalesOfficerID and SalesOfficerName
+        const salesOfficerId = account.SalesOfficerID;
+        const salesOfficerName = account.SalesOfficerName;
+        
+        console.log('[AccountMaintenance] Patching fields - SalesOfficerID:', salesOfficerId, 'SalesOfficerName:', salesOfficerName);
+        
+        // First, ensure the ID field is set (handle "NULL" string as empty)
+        const idInput = document.getElementById('SalesOfficerID');
+        if (idInput && salesOfficerId && salesOfficerId !== 'NULL' && salesOfficerId !== 'null') {
+            idInput.value = salesOfficerId;
+            console.log('[AccountMaintenance] Set SalesOfficerID field to:', salesOfficerId);
+        }
+        
+        // Fetch name if ID exists but name is missing - use SearchModal/Search endpoint
+        if (salesOfficerId && salesOfficerId !== 'NULL' && salesOfficerId !== 'null' && 
+            (!salesOfficerName || salesOfficerName === 'null' || salesOfficerName === 'NULL' || salesOfficerName === '')) {
+            try {
+                console.log('[AccountMaintenance] Fetching SalesOfficer name for ID:', salesOfficerId);
+                
+                // Use AppCore.invokeControllerAsync like SearchModal does
+                if (window.AppCore && window.AppCore.invokeControllerAsync) {
+                    const response = await window.AppCore.invokeControllerAsync('SearchModal/Search', {
+                        TableID: 'OfficerID',
+                        WhereStmt: '',
+                        SearchKey: salesOfficerId.trim(),
+                        ModuleID: '100',
+                        PageSize: 50,
+                        RefID: '',
+                        PrevOrNext: 0
+                    });
+                    
+                    console.log('[AccountMaintenance] SalesOfficer search response:', response);
+                    
+                    // Extract results - correct path is data.details.SearchResults
+                    let results = null;
+                    if (response && response.data && response.data.details && response.data.details.SearchResults) {
+                        results = response.data.details.SearchResults;
+                    } else if (response && response.data && Array.isArray(response.data.Details)) {
+                        results = response.data.Details;
+                    } else if (response && Array.isArray(response.Details)) {
+                        results = response.Details;
+                    }
+                    
+                    console.log('[AccountMaintenance] Extracted results:', results);
+                    
+                    if (Array.isArray(results) && results.length > 0) {
+                        // Normalize the ID by removing leading zeros for comparison
+                        const normalizedSearchId = salesOfficerId.replace(/^0+/, '') || '0';
+                        
+                        // Find a matching officer by normalized ID comparison
+                        const officer = results.find(r => {
+                            const resultId = (r.OfficerID || r.ID || '').toString().replace(/^0+/, '') || '0';
+                            return resultId === normalizedSearchId;
+                        });
+                        
+                        console.log('[AccountMaintenance] Normalized search ID:', normalizedSearchId);
+                        console.log('[AccountMaintenance] Found officer:', officer);
+                        
+                        if (officer) {
+                            const officerName = officer.Name || officer.OfficerName || officer.Description || officer.FullName;
+                            if (officerName) {
+                                const nameInput = document.getElementById('SalesOfficerName');
+                                if (nameInput) {
+                                    nameInput.value = officerName;
+                                    console.log('[AccountMaintenance] Patched SalesOfficerName:', officerName);
+                                }
+                            }
+                        } else {
+                            console.warn('[AccountMaintenance] No matching officer found for normalized ID:', normalizedSearchId);
+                        }
+                    } else {
+                        console.warn('[AccountMaintenance] No officer results found');
+                    }
+                } else {
+                    console.warn('[AccountMaintenance] AppCore.invokeControllerAsync not available');
+                }
+            } catch (e) {
+                console.warn('[AccountMaintenance] Failed to fetch SalesOfficerName:', e);
+            }
+        }
+        
+        // Patch LiquidationAccountID and LiquidationAccountName
+        const liquidationId = account.LiquidationAccountID;
+        const liquidationName = account.LiquidationAccountName;
+        
+        // Ensure ID field is set
+        const liqIdInput = document.getElementById('LiquidationAccountID');
+        if (liqIdInput && liquidationId) {
+            liqIdInput.value = liquidationId;
+        }
+        
+        // Fetch name if ID exists but name is missing
+        if (liquidationId && (!liquidationName || liquidationName === 'null' || liquidationName === '')) {
+            try {
+                const resp = await fetch(`/AccountsMaintenance/get-account?AccountID=${encodeURIComponent(liquidationId)}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    body: JSON.stringify({ AccountID: liquidationId })
+                });
+                if (resp.ok) {
+                    const result = await resp.json();
+                    const data = result.data || result;
+                    let acc = data.Details || data;
+                    if (acc.AccountDetails) acc = acc.AccountDetails;
+                    if (acc && (acc.AccountName || acc.Name)) {
+                        const nameInput = document.getElementById('LiquidationAccountName');
+                        if (nameInput) nameInput.value = acc.AccountName || acc.Name;
+                    }
+                }
+            } catch (e) {
+                console.warn('[AccountMaintenance] Failed to fetch LiquidationAccountName:', e);
+            }
         }
     }
 
@@ -2311,7 +2988,7 @@
             'AccountName', 'ShortName',
             // Address
             'Address1', 'Address2', 'CityID', 'CountryID',
-            // Contact
+            // Contact (Note: HTML uses FaxNo, we map to Fax for API)
             'PhoneHome', 'PhoneWork', 'FaxNo', 'Mobile', 'EmailID', 'ContactPerson',
             // Operating
             'OperatingModeID', 'OperatingInstructions',
@@ -2325,7 +3002,18 @@
             const el = document.getElementById(fieldId);
             if (el) {
                 formData[fieldId] = el.value || '';
+            } else {
+                console.warn(`[AccountMaintenance] collectAccountFormData: Element not found for field: ${fieldId}`);
             }
+        });
+
+        // Debug: Log collected contact fields
+        console.log('[AccountMaintenance] Collected contact fields:', {
+            PhoneHome: formData.PhoneHome,
+            PhoneWork: formData.PhoneWork,
+            FaxNo: formData.FaxNo,
+            Mobile: formData.Mobile,
+            EmailID: formData.EmailID
         });
 
         // Handle checkbox separately
@@ -2338,24 +3026,47 @@
         formData.OurBranchID = formData.BranchID || '';
         formData.Phone1 = formData.PhoneHome || '';
         formData.Phone2 = formData.PhoneWork || '';
+        // Note: FaxNo is collected above and mapped to Fax below
 
         // Map AccountName to Name for database (t_AccountCustomer expects Name column)
         formData.Name = formData.AccountName || '';
 
-        // Add ModifiedBy/CreatedBy from session (required for update/create)
-        const operatorId = sessionStorage.getItem('UserId') ||
+        // Get OperatorID from sessionStorage - this is the logged-in user
+        const operatorId = sessionStorage.getItem('user_name') ||
+            sessionStorage.getItem('UserName') ||
+            sessionStorage.getItem('user_id') ||
+            sessionStorage.getItem('UserId') ||
             sessionStorage.getItem('UserID') ||
             sessionStorage.getItem('OperatorID') ||
             sessionStorage.getItem('operatorId') ||
             window.AccountMaintenanceState.OperatorID || '';
-        formData.ModifiedBy = operatorId;
-        formData.CreatedBy = operatorId;
 
-        // Add OpenedBy and OpenedDate for account creation (not nullable)
+        // Set OperatorID, CreatedBy, and ModifiedBy to the same value
+        formData.OperatorID = operatorId;
+        formData.CreatedBy = operatorId;
+        formData.ModifiedBy = operatorId;
         formData.OpenedBy = operatorId;
+
+        // Add OpenedDate for account creation (not nullable)
         formData.OpenedDate = window.GlobalUtils?.getCurrentDate
             ? window.GlobalUtils.getCurrentDate()
             : new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+
+        // Map FaxNo (UI field ID) to Fax (API field name)
+        const faxElement = document.getElementById('FaxNo');
+        if (faxElement) {
+            formData.Fax = faxElement.value || '';
+            console.log('[AccountMaintenance] FaxNo element found, value:', faxElement.value);
+        } else {
+            // Fallback: check if already collected as FaxNo
+            formData.Fax = formData.FaxNo || '';
+        }
+        // Remove FaxNo if it exists (API expects Fax)
+        delete formData.FaxNo;
+
+        // Final debug: Log complete formData before return
+        console.log('[AccountMaintenance] Final formData keys:', Object.keys(formData));
+        console.log('[AccountMaintenance] formData.Fax =', formData.Fax);
 
         return formData;
     }
@@ -2408,6 +3119,10 @@
         showPageLoader(true, 'Creating account...');
 
         try {
+            // Debug: Log the full payload before sending
+            console.log('[AccountMaintenance] createAccount payload:', JSON.stringify(formData, null, 2));
+            console.log('[AccountMaintenance] Fax value in payload:', formData.Fax);
+
             const response = await fetch('/AccountsMaintenance/create-account', {
                 method: 'POST',
                 headers: {
@@ -2472,9 +3187,17 @@
             return;
         }
 
+        // Add UpdateCount for optimistic concurrency control
+        formData.UpdateCount = window.AccountMaintenanceState.UpdateCount || 0;
+
         showPageLoader(true, 'Updating account...');
 
         try {
+            // Debug: Log the full payload before sending
+            console.log('[AccountMaintenance] updateAccount payload:', JSON.stringify(formData, null, 2));
+            console.log('[AccountMaintenance] Fax value in payload:', formData.Fax);
+            console.log('[AccountMaintenance] UpdateCount in payload:', formData.UpdateCount);
+
             const response = await fetch('/AccountsMaintenance/update-account', {
                 method: 'POST',
                 headers: {
@@ -2796,7 +3519,12 @@
         });
     }
 
-    init();
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
 
 })();
 

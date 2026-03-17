@@ -113,23 +113,25 @@ function resolveAddressContext(requestData, fallbackModuleId) {
     const moduleId = firstNonEmptyString(
         requestData?.ModuleID,
         fallbackModuleId,
-        viewState.ModuleID,
         maintenanceCore?.moduleId,
-        parentContext.moduleId
+        parentContext.moduleId,
+        viewState.ModuleID
     );
 
     const clientId = firstNonEmptyString(
         requestData?.ClientID,
-        viewState.ClientID,
+        maintenanceCore?.getClientId?.(),
         maintenanceCore?.clientId,
-        parentContext.clientId
+        parentContext.clientId,
+        viewState.ClientID
     );
 
     const requestId = firstNonEmptyString(
         requestData?.RequestID,
-        viewState.RequestID,
+        maintenanceCore?.getRequestId?.(),
         maintenanceCore?.requestId,
-        parentContext.requestId
+        parentContext.requestId,
+        viewState.RequestID
     );
 
     return {
@@ -143,12 +145,7 @@ function resolveAddressContext(requestData, fallbackModuleId) {
 }
 
 function shouldAutoLoadStandaloneAddress(context) {
-    return Boolean(
-        context?.IsStandalone &&
-        context?.ClientID &&
-        context?.ModuleID &&
-        context.ModuleID !== '1000'
-    );
+    return Boolean(context?.IsStandalone && (context?.ClientID || context?.RequestID));
 }
 
 function parseAddressCandidate(candidate) {
@@ -343,7 +340,8 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
         ),
         lastContext: { ...initialContext },
         initialLoadApplied: false,
-        autoLoadInFlight: false
+        autoLoadInFlight: false,
+        workflowSavePendingNavigation: false
     };
 
     state.lastContext.IsStandalone = state.isStandalone;
@@ -361,6 +359,25 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
     };
 
     const canEditAddresses = () => state.isStandalone || Boolean(getAddressClientMaintenanceCore()?.isEditMode);
+
+    const hasAddressRows = () => Array.isArray(state.rows) && state.rows.length > 0;
+
+    const isTruthyAddressFlag = (value) => {
+        if (value === true) return true;
+        if (typeof value === 'number') return value !== 0;
+
+        const text = toTrimmedString(value).toLowerCase();
+        return text === 'true' || text === '1' || text === 'yes' || text === 'y';
+    };
+
+    const hasMailingAddressRow = () => {
+        if (!hasAddressRows()) return false;
+        return state.rows.some((row) => isTruthyAddressFlag(row?.IsMailingAddress));
+    };
+
+    const clearWorkflowSavePendingNavigation = () => {
+        state.workflowSavePendingNavigation = false;
+    };
 
     const setLoading = (show) => {
         if (loadingOverlay) {
@@ -439,29 +456,118 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
         return matchingOption ? matchingOption.textContent.trim() : '';
     };
 
+    const hasAddressValue = (value) => {
+        if (value === undefined || value === null) {
+            return false;
+        }
+
+        if (typeof value === 'string') {
+            return value.trim() !== '';
+        }
+
+        return true;
+    };
+
+    const firstAddressValue = (source, ...keys) => {
+        if (!source || typeof source !== 'object') {
+            return '';
+        }
+
+        for (const key of keys) {
+            if (hasAddressValue(source[key])) {
+                return source[key];
+            }
+        }
+
+        return '';
+    };
+
+    const withAddressAliases = (source) => {
+        const normalized = source ? { ...source } : {};
+
+        const regionValue = firstAddressValue(source, 'RegionID', 'RegionId', 'Region');
+        const subCityValue = firstAddressValue(source, 'SubCityID', 'SubCityId', 'SubCityZone');
+        const houseNoValue = firstAddressValue(source, 'HouseNo', 'HouseNumber');
+        const zipValue = firstAddressValue(source, 'ZipCode', 'ZIPCode');
+        const languageValue = firstAddressValue(source, 'Language', 'LanguageID');
+        const landMarkValue = firstAddressValue(source, 'LandMark', 'Landmark');
+        const phone1Value = firstAddressValue(source, 'Phone1', 'PhoneWork');
+        const phone2Value = firstAddressValue(source, 'Phone2', 'PhoneHome');
+
+        if (hasAddressValue(regionValue)) {
+            normalized.RegionID = regionValue;
+            normalized.Region = regionValue;
+        }
+
+        if (hasAddressValue(subCityValue)) {
+            normalized.SubCityID = subCityValue;
+            normalized.SubCityZone = subCityValue;
+        }
+
+        if (hasAddressValue(houseNoValue)) {
+            normalized.HouseNo = houseNoValue;
+            normalized.HouseNumber = houseNoValue;
+        }
+
+        if (hasAddressValue(zipValue)) {
+            normalized.ZipCode = zipValue;
+            normalized.ZIPCode = zipValue;
+        }
+
+        if (hasAddressValue(languageValue)) {
+            normalized.Language = languageValue;
+            normalized.LanguageID = languageValue;
+        }
+
+        if (hasAddressValue(landMarkValue)) {
+            normalized.LandMark = landMarkValue;
+            normalized.Landmark = landMarkValue;
+        }
+
+        if (hasAddressValue(phone1Value)) {
+            normalized.Phone1 = phone1Value;
+            normalized.PhoneWork = phone1Value;
+        }
+
+        if (hasAddressValue(phone2Value)) {
+            normalized.Phone2 = phone2Value;
+            normalized.PhoneHome = phone2Value;
+        }
+
+        return normalized;
+    };
+
     const normalizeAddressRows = (rows) => (rows || []).map((row) => {
         const recordId = row.RecordID ?? row.ID ?? row.AddressID ?? row.AddressId ?? null;
-        return {
+        const normalizedRow = {
             ID: row.ID ?? recordId,
             RecordID: recordId,
             AddressID: row.AddressID ?? row.AddressId ?? recordId,
-            ClientID: row.ClientID ?? '',
-            AddressTypeID: row.AddressTypeID ?? row.AddressTypeId ?? '',
+            ClientID: row.ClientID ?? row.ClientId ?? row.clientID ?? row.clientId ?? '',
+            AddressTypeID: row.AddressTypeID ?? row.AddressTypeId ?? row.addressTypeID ?? row.addressTypeId ?? '',
             IsMailingAddress: row.IsMailingAddress ?? row.IsMailing ?? false,
             Address1: row.Address1 ?? row.AddressLine1 ?? '',
             Address2: row.Address2 ?? row.AddressLine2 ?? '',
-            CityID: row.CityID ?? row.CityId ?? '',
-            CountryID: row.CountryID ?? row.CountryId ?? '',
-            Region: row.Region ?? row.RegionID ?? row.RegionId ?? '',
-            SubCityZone: row.SubCityZone ?? row.SubCityID ?? row.SubCityId ?? '',
+            CityID: row.CityID ?? row.CityId ?? row.cityID ?? row.cityId ?? '',
+            CountryID: row.CountryID ?? row.CountryId ?? row.countryID ?? row.countryId ?? '',
+            RegionID: row.RegionID ?? row.RegionId ?? row.Region ?? row.regionID ?? row.regionId ?? row.region ?? '',
+            Region: row.Region ?? row.RegionID ?? row.RegionId ?? row.region ?? row.regionID ?? row.regionId ?? '',
+            SubCityID: row.SubCityID ?? row.SubCityId ?? row.SubCityZone ?? row.subCityID ?? row.subCityId ?? row.subCityZone ?? '',
+            SubCityZone: row.SubCityZone ?? row.SubCityID ?? row.SubCityId ?? row.subCityZone ?? row.subCityID ?? row.subCityId ?? '',
             Wereda: row.Wereda ?? '',
             Kebele: row.Kebele ?? '',
-            HouseNumber: row.HouseNumber ?? row.HouseNo ?? '',
-            ZipCode: row.ZipCode ?? row.ZIPCode ?? '',
-            Language: row.Language ?? row.LanguageID ?? '',
+            HouseNo: row.HouseNo ?? row.HouseNumber ?? row.houseNo ?? row.houseNumber ?? row.housNo ?? row.housno ?? '',
+            HouseNumber: row.HouseNumber ?? row.HouseNo ?? row.houseNumber ?? row.houseNo ?? row.housNo ?? row.housno ?? '',
+            ZipCode: row.ZipCode ?? row.ZIPCode ?? row.zipCode ?? row.zIPCode ?? '',
+            ZIPCode: row.ZIPCode ?? row.ZipCode ?? row.zIPCode ?? row.zipCode ?? '',
+            Language: row.Language ?? row.LanguageID ?? row.language ?? row.languageID ?? '',
+            LanguageID: row.LanguageID ?? row.Language ?? row.languageID ?? row.language ?? '',
             LandMark: row.LandMark ?? row.Landmark ?? '',
-            PhoneWork: row.PhoneWork ?? row.Phone1 ?? '',
-            PhoneHome: row.PhoneHome ?? row.Phone2 ?? '',
+            Landmark: row.Landmark ?? row.LandMark ?? '',
+            Phone1: row.Phone1 ?? row.PhoneWork ?? row.phone1 ?? row.phoneWork ?? '',
+            PhoneWork: row.PhoneWork ?? row.Phone1 ?? row.phoneWork ?? row.phone1 ?? '',
+            Phone2: row.Phone2 ?? row.PhoneHome ?? row.phone2 ?? row.phoneHome ?? '',
+            PhoneHome: row.PhoneHome ?? row.Phone2 ?? row.phoneHome ?? row.phone2 ?? '',
             Mobile: row.Mobile ?? row.MobileNo ?? '',
             Email: row.Email ?? '',
             UpdateCount: row.UpdateCount ?? null,
@@ -470,7 +576,129 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
             ModifiedBy: row.ModifiedBy ?? '',
             ModifiedOn: row.ModifiedOn ?? ''
         };
+
+        return withAddressAliases(normalizedRow);
     });
+
+    const normalizeSingleAddressRow = (response) => {
+        const candidates = [
+            response?.Details?.[0],
+            response?.Details,
+            response?.data?.Details?.[0],
+            response?.data?.Details,
+            response?.data?.[0]?.Details?.[0],
+            response?.data?.[0]?.Details,
+            response?.data,
+            response
+        ];
+
+        for (const candidate of candidates) {
+            if (!candidate) continue;
+            if (Array.isArray(candidate)) {
+                if (candidate.length > 0 && typeof candidate[0] === 'object') {
+                    return candidate[0];
+                }
+                continue;
+            }
+
+            if (typeof candidate === 'object') {
+                return candidate;
+            }
+        }
+
+        return null;
+    };
+
+    const getAddressRecordIdentity = (candidate) => toTrimmedString(
+        candidate?.RecordID ??
+        candidate?.ID ??
+        candidate?.AddressID ??
+        candidate?.AddressId ??
+        ''
+    );
+
+    const syncAddressContextFromResponse = (response, requestData) => {
+        const row = normalizeSingleAddressRow(response) || {};
+        const maintenanceCore = getAddressClientMaintenanceCore();
+        const viewState = getAddressViewState();
+
+        const resolvedModuleId = firstNonEmptyString(
+            row?.ModuleID,
+            row?.ModuleId,
+            requestData?.ModuleID,
+            state.lastContext?.ModuleID,
+            configuredModuleId
+        );
+
+        const resolvedClientId = firstNonEmptyString(
+            row?.ClientID,
+            row?.ClientId,
+            requestData?.ClientID,
+            state.lastContext?.ClientID
+        );
+
+        const resolvedRequestId = firstNonEmptyString(
+            row?.RequestID,
+            row?.RequestId,
+            row?.ApplicationID,
+            row?.ApplicationId,
+            requestData?.RequestID,
+            requestData?.ApplicationID,
+            state.lastContext?.RequestID
+        );
+
+        const nextContext = {
+            ...state.lastContext,
+            ModuleID: resolvedModuleId || state.lastContext?.ModuleID || '',
+            ClientID: resolvedClientId || state.lastContext?.ClientID || '',
+            RequestID: resolvedRequestId || state.lastContext?.RequestID || '',
+            ApplicationID: resolvedRequestId || state.lastContext?.ApplicationID || '',
+            IsStandalone: state.isStandalone
+        };
+
+        state.lastContext = nextContext;
+
+        if (resolvedModuleId && maintenanceCore) {
+            maintenanceCore.moduleId = resolvedModuleId;
+        }
+
+        if (resolvedClientId) {
+            if (maintenanceCore) {
+                maintenanceCore.clientId = resolvedClientId;
+            }
+
+            const mainClientIdInput = document.getElementById('txt_mainClientId');
+            if (mainClientIdInput) {
+                mainClientIdInput.value = resolvedClientId;
+            }
+        }
+
+        if (resolvedRequestId) {
+            if (maintenanceCore) {
+                maintenanceCore.requestId = resolvedRequestId;
+            }
+
+            const mainApplicationIdInput = document.getElementById('txt_mainApplicationId');
+            if (mainApplicationIdInput) {
+                mainApplicationIdInput.value = resolvedRequestId;
+            }
+        }
+
+        if (viewState && typeof viewState === 'object') {
+            if (resolvedModuleId) {
+                viewState.ModuleID = resolvedModuleId;
+            }
+            if (resolvedClientId) {
+                viewState.ClientID = resolvedClientId;
+            }
+            if (resolvedRequestId) {
+                viewState.RequestID = resolvedRequestId;
+                viewState.ApplicationID = resolvedRequestId;
+            }
+        }
+
+        return nextContext;
+    };
 
     const renderAddressTable = (rows) => {
         state.rows = Array.isArray(rows) ? rows : [];
@@ -486,7 +714,8 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
             const addressLabel = [entry.Address1, entry.Address2].filter(Boolean).join(', ');
             const typeLabel = getSelectLabel('[data-address-field="AddressTypeID"]', entry.AddressTypeID) || entry.AddressTypeID || '';
             const cityLabel = getSelectLabel('[data-address-field="CityID"]', entry.CityID) || entry.CityID || '';
-            const regionLabel = getSelectLabel('[data-address-field="Region"]', entry.Region) || entry.Region || '';
+            const regionValue = firstAddressValue(entry, 'RegionID', 'Region');
+            const regionLabel = getSelectLabel('[data-address-field="RegionID"], [data-address-field="Region"]', regionValue) || regionValue || '';
             const mailing = entry.IsMailingAddress ? '<i class="bi bi-check-circle-fill text-success"></i>' : '';
 
             row.innerHTML = `
@@ -518,21 +747,23 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
             payload[key] = readFieldValue(field);
         });
 
+        const normalizedPayload = withAddressAliases(payload);
+
         if (state.selectedRecord) {
             if (state.selectedRecord.ID !== null && state.selectedRecord.ID !== undefined && state.selectedRecord.ID !== '') {
-                payload.ID = state.selectedRecord.ID;
+                normalizedPayload.ID = state.selectedRecord.ID;
             }
 
             if (state.selectedRecord.RecordID !== null && state.selectedRecord.RecordID !== undefined && state.selectedRecord.RecordID !== '') {
-                payload.RecordID = state.selectedRecord.RecordID;
+                normalizedPayload.RecordID = state.selectedRecord.RecordID;
             }
 
             if (state.selectedRecord.AddressID !== null && state.selectedRecord.AddressID !== undefined && state.selectedRecord.AddressID !== '') {
-                payload.AddressID = state.selectedRecord.AddressID;
+                normalizedPayload.AddressID = state.selectedRecord.AddressID;
             }
 
             if (state.selectedRecord.UpdateCount !== null && state.selectedRecord.UpdateCount !== undefined && state.selectedRecord.UpdateCount !== '') {
-                payload.UpdateCount = state.selectedRecord.UpdateCount;
+                normalizedPayload.UpdateCount = state.selectedRecord.UpdateCount;
             }
         }
 
@@ -543,13 +774,13 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
         const recordId = state.selectedRecord?.RecordID ?? state.selectedRecord?.ID ?? state.selectedRecord?.AddressID ?? null;
 
 
-        payload.ModuleID = context.ModuleID;
-        payload.ClientID = context.ClientID;
-        payload.RequestID = context.RequestID;
-        payload.ApplicationID = context.ApplicationID || null;
-        payload.RecordID = recordId;
+        normalizedPayload.ModuleID = context.ModuleID;
+        normalizedPayload.ClientID = context.ClientID;
+        normalizedPayload.RequestID = context.RequestID;
+        normalizedPayload.ApplicationID = context.ApplicationID || null;
+        normalizedPayload.RecordID = recordId;
         //payload["Payload"] = payload
-        return payload;
+        return normalizedPayload;
         //return {
         //    ModuleID: context.ModuleID,
         //    ClientID: context.ClientID,
@@ -563,10 +794,12 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
     const applyRowPayload = (payload) => {
         if (!payload) return;
 
+        const normalizedPayload = withAddressAliases(payload);
+
         form.querySelectorAll('[data-address-field]').forEach((field) => {
             const key = field.dataset.addressField;
             if (!key) return;
-            const value = payload[key];
+            const value = normalizedPayload[key];
 
             if (field.type === 'checkbox') {
                 field.checked = Boolean(value);
@@ -577,6 +810,8 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
     };
 
     const refreshAddressTable = async (requestData, refreshOptions = {}) => {
+        clearWorkflowSavePendingNavigation();
+
         const context = resolveAddressContext(requestData, configuredModuleId);
         context.IsStandalone = state.isStandalone;
         state.lastContext = { ...state.lastContext, ...context };
@@ -607,6 +842,17 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
 
             const rows = isNoDataResponse(response) ? [] : normalizeAddressRows(extractList(response));
             renderAddressTable(rows);
+
+            const selectedRecordIdentity = toTrimmedString(refreshOptions.selectRecordIdentity);
+            if (selectedRecordIdentity && tbody) {
+                const selectedIndex = rows.findIndex((entry) => getAddressRecordIdentity(entry) === selectedRecordIdentity);
+                if (selectedIndex >= 0) {
+                    const rowElement = tbody.querySelector(`tr[data-index="${selectedIndex}"]`);
+                    if (rowElement) {
+                        selectAddressRow(rowElement, rows[selectedIndex]);
+                    }
+                }
+            }
 
             return rows;
         } catch (error) {
@@ -664,6 +910,7 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
 
         const actionLabel = mode === 'create' ? 'create' : (mode === 'update' ? 'update' : 'delete');
 
+        clearWorkflowSavePendingNavigation();
         setLoading(true);
         try {
             const response = await actionHandler(request);
@@ -671,9 +918,21 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
                 throw new Error(getResponseMessage(response, `Address ${actionLabel} failed.`));
             }
 
+            const nextContext = syncAddressContextFromResponse(response, request);
+            const persistedRecordIdentity = getAddressRecordIdentity(normalizeSingleAddressRow(response)) ||
+                getAddressRecordIdentity(request) ||
+                getAddressRecordIdentity(state.selectedRecord);
+
             showAddressToast(`Address ${actionLabel} completed`, 'success');
             state.mode = 'view';
-            await refreshAddressTable(state.lastContext, { markInitialLoad: state.initialLoadApplied });
+            await refreshAddressTable(nextContext, {
+                markInitialLoad: state.initialLoadApplied,
+                selectRecordIdentity: persistedRecordIdentity
+            });
+
+            if (mode === 'create' || mode === 'update') {
+                state.workflowSavePendingNavigation = true;
+            }
         } catch (error) {
             showAddressToast(`Address ${actionLabel} failed - ${error.message}`, 'error');
         } finally {
@@ -693,6 +952,7 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
         buttons.new.addEventListener('click', () => {
             if (!canEditAddresses()) return;
 
+            clearWorkflowSavePendingNavigation();
             clearTableSelection();
             resetFormFields();
             state.selectedRecord = null;
@@ -709,6 +969,7 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
                 return;
             }
 
+            clearWorkflowSavePendingNavigation();
             state.mode = 'update';
             setFieldsEnabled(true);
             applyActionState();
@@ -717,6 +978,7 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
 
     if (buttons.clear) {
         buttons.clear.addEventListener('click', () => {
+            clearWorkflowSavePendingNavigation();
             resetViewState();
         });
     }
@@ -735,6 +997,7 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
 
             if (!confirmed) return;
 
+            clearWorkflowSavePendingNavigation();
             state.mode = 'delete';
             await submitCurrentMode('delete');
         });
@@ -753,6 +1016,37 @@ function bindAddressCrud(tabRoot, moduleId, options = {}) {
 
     tabRoot._cmLoadData = (requestData) => refreshAddressTable(requestData);
     tabRoot._cmRefreshData = (requestData, refreshOptions = {}) => refreshAddressTable(requestData, refreshOptions);
+    tabRoot._cmHasWorkflowData = () => hasAddressRows();
+    tabRoot._cmHandleWorkflowStep = () => {
+        if (state.mode === 'create' || state.mode === 'update') {
+            showAddressToast('Address: click Update to save the current address before proceeding.', 'warning');
+            return { handled: true, canNavigate: false };
+        }
+
+        if (!hasAddressRows()) {
+            showAddressToast('Address: add and save at least one address before clicking Next.', 'warning');
+            return { handled: true, canNavigate: false };
+        }
+
+        if (!hasMailingAddressRow()) {
+            showAddressToast('Address: at least one saved address must be marked as Mailing Address before clicking Next.', 'warning');
+            return { handled: true, canNavigate: false };
+        }
+
+        return {
+            handled: true,
+            canNavigate: true,
+            markPersisted: true
+        };
+    };
+    tabRoot._cmConsumeWorkflowPersistedState = () => {
+        if (!state.workflowSavePendingNavigation) {
+            return { persisted: false };
+        }
+
+        state.workflowSavePendingNavigation = false;
+        return { persisted: true };
+    };
     tabRoot._cmMaybeAutoLoadAddress = (requestData) => {
         const context = resolveAddressContext(requestData, configuredModuleId);
         context.IsStandalone = state.isStandalone;

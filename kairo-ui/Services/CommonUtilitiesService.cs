@@ -3,6 +3,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace kairo_ui.Services
 {
@@ -160,6 +162,384 @@ namespace kairo_ui.Services
                 SetIfEmpty(kvp.Key, kvp.Value);
             }
             return requestData;
+        }
+
+        public long? ResolveRequestDataLong(JsonNode? requestData, params string[] keys)
+        {
+            if (requestData == null)
+            {
+                return null;
+            }
+
+            if (TryGetRequestNodeValue(requestData, "RecordID", out var recordIdNode) && TryParseLong(recordIdNode, out var recordId))
+            {
+                return recordId;
+            }
+
+            foreach (var key in keys)
+            {
+                if (TryGetRequestDataNodeValue(requestData, key, out var valueNode) && TryParseLong(valueNode, out var parsedValue))
+                {
+                    return parsedValue;
+                }
+            }
+
+            return null;
+        }
+
+        public short? ResolveRequestDataShort(JsonNode? requestData, params string[] keys)
+        {
+            if (requestData == null)
+            {
+                return null;
+            }
+
+            foreach (var key in keys)
+            {
+                if (TryGetRequestDataNodeValue(requestData, key, out var valueNode) && TryParseShort(valueNode, out var parsedValue))
+                {
+                    return parsedValue;
+                }
+            }
+
+            return null;
+        }
+
+        public string? ResolveRequestDataString(JsonNode? requestData, params string[] keys)
+        {
+            if (requestData == null)
+            {
+                return null;
+            }
+
+            foreach (var key in keys)
+            {
+                if (TryGetRequestDataNodeValue(requestData, key, out var valueNode))
+                {
+                    return TryParseString(valueNode);
+                }
+            }
+
+            return null;
+        }
+
+        public DateTime? ResolveRequestDataDateTime(JsonNode? requestData, params string[] keys)
+        {
+            if (requestData == null)
+            {
+                return null;
+            }
+
+            foreach (var key in keys)
+            {
+                if (TryGetRequestDataNodeValue(requestData, key, out var valueNode) && TryParseDateTime(valueNode, out var parsedValue))
+                {
+                    return parsedValue;
+                }
+            }
+
+            return null;
+        }
+
+        public bool? ResolveRequestDataBool(JsonNode? requestData, params string[] keys)
+        {
+            if (requestData == null)
+            {
+                return null;
+            }
+
+            foreach (var key in keys)
+            {
+                if (TryGetRequestDataNodeValue(requestData, key, out var valueNode) && TryParseBool(valueNode, out var parsedValue))
+                {
+                    return parsedValue;
+                }
+            }
+
+            return null;
+        }
+
+        private static bool TryGetRequestDataNodeValue(JsonNode requestData, string key, out JsonNode? valueNode)
+        {
+            valueNode = null;
+
+            if (TryGetRequestNodeValue(requestData, key, out valueNode))
+            {
+                return true;
+            }
+
+            if (TryGetChildNodeValue(requestData, "Payload", key, out valueNode))
+            {
+                return true;
+            }
+
+            if (TryGetChildNodeValue(requestData, "RequestData", key, out valueNode))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool TryGetChildNodeValue(JsonNode requestData, string childKey, string key, out JsonNode? valueNode)
+        {
+            valueNode = null;
+            if (!TryGetRequestNodeValue(requestData, childKey, out var childNode) || childNode is not JsonObject childObject)
+            {
+                return false;
+            }
+
+            return TryGetObjectNodeValue(childObject, key, out valueNode);
+        }
+
+        private static bool TryGetRequestNodeValue(JsonNode requestData, string key, out JsonNode? valueNode)
+        {
+            valueNode = null;
+            return requestData is JsonObject requestObject && TryGetObjectNodeValue(requestObject, key, out valueNode);
+        }
+
+        private static bool TryGetObjectNodeValue(JsonObject requestObject, string key, out JsonNode? valueNode)
+        {
+            if (requestObject.TryGetPropertyValue(key, out valueNode))
+            {
+                return true;
+            }
+
+            foreach (var property in requestObject)
+            {
+                if (string.Equals(property.Key, key, StringComparison.OrdinalIgnoreCase))
+                {
+                    valueNode = property.Value;
+                    return true;
+                }
+            }
+
+            valueNode = null;
+            return false;
+        }
+
+        private static bool TryParseLong(JsonNode? valueNode, out long value)
+        {
+            value = 0;
+            if (valueNode == null)
+            {
+                return false;
+            }
+
+            if (valueNode is JsonValue jsonValue)
+            {
+                if (jsonValue.TryGetValue<long>(out value))
+                {
+                    return true;
+                }
+
+                if (jsonValue.TryGetValue<int>(out var intValue))
+                {
+                    value = intValue;
+                    return true;
+                }
+
+                if (jsonValue.TryGetValue<short>(out var shortValue))
+                {
+                    value = shortValue;
+                    return true;
+                }
+
+                if (jsonValue.TryGetValue<string>(out var textValue) && long.TryParse(textValue, out value))
+                {
+                    return true;
+                }
+
+                if (jsonValue.TryGetValue<JsonElement>(out var jsonElement))
+                {
+                    return TryParseLong(jsonElement, out value);
+                }
+            }
+
+            return long.TryParse(valueNode.ToString(), out value);
+        }
+
+        private static bool TryParseLong(JsonElement jsonElement, out long value)
+        {
+            value = 0;
+            if (jsonElement.ValueKind == JsonValueKind.Number)
+            {
+                return jsonElement.TryGetInt64(out value);
+            }
+
+            return jsonElement.ValueKind == JsonValueKind.String && long.TryParse(jsonElement.GetString(), out value);
+        }
+
+        private static bool TryParseShort(JsonNode? valueNode, out short value)
+        {
+            value = 0;
+            if (valueNode == null)
+            {
+                return false;
+            }
+
+            if (valueNode is JsonValue jsonValue)
+            {
+                if (jsonValue.TryGetValue<short>(out value))
+                {
+                    return true;
+                }
+
+                if (jsonValue.TryGetValue<int>(out var intValue) && intValue >= short.MinValue && intValue <= short.MaxValue)
+                {
+                    value = (short)intValue;
+                    return true;
+                }
+
+                if (jsonValue.TryGetValue<long>(out var longValue) && longValue >= short.MinValue && longValue <= short.MaxValue)
+                {
+                    value = (short)longValue;
+                    return true;
+                }
+
+                if (jsonValue.TryGetValue<string>(out var textValue) && short.TryParse(textValue, out value))
+                {
+                    return true;
+                }
+
+                if (jsonValue.TryGetValue<JsonElement>(out var jsonElement))
+                {
+                    if (jsonElement.ValueKind == JsonValueKind.Number && jsonElement.TryGetInt16(out value))
+                    {
+                        return true;
+                    }
+
+                    if (jsonElement.ValueKind == JsonValueKind.String && short.TryParse(jsonElement.GetString(), out value))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return short.TryParse(valueNode.ToString(), out value);
+        }
+
+        private static string? TryParseString(JsonNode? valueNode)
+        {
+            if (valueNode == null)
+            {
+                return null;
+            }
+
+            if (valueNode is JsonValue jsonValue)
+            {
+                if (jsonValue.TryGetValue<string>(out var textValue))
+                {
+                    return textValue;
+                }
+
+                if (jsonValue.TryGetValue<JsonElement>(out var jsonElement))
+                {
+                    return jsonElement.ValueKind == JsonValueKind.String ? jsonElement.GetString() : jsonElement.ToString();
+                }
+            }
+
+            return valueNode.ToString();
+        }
+
+        private static bool TryParseDateTime(JsonNode? valueNode, out DateTime value)
+        {
+            value = default;
+            if (valueNode == null)
+            {
+                return false;
+            }
+
+            if (valueNode is JsonValue jsonValue)
+            {
+                if (jsonValue.TryGetValue<DateTime>(out value))
+                {
+                    return true;
+                }
+
+                if (jsonValue.TryGetValue<long>(out var epochValue))
+                {
+                    value = DateTimeOffset.FromUnixTimeMilliseconds(epochValue).UtcDateTime;
+                    return true;
+                }
+
+                if (jsonValue.TryGetValue<string>(out var textValue) && DateTime.TryParse(textValue, out value))
+                {
+                    return true;
+                }
+
+                if (jsonValue.TryGetValue<JsonElement>(out var jsonElement))
+                {
+                    if (jsonElement.ValueKind == JsonValueKind.String && DateTime.TryParse(jsonElement.GetString(), out value))
+                    {
+                        return true;
+                    }
+
+                    if (jsonElement.ValueKind == JsonValueKind.Number && jsonElement.TryGetInt64(out var epochMs))
+                    {
+                        value = DateTimeOffset.FromUnixTimeMilliseconds(epochMs).UtcDateTime;
+                        return true;
+                    }
+                }
+            }
+
+            return DateTime.TryParse(valueNode.ToString(), out value);
+        }
+
+        private static bool TryParseBool(JsonNode? valueNode, out bool value)
+        {
+            value = false;
+            if (valueNode == null)
+            {
+                return false;
+            }
+
+            if (valueNode is JsonValue jsonValue)
+            {
+                if (jsonValue.TryGetValue<bool>(out value))
+                {
+                    return true;
+                }
+
+                if (jsonValue.TryGetValue<int>(out var intValue))
+                {
+                    value = intValue > 0;
+                    return true;
+                }
+
+                if (jsonValue.TryGetValue<long>(out var longValue))
+                {
+                    value = longValue > 0;
+                    return true;
+                }
+
+                if (jsonValue.TryGetValue<string>(out var textValue) && bool.TryParse(textValue, out value))
+                {
+                    return true;
+                }
+
+                if (jsonValue.TryGetValue<JsonElement>(out var jsonElement))
+                {
+                    if (jsonElement.ValueKind == JsonValueKind.True || jsonElement.ValueKind == JsonValueKind.False)
+                    {
+                        value = jsonElement.GetBoolean();
+                        return true;
+                    }
+
+                    if (jsonElement.ValueKind == JsonValueKind.String && bool.TryParse(jsonElement.GetString(), out value))
+                    {
+                        return true;
+                    }
+
+                    if (jsonElement.ValueKind == JsonValueKind.Number && jsonElement.TryGetInt32(out var numericValue))
+                    {
+                        value = numericValue > 0;
+                        return true;
+                    }
+                }
+            }
+
+            return bool.TryParse(valueNode.ToString(), out value);
         }
         ///// <summary>
         ///// Ensures default values are set on the request data object.

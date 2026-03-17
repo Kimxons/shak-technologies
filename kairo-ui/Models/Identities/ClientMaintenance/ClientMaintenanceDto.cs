@@ -13,6 +13,17 @@ namespace kairo_ui.Models.Identities.ClientMaintenance
         public int? Direction { get; set; } = 0;
     }
 
+    /// <summary>
+    /// Simple request for p_GetClientIdentityType stored procedure
+    /// Only sends: ClientID, OperatorID, IdentityTypeID
+    /// </summary>
+    public class GetClientIdentityTypeRequest
+    {
+        public string? ClientID { get; set; }
+        public string? OperatorID { get; set; }
+        public string? IdentityTypeID { get; set; }
+    }
+
     public class ClientMaintenanceValidateRequest : ClientMaintenanceBaseRequest
     {
         public string? ControlTypeID { get; set; }

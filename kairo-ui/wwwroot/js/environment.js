@@ -15,6 +15,7 @@
     baseUrlSystemCodes: "http://172.16.2.31:3306",
     baseUrlCommon: "http://172.16.2.31:3306",
     baseUrlMicroFinance: "http://172.16.2.31:3308",
+    baseUrlOldApi: "http://172.17.50.15:3308",
     baseUrlProduct: "http://172.16.2.31:3306",
     baseUrlOtherModules: "http://172.16.2.31:3306", // Bank Account Maintenance, etc.
     baseUrlCharges: "http://172.16.2.31:3306",

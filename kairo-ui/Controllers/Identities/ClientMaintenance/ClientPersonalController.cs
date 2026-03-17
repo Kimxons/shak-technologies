@@ -90,7 +90,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                 return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
             try
             {
-                _commonUtilities.EnsureDefaults(requestData, requestData["ModuleID"]!.ToString());
+                _commonUtilities.EnsureDefaults(requestData, requestData["ModuleID"]?.ToString());
                 _logger.LogInformation("client-maintenance.personal.get request: {Request}", System.Text.Json.JsonSerializer.Serialize(requestData));
                 var response = await _apiService.CreateAsync<System.Text.Json.JsonElement>("ClientManagementApi", ApiEndpoints.GET_CLIENT_INDIVIDUAL, requestData);
                 return Ok(response);
@@ -112,22 +112,35 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
             try
             {
                 //_commonUtilities.EnsureDefaults(requestData, requestData?.ModuleID);
-                if (requestData["CreatedBy"] == null)
+                if (string.IsNullOrEmpty(requestData["CreatedBy"]?.ToString()))
                 {
                     requestData["CreatedBy"] = _commonUtilities.ResolveSessionValue("user_name", "user_id");
                 }
+                if (string.IsNullOrEmpty(requestData["OpenedDate"]?.ToString()))
+                {
+                    requestData["OpenedDate"] = DateTime.UtcNow.ToString("dd MMM yyyy HH:mm:ss.fff");
+                }
 
-                if (requestData["OurBranchID"] == null)
+                if (string.IsNullOrEmpty(requestData["OpenedBy"]?.ToString()))
+                {
+                    requestData["OpenedBy"] = _commonUtilities.ResolveSessionValue("user_name", "user_id");
+
+                }
+                if (string.IsNullOrEmpty(requestData["CreatedOn"]?.ToString()))
+                {
+                    requestData["CreatedOn"] = DateTime.UtcNow.ToString("dd MMM yyyy HH:mm:ss.fff");
+                }
+                if (string.IsNullOrEmpty(requestData["OurBranchID"]?.ToString()))
                 {
                     requestData["OurBranchID"] = _commonUtilities.ResolveSessionValue("branch_code", "branch_id") ?? string.Empty;
                 }
 
-                if (string.IsNullOrEmpty(requestData["RequestID"]!.ToString()))
+                if (string.IsNullOrEmpty(requestData["RequestID"]?.ToString()))
                 {
                     requestData["RequestID"] = HttpContext!.Connection.Id;
                 }
 
-                _commonUtilities.EnsureDefaults(requestData, requestData["ModuleID"]!.ToString());
+                _commonUtilities.EnsureDefaults(requestData, requestData["ModuleID"]?.ToString());
                 //Dictionary<string,object> finalRequestData = _commonUtilities.EnrichDefaults(JsonSerializer.Deserialize<Dictionary<string,object>>(requestData.ToJsonString()), JsonObject.Parse(requestData.ToJsonString()).get);
                 _logger.LogInformation("client-maintenance.personal.create request: {Request}", System.Text.Json.JsonSerializer.Serialize(requestData));
                 var response = await _apiService.CreateAsync<System.Text.Json.JsonElement>("ClientManagementApi", ApiEndpoints.CREATE_CLIENT_INDIVIDUAL, requestData);
@@ -149,17 +162,39 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                 return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
             try
             {
-                if (requestData["ModifiedBy"] == null)
+                if (string.IsNullOrEmpty(requestData["CreatedBy"]?.ToString()))
+                {
+                    requestData["CreatedBy"] = _commonUtilities.ResolveSessionValue("user_name", "user_id");
+                }
+                if (string.IsNullOrEmpty(requestData["CreatedOn"]?.ToString()))
+                {
+                    requestData["CreatedOn"] = DateTime.UtcNow.ToString("dd MMM yyyy HH:mm:ss.fff");
+                }
+                if (string.IsNullOrEmpty(requestData["OpenedDate"]?.ToString()))
+                {
+                    requestData["OpenedDate"] = DateTime.UtcNow.ToString("dd MMM yyyy HH:mm:ss.fff");
+                }
+
+                if (string.IsNullOrEmpty(requestData["OpenedBy"]?.ToString()))
+                {
+                    requestData["OpenedBy"] = _commonUtilities.ResolveSessionValue("user_name", "user_id");
+
+                }
+                if (string.IsNullOrEmpty(requestData["ModifiedBy"]?.ToString()))
                 {
                     requestData["ModifiedBy"] = _commonUtilities.ResolveSessionValue("user_name", "user_id");
                 }
 
-                if (requestData["OurBranchID"] == null)
+                if (string.IsNullOrEmpty(requestData["ModifiedOn"]?.ToString()))
+                {
+                    requestData["ModifiedOn"] = DateTime.UtcNow.ToString("dd MMM yyyy HH:mm:ss.fff");
+                }
+                if (string.IsNullOrEmpty(requestData["OurBranchID"]?.ToString()))
                 {
                     requestData["OurBranchID"] = _commonUtilities.ResolveSessionValue("branch_code", "branch_id") ?? string.Empty;
                 }
 
-                _commonUtilities.EnsureDefaults(requestData, requestData["ModuleID"]!.ToString());
+                _commonUtilities.EnsureDefaults(requestData, requestData["ModuleID"]?.ToString());
                 _logger.LogInformation("client-maintenance.personal.update request: {Request}", System.Text.Json.JsonSerializer.Serialize(requestData));
                 var response = await _apiService.CreateAsync<System.Text.Json.JsonElement>("ClientManagementApi", ApiEndpoints.EDIT_CLIENT_INDIVIDUAL, requestData);
                 return Ok(response);
@@ -180,7 +215,7 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                 return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
             try
             {
-                _commonUtilities.EnsureDefaults(requestData, requestData["ModuleID"]!.ToString());
+                _commonUtilities.EnsureDefaults(requestData, requestData["ModuleID"]?.ToString());
                 _logger.LogInformation("client-maintenance.personal.delete request: {Request}", System.Text.Json.JsonSerializer.Serialize(requestData));
                 var response = await _apiService.CreateAsync<System.Text.Json.JsonElement>("ClientManagementApi", ApiEndpoints.DELETE_CLIENT_INDIVIDUAL, requestData);
                 return Ok(response);

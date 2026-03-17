@@ -110,19 +110,56 @@
                     {
                         if (!string.IsNullOrEmpty(ractivities.AccessedFields))
                         {
-                            string[] parts = ractivities.AccessedFields.Split(':');
-                            if (parts.Length < 2)
+                            // Parse AccessedFields - supports formats:
+                            // "ClientID:xxxx" or "BranchID:xxxx,AccountID:yyyy"
+                            string displayId = "";
+                            string activityKey = "";
+
+                            // Check for AccountID in the field (Account Maintenance uses "BranchID:xxxx,AccountID:yyyy")
+                            if (ractivities.AccessedFields.Contains("AccountID:"))
                             {
-                                continue; // Skip if format is unexpected
+                                var match = System.Text.RegularExpressions.Regex.Match(ractivities.AccessedFields, @"AccountID[:\s]*([^\s,;]+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                                if (match.Success)
+                                {
+                                    displayId = match.Groups[1].Value;
+                                    activityKey = "AccountID";
+                                }
+                            }
+                            else if (ractivities.AccessedFields.Contains("ClientID:"))
+                            {
+                                var match = System.Text.RegularExpressions.Regex.Match(ractivities.AccessedFields, @"ClientID[:\s]*([^\s,;]+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                                if (match.Success)
+                                {
+                                    displayId = match.Groups[1].Value;
+                                    activityKey = "ClientID";
+                                }
+                            }
+                            else
+                            {
+                                // Fallback: simple split for other formats like "Key:Value"
+                                string[] parts = ractivities.AccessedFields.Split(':');
+                                if (parts.Length >= 2)
+                                {
+                                    activityKey = parts[0];
+                                    displayId = parts[1];
+                                }
+                            }
+
+                            if (string.IsNullOrEmpty(displayId))
+                            {
+                                continue; // Skip if we couldn't parse the ID
                             }
                             <div class="sidebar-item sidebar-item--static sidebar-item--enhanced" style="cursor:pointer;" data-accessedfields="@ractivities.AccessedFields"
-                                 data-activity-key="@parts[0]"
-                                 data-activity-value="@parts[1]">
+                                 data-activity-key="@activityKey"
+                                 data-activity-value="@displayId">
                                 <div class="sidebar-item__content">
                                     <i class="bi bi-file-earmark-text sidebar-item__icon"></i>
                                     <div class="sidebar-item__text">
-                                        <div class="sidebar-item__title">@parts[1]</div>
-                                        <div class="sidebar-item__description">@ractivities.Narration</div>
+                                        <div class="sidebar-item__title">@displayId</div>
+                                        @if (!string.IsNullOrEmpty(ractivities.Narration))
+                                        {
+                                            <div class="sidebar-item__description">@ractivities.Narration</div>
+                                        }
                                     </div>
                                 </div>
                             </div>
@@ -133,7 +170,7 @@
         }
     </div><!-- End sidebar-content -->
 </div>
-<script src="~/js/modules/shared/sidebar.js" type="text/javascript"></script>
+<script type="text/javascript" src="~/js/modules/shared/sidebar.js"></script>
 @* Sidebar JavaScript - Load once when partial is rendered *@
 @* @section Scripts {
     <script src="~/js/modules/shared/sidebar.js" asp-append-version="true" type="text/javascript"></script>

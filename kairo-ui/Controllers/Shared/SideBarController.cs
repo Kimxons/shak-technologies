@@ -156,7 +156,11 @@ namespace kairo_ui.Controllers.Shared
             {
                 var branchId = HttpContext.Session.GetString("branch_code") ?? request.OurBranchID ?? string.Empty;
                 var operatorId = HttpContext.Session.GetString("user_name") ?? request.LoggedInOperator ?? string.Empty;
-                var moduleId = request.ModuleID?.Trim() ?? string.Empty;
+                var moduleIdStr = request.ModuleID?.Trim() ?? string.Empty;
+                
+                // Parse moduleId as int - API expects number
+                int moduleId = 0;
+                int.TryParse(moduleIdStr, out moduleId);
 
                 if (string.IsNullOrWhiteSpace(branchId) || string.IsNullOrWhiteSpace(operatorId))
                 {
@@ -168,11 +172,12 @@ namespace kairo_ui.Controllers.Shared
                     OurBranchID = branchId,
                     LoggedInOperator = operatorId,
                     ModuleID = moduleId,
-                    AccessedFields = accessedFields
-                    
+                    AccessedFields = accessedFields,
+                    Narration = request.Narration ?? string.Empty
                 };
 
-                _logger.LogInformation("[SideBar] AddRecentActivity for ModuleID: {ModuleID}, AccessedFields: {AccessedFields}", moduleId, accessedFields);
+                _logger.LogInformation("[SideBar] AddRecentActivity for ModuleID: {ModuleID}, AccessedFields: {AccessedFields}, Narration: {Narration}", 
+                    moduleId, accessedFields, request.Narration);
 
                 var response = await _apiService.CreateAsync<ResponseDetail<object>>(
                     "SystemCoreApi",
@@ -185,6 +190,84 @@ namespace kairo_ui.Controllers.Shared
             catch (Exception ex)
             {
                 _logger.LogError(ex, "[SideBar] Error adding recent activity");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        [HttpGet("GetRecentActivities")]
+        public async Task<IActionResult> GetRecentActivities([FromQuery] string moduleId)
+        {
+            if (!_authService.IsAuthenticated())
+            {
+                return Unauthorized(new { Success = false, ErrorMessage = "User not authenticated" });
+            }
+
+            try
+            {
+                var branchId = HttpContext.Session.GetString("branch_code") ?? string.Empty;
+                var operatorId = HttpContext.Session.GetString("user_name") ?? string.Empty;
+
+                if (string.IsNullOrWhiteSpace(branchId) || string.IsNullOrWhiteSpace(operatorId))
+                {
+                    return BadRequest(new { Success = false, ErrorMessage = "Operator or branch is missing" });
+                }
+
+                // Parse moduleId as int - API expects number
+                int moduleIdInt = 0;
+                int.TryParse(moduleId, out moduleIdInt);
+
+                var requestData = new
+                {
+                    OurBranchID = branchId,
+                    LoggedInOperator = operatorId,
+                    ModuleID = moduleIdInt
+                };
+
+                _logger.LogInformation("[SideBar] GetRecentActivities for ModuleID: {ModuleID}", moduleIdInt);
+
+                var response = await _apiService.CreateAsync<ResponseDetail<object>>(
+                    "SystemCoreApi",
+                    ApiEndpoints.GET_RECENT_ACTIVITIES,
+                    requestData
+                );
+
+                _logger.LogInformation("[SideBar] GetRecentActivities raw response: {@Response}", response);
+
+                // Extract activities array from response - handle various formats
+                var activities = new List<object>();
+                if (response?.Details != null)
+                {
+                    if (response.Details is System.Text.Json.JsonElement jsonElement)
+                    {
+                        // Try to find Activities array in the response
+                        if (jsonElement.TryGetProperty("Activities", out var activitiesElement) || 
+                            jsonElement.TryGetProperty("activities", out activitiesElement) ||
+                            jsonElement.TryGetProperty("Data", out activitiesElement) ||
+                            jsonElement.TryGetProperty("data", out activitiesElement))
+                        {
+                            if (activitiesElement.ValueKind == System.Text.Json.JsonValueKind.Array)
+                            {
+                                activities = System.Text.Json.JsonSerializer.Deserialize<List<object>>(activitiesElement.GetRawText()) ?? new List<object>();
+                            }
+                        }
+                        else if (jsonElement.ValueKind == System.Text.Json.JsonValueKind.Array)
+                        {
+                            // Details itself is an array
+                            activities = System.Text.Json.JsonSerializer.Deserialize<List<object>>(jsonElement.GetRawText()) ?? new List<object>();
+                        }
+                    }
+                    else if (response.Details is IEnumerable<object> enumerable)
+                    {
+                        activities = enumerable.ToList();
+                    }
+                }
+
+                _logger.LogInformation("[SideBar] GetRecentActivities returning {Count} activities", activities.Count);
+                return Ok(new { Success = true, Activities = activities });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[SideBar] Error getting recent activities");
                 return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
             }
         }
@@ -254,8 +337,9 @@ namespace kairo_ui.Controllers.Shared
                 {
                     if (response?.Details != null)
                     {
-                        _logger.LogInformation($"[SideBar] Successfully fetched recent activities");
-                        return (List<RecentActivityItem>)response.Details;
+                        var recentActivities = DeserializeRecentActivities(response.Details);
+                        _logger.LogInformation("[SideBar] Successfully fetched {Count} recent activities", recentActivities.Count);
+                        return recentActivities;
                     }
                 }
 
@@ -266,6 +350,35 @@ namespace kairo_ui.Controllers.Shared
             {
                 _logger.LogError(ex, "[SideBar] Error fetching recent activities from SystemCore API");
                 throw;
+            }
+        }
+
+        private List<RecentActivityItem> DeserializeRecentActivities(object details)
+        {
+            try
+            {
+                if (details is List<RecentActivityItem> typedList)
+                {
+                    return typedList;
+                }
+
+                if (details is JsonElement jsonElement)
+                {
+                    if (jsonElement.ValueKind == JsonValueKind.Array)
+                    {
+                        return JsonSerializer.Deserialize<List<RecentActivityItem>>(jsonElement.GetRawText(), JsonOptions) ?? new List<RecentActivityItem>();
+                    }
+
+                    _logger.LogWarning("[SideBar] Recent activities details returned unexpected JSON kind: {JsonKind}", jsonElement.ValueKind);
+                }
+
+                var detailsJson = JsonSerializer.Serialize(details, JsonOptions);
+                return JsonSerializer.Deserialize<List<RecentActivityItem>>(detailsJson, JsonOptions) ?? new List<RecentActivityItem>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "[SideBar] Failed to deserialize recent activities details");
+                return new List<RecentActivityItem>();
             }
         }
     }

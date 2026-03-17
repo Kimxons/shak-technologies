@@ -97,6 +97,15 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                 return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
             try
             {
+
+                if (string.IsNullOrEmpty(requestData["OpenedDate"]?.ToString()))
+                {
+                    requestData["OpenedDate"] = DateTime.UtcNow.ToString("dd MMM yyyy HH:mm:ss.fff");
+                }
+                if (string.IsNullOrEmpty(requestData["CreatedOn"]?.ToString()))
+                {
+                    requestData["CreatedOn"] = DateTime.UtcNow.ToString("dd MMM yyyy HH:mm:ss.fff");
+                }
                 _commonUtilities.EnsureDefaults(requestData, requestData["ModuleID"]?.ToString());
                 _logger.LogInformation("client-maintenance.corporate.create request: {Request}", System.Text.Json.JsonSerializer.Serialize(requestData));
                 var response = await _apiService.CreateAsync<System.Text.Json.JsonElement>("ClientManagementApi", ApiEndpoints.CREATE_CLIENT_CORPORATE, requestData);
@@ -118,6 +127,11 @@ namespace kairo_ui.Controllers.Identities.ClientMaintenance
                 return BadRequest(new { Success = false, ErrorMessage = "Request data is required" });
             try
             {
+
+                if (string.IsNullOrEmpty(requestData["ModifiedOn"]?.ToString()))
+                {
+                    requestData["ModifiedOn"] = DateTime.UtcNow.ToString("dd MMM yyyy HH:mm:ss.fff");
+                }
                 _commonUtilities.EnsureDefaults(requestData, requestData["ModuleID"]?.ToString());
                 _logger.LogInformation("client-maintenance.corporate.update request: {Request}", System.Text.Json.JsonSerializer.Serialize(requestData));
                 var response = await _apiService.CreateAsync<System.Text.Json.JsonElement>("ClientManagementApi", ApiEndpoints.EDIT_CLIENT_CORPORATE, requestData);

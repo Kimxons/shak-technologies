@@ -41,7 +41,12 @@ function invokeController(basePath, action, requestData) {
         }
 
         const endpoint = `${basePath}/${action}`;
-        appCore.invokeController(endpoint, requestData || {}, (error, response) => {
+        const isClientMaintenanceRoute = String(basePath || '').toLowerCase().startsWith(CLIENT_MAINTENANCE_CONTROLLER_BASE.toLowerCase());
+        const effectiveRequestData = isClientMaintenanceRoute
+            ? enrichClientMaintenanceRequestData(requestData)
+            : (requestData || {});
+
+        appCore.invokeController(endpoint, effectiveRequestData || {}, (error, response) => {
             if (error) {
                 reject(error);
             } else {
@@ -107,6 +112,177 @@ function invokeClientMaintenanceController(action, requestData) {
     return invokeController(CLIENT_MAINTENANCE_CONTROLLER_BASE, action, requestData);
 }
 
+const CLIENT_MAINTENANCE_MONTH_MAP = {
+    jan: 0,
+    january: 0,
+    feb: 1,
+    february: 1,
+    mar: 2,
+    march: 2,
+    apr: 3,
+    april: 3,
+    may: 4,
+    jun: 5,
+    june: 5,
+    jul: 6,
+    july: 6,
+    aug: 7,
+    august: 7,
+    sep: 8,
+    sept: 8,
+    september: 8,
+    oct: 9,
+    october: 9,
+    nov: 10,
+    november: 10,
+    dec: 11,
+    december: 11
+};
+
+const CLIENT_MAINTENANCE_SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const CLIENT_MAINTENANCE_RESPONSE_META_KEYS = new Set([
+    'responsecode',
+    'responsemessage',
+    'success',
+    'errormessage',
+    'error',
+    'message',
+    'status',
+    'statuscode',
+    'details',
+    'details01',
+    'data',
+    'records',
+    'searchresults'
+]);
+
+function formatClientMaintenanceIsoDate(date) {
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '';
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function formatClientMaintenanceDisplayDate(date) {
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '';
+
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = CLIENT_MAINTENANCE_SHORT_MONTHS[date.getMonth()];
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+}
+
+function parseClientMaintenanceDateValue(value) {
+    if (value == null || value === '') return null;
+    if (value instanceof Date) {
+        return Number.isNaN(value.getTime()) ? null : value;
+    }
+
+    const text = String(value).trim();
+    if (!text) return null;
+
+    let match = text.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/);
+    if (match) {
+        return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+    }
+
+    match = text.match(/^(\d{1,2})[-\/\s.,]+([a-z]{3,})[-\/\s.,]+(\d{4})$/i);
+    if (match) {
+        const month = CLIENT_MAINTENANCE_MONTH_MAP[String(match[2]).toLowerCase()];
+        if (month !== undefined) {
+            return new Date(Number(match[3]), month, Number(match[1]));
+        }
+    }
+
+    match = text.match(/^(\d{1,2})[-\/\s.,]+(\d{1,2})[-\/\s.,]+(\d{4})$/);
+    if (match) {
+        return new Date(Number(match[3]), Number(match[2]) - 1, Number(match[1]));
+    }
+
+    const nativeDate = new Date(text);
+    return Number.isNaN(nativeDate.getTime()) ? null : nativeDate;
+}
+
+function formatClientMaintenanceDisplayDateTime(date) {
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '';
+
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = CLIENT_MAINTENANCE_SHORT_MONTHS[date.getMonth()];
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+}
+
+function setClientMaintenanceFieldValue(field, value) {
+    if (!field) return;
+
+    const normalizedValue = value == null ? '' : String(value).trim();
+
+    if (field._flatpickr) {
+        try {
+            if (!normalizedValue) {
+                field._flatpickr.clear();
+            } else {
+                const parsedDate = parseClientMaintenanceDateValue(normalizedValue);
+                field._flatpickr.setDate(parsedDate || normalizedValue, true);
+            }
+            return;
+        } catch (error) {
+            console.warn('[ClientMaintenance] Failed to set flatpickr value:', error);
+        }
+    }
+
+    if (!normalizedValue) {
+        field.value = '';
+        return;
+    }
+
+    const type = String(field.type || '').toLowerCase();
+    const dataType = String(field.getAttribute('data-type') || '').toLowerCase();
+    const parsedDate = parseClientMaintenanceDateValue(normalizedValue);
+
+    if (type === 'date') {
+        field.value = parsedDate ? formatClientMaintenanceIsoDate(parsedDate) : normalizedValue;
+        return;
+    }
+
+    if (dataType === 'datetime') {
+        if (parsedDate) {
+            field.value = formatClientMaintenanceDisplayDateTime(parsedDate);
+            return;
+        }
+
+        if (window.GlobalUtils?.formatDateTime) {
+            field.value = window.GlobalUtils.formatDateTime(normalizedValue);
+            return;
+        }
+
+        field.value = normalizedValue;
+        return;
+    }
+
+    if (dataType === 'date') {
+        if (parsedDate) {
+            field.value = formatClientMaintenanceDisplayDate(parsedDate);
+            return;
+        }
+
+        if (window.GlobalUtils?.formatDate) {
+            field.value = window.GlobalUtils.formatDate(normalizedValue);
+            return;
+        }
+
+        field.value = normalizedValue;
+        return;
+    }
+
+    field.value = value ?? '';
+}
+
 function syncClientMaintenanceDateInput(input) {
     if (!input || !input._flatpickr) return;
 
@@ -114,6 +290,10 @@ function syncClientMaintenanceDateInput(input) {
     try {
         input._flatpickr.set('clickOpens', !isDisabled);
         input._flatpickr.set('allowInput', !isDisabled);
+        if (input._flatpickr.altInput) {
+            input._flatpickr.altInput.disabled = isDisabled;
+            input._flatpickr.altInput.readOnly = isDisabled;
+        }
         if (isDisabled) input._flatpickr.close();
     } catch (error) {
         console.warn('[ClientMaintenance] Failed to sync flatpickr state:', error);
@@ -136,11 +316,31 @@ function initializeClientMaintenanceDatePickers(scopeRoot = document) {
         try {
             window.flatpickr(input, {
                 dateFormat: 'Y-m-d',
+                altInput: true,
+                altFormat: 'd-M-Y',
+                altInputClass: input.className || 'form-control',
+                parseDate: parseClientMaintenanceDateValue,
+                formatDate: (date, format) => {
+                    if (format === 'Y-m-d') {
+                        return formatClientMaintenanceIsoDate(date);
+                    }
+
+                    return formatClientMaintenanceDisplayDate(date);
+                },
                 disableMobile: true,
                 monthSelectorType: 'dropdown',
+                minDate: input.getAttribute('min') || undefined,
+                maxDate: input.getAttribute('max') || undefined,
                 clickOpens: !(input.disabled || input.readOnly),
                 allowInput: !(input.disabled || input.readOnly),
                 onReady: (_selectedDates, _dateStr, instance) => {
+                    if (instance?.altInput) {
+                        instance.altInput.placeholder = input.getAttribute('placeholder') || 'dd-MMM-yyyy';
+                        instance.altInput.readOnly = Boolean(input.readOnly);
+                        instance.altInput.disabled = Boolean(input.disabled);
+                        if (input.getAttribute('aria-label')) instance.altInput.setAttribute('aria-label', input.getAttribute('aria-label'));
+                        if (input.getAttribute('aria-describedby')) instance.altInput.setAttribute('aria-describedby', input.getAttribute('aria-describedby'));
+                    }
                     syncClientMaintenanceDateInput(instance.input);
                 },
                 onOpen: (_selectedDates, _dateStr, instance) => {
@@ -176,9 +376,13 @@ function getClientMaintenanceClientTypeId() {
 
 function buildClientMaintenanceRequestContext(options = {}) {
     const requireSelection = Boolean(options.requireSelection);
-    const moduleId = window.ClientMaintenanceCore?.moduleId || '';
-    const clientId = window.ClientMaintenanceCore?.clientId || '';
-    const requestId = window.ClientMaintenanceCore?.requestId || '';
+    const shell = document.querySelector('[data-client-maintenance]');
+    const moduleId =
+        String(window.ClientMaintenanceCore?.moduleId || shell?.getAttribute('data-module-id') || '').trim();
+    const clientId =
+        String(window.ClientMaintenanceCore?.clientId || shell?.querySelector('#txt_mainClientId')?.value || '').trim();
+    const requestId =
+        String(window.ClientMaintenanceCore?.requestId || shell?.querySelector('#txt_mainApplicationId')?.value || '').trim();
     const clientTypeId = getClientMaintenanceClientTypeId();
 
     if (requireSelection && !clientId && !requestId) {
@@ -188,7 +392,8 @@ function buildClientMaintenanceRequestContext(options = {}) {
     const context = {
         ModuleID: moduleId,
         ClientID: clientId,
-        RequestID: requestId
+        RequestID: requestId,
+        ApplicationID: requestId
     };
 
     if (clientTypeId) {
@@ -198,38 +403,99 @@ function buildClientMaintenanceRequestContext(options = {}) {
     return context;
 }
 
-function enrichClientMaintenanceFormData(formData, clientTypeId) {
-    if (!(formData instanceof FormData) || !clientTypeId) {
+function setClientMaintenanceFormDataIfMissing(formData, key, value) {
+    if (!(formData instanceof FormData)) return;
+    const normalizedValue = value == null ? '' : String(value).trim();
+    if (!normalizedValue) return;
+
+    const existingValue = formData.get(key);
+    if (existingValue == null || String(existingValue).trim() === '') {
+        formData.set(key, normalizedValue);
+    }
+}
+
+function setClientMaintenanceObjectIfMissing(target, key, value) {
+    if (!target || typeof target !== 'object') return;
+
+    const normalizedValue = value == null ? '' : String(value).trim();
+    if (!normalizedValue) return;
+
+    const existingValue = target[key];
+    if (existingValue == null || String(existingValue).trim() === '') {
+        target[key] = normalizedValue;
+    }
+}
+
+function resolveClientMaintenanceTransportContext() {
+    const context = buildClientMaintenanceRequestContext({ requireSelection: false }) || {};
+    const moduleId = String(context.ModuleID || '').trim();
+    const clientId = String(context.ClientID || '').trim();
+    const requestId = String(context.RequestID || '').trim();
+    const applicationId = String(context.ApplicationID || requestId).trim();
+    const clientTypeId = String(context.ClientTypeID || '').trim();
+
+    return {
+        ModuleID: moduleId,
+        ClientID: clientId,
+        RequestID: requestId,
+        ApplicationID: applicationId || requestId,
+        ClientTypeID: clientTypeId
+    };
+}
+
+function enrichClientMaintenanceFormData(formData, context) {
+    if (!(formData instanceof FormData)) {
         return formData;
     }
 
-    ['ClientTypeID', 'RequestData.ClientTypeID'].forEach((key) => {
-        const existingValue = formData.get(key);
-        if (existingValue == null || String(existingValue).trim() === '') {
-            formData.set(key, clientTypeId);
-        }
-    });
+    const effectiveContext = context || resolveClientMaintenanceTransportContext();
+
+    setClientMaintenanceFormDataIfMissing(formData, 'ModuleID', effectiveContext.ModuleID);
+    setClientMaintenanceFormDataIfMissing(formData, 'ClientID', effectiveContext.ClientID);
+    setClientMaintenanceFormDataIfMissing(formData, 'RequestID', effectiveContext.RequestID);
+    setClientMaintenanceFormDataIfMissing(formData, 'ApplicationID', effectiveContext.ApplicationID || effectiveContext.RequestID);
+    setClientMaintenanceFormDataIfMissing(formData, 'ClientTypeID', effectiveContext.ClientTypeID);
+
+    setClientMaintenanceFormDataIfMissing(formData, 'RequestData.ModuleID', effectiveContext.ModuleID);
+    setClientMaintenanceFormDataIfMissing(formData, 'RequestData.ClientID', effectiveContext.ClientID);
+    setClientMaintenanceFormDataIfMissing(formData, 'RequestData.RequestID', effectiveContext.RequestID);
+    setClientMaintenanceFormDataIfMissing(formData, 'RequestData.ApplicationID', effectiveContext.ApplicationID || effectiveContext.RequestID);
+    setClientMaintenanceFormDataIfMissing(formData, 'RequestData.ClientTypeID', effectiveContext.ClientTypeID);
 
     return formData;
 }
 
 function enrichClientMaintenanceRequestData(requestData) {
-    const clientTypeId = getClientMaintenanceClientTypeId();
-    if (!clientTypeId) {
-        return requestData || {};
-    }
+    const context = resolveClientMaintenanceTransportContext();
 
     if (requestData instanceof FormData) {
-        return enrichClientMaintenanceFormData(requestData, clientTypeId);
+        return enrichClientMaintenanceFormData(requestData, context);
     }
 
     const payload = requestData && typeof requestData === 'object'
         ? { ...requestData }
         : {};
 
-    if (payload.ClientTypeID == null || String(payload.ClientTypeID).trim() === '') {
-        payload.ClientTypeID = clientTypeId;
+    if (payload.RequestData && typeof payload.RequestData === 'object' && !Array.isArray(payload.RequestData)) {
+        payload.RequestData = { ...payload.RequestData };
     }
+
+    setClientMaintenanceObjectIfMissing(payload, 'ModuleID', context.ModuleID);
+    setClientMaintenanceObjectIfMissing(payload, 'ClientID', context.ClientID);
+    setClientMaintenanceObjectIfMissing(payload, 'RequestID', context.RequestID);
+    setClientMaintenanceObjectIfMissing(payload, 'ApplicationID', context.ApplicationID || context.RequestID);
+    setClientMaintenanceObjectIfMissing(payload, 'ClientTypeID', context.ClientTypeID);
+
+    if (payload.RequestData && typeof payload.RequestData === 'object' && !Array.isArray(payload.RequestData)) {
+        setClientMaintenanceObjectIfMissing(payload.RequestData, 'ModuleID', context.ModuleID);
+        setClientMaintenanceObjectIfMissing(payload.RequestData, 'ClientID', context.ClientID);
+        setClientMaintenanceObjectIfMissing(payload.RequestData, 'RequestID', context.RequestID);
+        setClientMaintenanceObjectIfMissing(payload.RequestData, 'ApplicationID', context.ApplicationID || context.RequestID);
+        setClientMaintenanceObjectIfMissing(payload.RequestData, 'ClientTypeID', context.ClientTypeID);
+    }
+
+    setClientMaintenanceObjectIfMissing(payload, 'RequestID', payload.ApplicationID);
+    setClientMaintenanceObjectIfMissing(payload, 'ApplicationID', payload.RequestID);
 
     return payload;
 }
@@ -421,6 +687,8 @@ window.ClientMaintenanceCore = {
     canEditCurrent: false,
     shellState: 'idle',
     hasLoadedRecord: false,
+    singleStageEditLockActive: false,
+    recentActivityTrackedClientId: null,
     _shellLoadingDepth: 0,
     // Registry to track loaded tabs and their load functions
     _loadedTabsRegistry: new Map(),
@@ -727,6 +995,52 @@ async function ensureTabScriptLoaded(config) {
 }
 
 let clientMaintenanceStageTabs = [];
+const addWorkflowPersistedStepMap = new Map();
+let addWorkflowBasicDetailsPersisted = false;
+
+// Tracks whether each tab has existing server data in edit mode.
+// true = data found on load (use update), false = no data found (use create).
+// Untracked entries default to update to preserve backward-compat for custom-load tabs.
+const editModeExistingStepMap = new Map();
+
+function normalizeAddWorkflowStepKey(tabKey) {
+    return String(tabKey || '').trim().toLowerCase();
+}
+
+function clearAddWorkflowPersistedSteps() {
+    addWorkflowPersistedStepMap.clear();
+    addWorkflowBasicDetailsPersisted = false;
+}
+
+function markAddWorkflowStepPersisted(tabKey) {
+    const key = normalizeAddWorkflowStepKey(tabKey);
+    if (!key) return;
+    addWorkflowPersistedStepMap.set(key, true);
+}
+
+function hasAddWorkflowStepPersisted(tabKey) {
+    const key = normalizeAddWorkflowStepKey(tabKey);
+    if (!key) return false;
+    return addWorkflowPersistedStepMap.get(key) === true;
+}
+
+function markEditModeStepExists(tabKey, exists) {
+    const key = normalizeAddWorkflowStepKey(tabKey);
+    if (!key) return;
+    editModeExistingStepMap.set(key, exists === true);
+}
+
+function hasEditModeStepExists(tabKey) {
+    const key = normalizeAddWorkflowStepKey(tabKey);
+    if (!key) return true;
+    const val = editModeExistingStepMap.get(key);
+    // Unknown entries default to true so untracked tabs keep using update (safe).
+    return val !== false;
+}
+
+function clearEditModeExistingSteps() {
+    editModeExistingStepMap.clear();
+}
 
 window.bindClientMaintenanceCrud = function (tabRoot, moduleId, service, tabName) {
     if (!tabRoot || !service) return;
@@ -779,44 +1093,126 @@ window.bindClientMaintenanceCrud = function (tabRoot, moduleId, service, tabName
 };
 
 function normalizeSingleRow(response) {
-    const candidates = [
-        response?.Details?.[0],
-        response?.Details,
-        response?.data?.Details?.[0],
-        response?.data?.Details,
-        response?.data?.[0]?.Details?.[0],
-        response?.data?.[0]?.Details,
-        response?.data,
-        response
-    ];
-
-    for (const candidate of candidates) {
-        if (!candidate) continue;
-        if (Array.isArray(candidate)) {
-            if (candidate.length > 0 && typeof candidate[0] === 'object') return candidate[0];
-            continue;
-        }
-        if (typeof candidate === 'object') {
-            return candidate;
-        }
-    }
-
-    return null;
+    return extractSingleDataRow(response);
 }
 
 function normalizeDetailsArray(response) {
-    const candidates = [
-        response?.Details,
-        response?.data?.Details,
-        response?.data?.[0]?.Details,
-        response?.data
-    ];
+    return extractDetailsArray(response);
+}
 
-    for (const candidate of candidates) {
-        if (Array.isArray(candidate)) return candidate;
+function parseResponseCandidate(candidate) {
+    if (typeof candidate !== 'string') return candidate;
+
+    const text = candidate.trim();
+    if (!text) return null;
+
+    try {
+        return JSON.parse(text);
+    } catch (_) {
+        return candidate;
+    }
+}
+
+function isMeaningfulResponseValue(value) {
+    if (value == null) return false;
+    if (typeof value === 'string') return value.trim() !== '';
+    if (Array.isArray(value)) return value.length > 0;
+    if (typeof value === 'object') return Object.keys(value).length > 0;
+    return true;
+}
+
+function isMeaningfulDataObject(candidate) {
+    if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) {
+        return false;
     }
 
-    return [];
+    return Object.entries(candidate).some(([key, value]) => {
+        const normalizedKey = normalizeDataKey(key);
+        if (!normalizedKey || CLIENT_MAINTENANCE_RESPONSE_META_KEYS.has(normalizedKey)) {
+            return false;
+        }
+
+        return isMeaningfulResponseValue(value);
+    });
+}
+
+function getNestedResponseCandidates(candidate) {
+    if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) {
+        return [];
+    }
+
+    return [
+        candidate.Details,
+        candidate.details,
+        candidate.Details01,
+        candidate.details01,
+        candidate.Data,
+        candidate.data,
+        candidate.Records,
+        candidate.records,
+        candidate.SearchResults,
+        candidate.searchResults
+    ];
+}
+
+function extractSingleDataRow(candidate, depth = 0) {
+    if (depth > 5 || candidate == null) {
+        return null;
+    }
+
+    const parsedCandidate = parseResponseCandidate(candidate);
+    if (parsedCandidate == null) {
+        return null;
+    }
+
+    if (Array.isArray(parsedCandidate)) {
+        for (const item of parsedCandidate) {
+            const row = extractSingleDataRow(item, depth + 1);
+            if (row) return row;
+        }
+        return null;
+    }
+
+    if (typeof parsedCandidate !== 'object') {
+        return null;
+    }
+
+    for (const nested of getNestedResponseCandidates(parsedCandidate)) {
+        const row = extractSingleDataRow(nested, depth + 1);
+        if (row) return row;
+    }
+
+    return isMeaningfulDataObject(parsedCandidate) ? parsedCandidate : null;
+}
+
+function extractDetailsArray(candidate, depth = 0) {
+    if (depth > 5 || candidate == null) {
+        return [];
+    }
+
+    const parsedCandidate = parseResponseCandidate(candidate);
+    if (parsedCandidate == null) {
+        return [];
+    }
+
+    if (Array.isArray(parsedCandidate)) {
+        return parsedCandidate
+            .map((item) => extractSingleDataRow(item, depth + 1))
+            .filter((item) => item != null);
+    }
+
+    if (typeof parsedCandidate !== 'object') {
+        return [];
+    }
+
+    for (const nested of getNestedResponseCandidates(parsedCandidate)) {
+        const rows = extractDetailsArray(nested, depth + 1);
+        if (rows.length > 0) {
+            return rows;
+        }
+    }
+
+    return isMeaningfulDataObject(parsedCandidate) ? [parsedCandidate] : [];
 }
 
 function normalizeStageName(name) {
@@ -1013,6 +1409,7 @@ function buildTabRequest() {
         ModuleID: moduleId,
         ClientID: effectiveClientId,
         RequestID: effectiveRequestId,
+        ApplicationID: effectiveRequestId,
         ClientTypeID: requestContext.ClientTypeID || ''
     };
 }
@@ -1112,6 +1509,15 @@ function resetPaneFormFields(pane) {
 
         if (type === 'hidden') return;
 
+        if (field._flatpickr) {
+            try {
+                field._flatpickr.clear();
+            } catch (_error) {
+                field.value = '';
+            }
+            return;
+        }
+
         if (type === 'radio') {
             const groupName = field.name || field.id || '';
             if (!groupName || resetRadioGroups.has(groupName)) return;
@@ -1141,6 +1547,7 @@ function applyResponseDataToPane(pane, response, explicitFieldMap) {
     if (!pane) return;
 
     const row = normalizeSingleRow(response);
+    pane.setAttribute('data-cm-loaded', row ? 'true' : 'false');
     resetPaneFormFields(pane);
     if (!row) return;
 
@@ -1227,7 +1634,7 @@ function applyResponseDataToPane(pane, response, explicitFieldMap) {
             return;
         }
 
-        field.value = value ?? '';
+        setClientMaintenanceFieldValue(field, value);
     });
 }
 
@@ -1257,8 +1664,15 @@ async function autoLoadTabData(config, pane) {
         const fieldMapKey = getFieldMapKeyForTab(config.key);
         const fieldMap = fieldMapKey ? window[fieldMapKey] : undefined;
 
+        // Track whether this tab has existing server data for edit-mode create/update decisions.
+        const row = normalizeSingleRow(response);
+        markEditModeStepExists(config.key, row != null);
+
         applyResponseDataToPane(pane, response, fieldMap);
     } catch (error) {
+        if (pane) {
+            pane.setAttribute('data-cm-loaded', 'false');
+        }
         window.ClientMaintenanceCore.showToast(`${config.key} load failed - ${error.message}`, 'error');
     }
 }
@@ -1416,7 +1830,8 @@ function initSectionToggles() {
 function setFieldValue(root, selector, value) {
     const field = root?.querySelector(selector);
     if (!field) return;
-    field.value = value ?? '';
+
+    setClientMaintenanceFieldValue(field, value);
 }
 
 function setSelectValueWithFallback(selectElement, value, fallbackText) {
@@ -1483,22 +1898,24 @@ function applyBasicDetailsToPersonal(row) {
         ['#txt_personalLastName', row?.LastName],
         ['#ddl_personalGender', row?.GenderID],
         ['#dt_personalDob', row?.DateOfBirth],
+        ['#txt_personalAge', row?.Age],
+        ['#txt_personalAgeAsOn', row?.AgeAsOn],
         ['#ddl_personalNationality', row?.NationalityID],
         ['#ddl_personalResidentStatus', row?.ResidentID],
         ['#ddl_personalIdType', row?.IdentificationTypeID],
-        ['#txt_personalIdNumber', row?.NationalId || row?.IdentificationNo],
-        ['#dt_personalIssueDate', row?.IDIssueDate],
+        ['#txt_personalIdNumber', row?.IdentificationNo || row?.PassportNo || row?.NationalId],
+        ['#dt_personalIssueDate', row?.IDIssueDate || row?.PassportIssueDate || row?.IssueDate],
         ['#txt_personalIssuedBy', row?.IssuedBy],
-        ['#dt_personalExpiryDate', row?.IDExpiryDate],
-        ['#ddl_personalLiteracyLevel', row?.LiteracyLevel],
-        ['#ddl_personalMaritalStatus', row?.MaritalStatus],
+        ['#dt_personalExpiryDate', row?.IDExpiryDate || row?.PassportExpiryDate || row?.ExpiryDate],
+        ['#ddl_personalLiteracyLevel', row?.LiteracyLevelID || row?.LiteracyLevel],
+        ['#ddl_personalMaritalStatus', row?.MaritalStatusID || row?.MaritalStatus],
         ['#txt_personalHouseMembers', row?.NumberOfHouseMembers],
         ['#txt_personalChildren', row?.NumberOfChildren],
         ['#txt_personalDependents', row?.NumberOfDependents],
         ['#txt_personalMotherName', row?.MotherName],
-        ['#ddl_personalBloodGroup', row?.BloodGroup],
-        ['#txt_personalOpenedBy', row?.CreatedBy],
-        ['#dt_personalOpenedOn', row?.OpenedOn],
+        ['#ddl_personalBloodGroup', row?.BloodGroupID || row?.BloodGroup],
+        ['#txt_personalOpenedBy', row?.OpenedBy || row?.CreatedBy],
+        ['#dt_personalOpenedOn', row?.OpenedDate ?? row?.OpenedOn],
         ['#ddl_personalRelationshipManager', row?.RelationshipManagerID]
     ];
 
@@ -1511,7 +1928,7 @@ function applyBasicDetailsToPersonal(row) {
 
     const openedByName = personalPane.querySelector('#txt_personalOpenedByName');
     if (openedByName) {
-        openedByName.value = row?.CreatedByName || row?.OpenedByName || '';
+        openedByName.value = row?.OpenedByName || row?.CreatedByName || row?.openedByName || '';
     }
 }
 
@@ -1688,21 +2105,13 @@ async function loadAllTabsData() {
 function buildRecentActivityAccessedFields({ selectionMode, clientId, requestId } = {}) {
     const mode = String(selectionMode || '').toLowerCase();
     const resolvedClientId = String(clientId || '').trim();
-    const resolvedRequestId = String(requestId || '').trim();
 
-    if (mode === 'request' && resolvedRequestId) {
-        return `ApplicationID:${resolvedRequestId}`;
+    // Track recent activity only when the user selected by ClientID (not Request/Application flows).
+    if (mode !== 'client' || !resolvedClientId) {
+        return '';
     }
 
-    if (resolvedClientId) {
-        return `ClientID:${resolvedClientId}`;
-    }
-
-    if (resolvedRequestId) {
-        return `ApplicationID:${resolvedRequestId}`;
-    }
-
-    return '';
+    return `ClientID:${resolvedClientId}`;
 }
 
 async function addRecentActivityAndRefreshSidebar(accessedFields) {
@@ -1827,9 +2236,12 @@ async function loadClientBasicDetails(selectionContext) {
                 clientId: resolvedClientId,
                 requestId: resolvedRequestId
             });
-            console.log(accessedFields);
-            if (accessedFields) {
+            const trackedClientId = String(window.ClientMaintenanceCore?.recentActivityTrackedClientId || '').trim();
+            if (accessedFields && trackedClientId !== resolvedClientId) {
                 await addRecentActivityAndRefreshSidebar(accessedFields);
+                if (window.ClientMaintenanceCore) {
+                    window.ClientMaintenanceCore.recentActivityTrackedClientId = resolvedClientId;
+                }
             }
         } else {
             resetBehindSceneFields();
@@ -2007,14 +2419,14 @@ function initMainClientSearch(shell) {
             tableID: 'WFClientID',
             moduleID: window.ClientMaintenanceCore.moduleId || '',
             searchFields: [
-                { name: 'ClientID', label: 'Application ID', column: 'ClientID', value: applicationIdInput?.value || '' },
+                { name: 'RequestID', label: 'Application ID', column: 'ApplicationID', value: applicationIdInput?.value || '' },
                 { name: 'Name', label: 'Client Name', column: 'Name' }
             ],
             autoSearch: false,
             onSelect: async (record) => {
                 try {
                     await withClientMaintenanceShellLoading(async () => {
-                        const selectedRequestId = record?.ClientID || '';
+                        const selectedRequestId = record?.ApplicationID || record?.ClientID || '';
                         const selectedName = record?.Name || '';
                         const selectedClientType = record?.ClientTypeID || record?.ClientType || '';
                         const selectedClientGroup = record?.ClientGroupID || record?.ClientGroup || '';
@@ -2026,6 +2438,7 @@ function initMainClientSearch(shell) {
                         window.ClientMaintenanceCore.requestId = selectedRequestId;
                         window.ClientMaintenanceCore.useRequestId = true;
                         window.ClientMaintenanceCore.clientId = '';
+                        window.ClientMaintenanceCore.recentActivityTrackedClientId = null;
 
                         setSelectValueWithFallback(clientTypeSelect, selectedClientType, selectedClientType);
                         setSelectValueWithFallback(clientGroupSelect, selectedClientGroup, selectedClientGroupLabel);
@@ -2247,7 +2660,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Ensure edit mode is enabled for this tab so the next save uses UPDATE action
                 // Note: The global isEditMode flag controls the mode across all tabs
                 // For tabs with existing data, we want them to use UPDATE action when navigating next
-                
+
                 // If this tab has the "is-completed" class, it means it was previously saved
                 // We should ensure edit mode applies to it
                 const tabButton = event.target;
@@ -2261,34 +2674,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             }
 
-            // Track recent activity when a workflow step/tab is accessed
-            const clientId = window.ClientMaintenanceCore?.clientId || '';
-            const requestId = window.ClientMaintenanceCore?.requestId || '';
-            const tabLabel = config?.label || config?.key || 'Unknown';
-
-            if (clientId || requestId) {
-                // Build accessed fields with tab context
-                let accessedFields = '';
-                if (requestId) {
-                    accessedFields = `ApplicationID:${requestId}`;
-                } else if (clientId) {
-                    accessedFields = `ClientID:${clientId}`;
-                }
-
-                if (accessedFields) {
-                    try {
-                        const moduleId = window.ClientMaintenanceCore?.moduleId || '1000';
-                        await invokeController('SideBar', 'AddRecentActivity', {
-                            ModuleID: moduleId,
-                            AccessedFields: `${accessedFields} [${tabLabel}]`
-                        });
-                    } catch (error) {
-                        console.warn('[Client Maintenance] Error tracking tab access:', error);
-                    }
-                }
-            }
+            // Recent activity is tracked when a ClientID record is initially loaded.
+            // Do not track on every tab switch (Next/Previous) to avoid duplicate entries.
         } catch (error) {
             window.ClientMaintenanceCore.showToast(error.message, 'error');
+        }
+
+        if (window.ClientMaintenanceCore?.singleStageEditLockActive) {
+            const tabs = Array.from(document.querySelectorAll('#nav_clientMaintenanceTabs .nav-link'));
+            const activeIndex = tabs.indexOf(event.target);
+            if (activeIndex >= 0) {
+                lockWorkflowTabsToSingleStage(activeIndex, true);
+            }
         }
 
         // Update button states when tab changes
@@ -2318,7 +2715,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Edit button handler - enables edit mode for all partial views
     document.querySelector('[data-action-btn="edit"]')?.addEventListener('click', (event) => {
         event.preventDefault();
-        setClientEditMode(true);
+
+        const shouldLockToSingleStage = Boolean(
+            window.ClientMaintenanceCore?.useRequestId &&
+            window.ClientMaintenanceCore?.canEditCurrent
+        );
+
+        setClientEditMode(true, { showToast: !shouldLockToSingleStage });
+
+        if (window.ClientMaintenanceCore) {
+            window.ClientMaintenanceCore.singleStageEditLockActive = shouldLockToSingleStage;
+        }
+
+        if (shouldLockToSingleStage) {
+            focusFirstWorkflowStageWithFetchedDetails();
+            window.ClientMaintenanceCore?.showToast(
+                'Edit mode enabled. Continue from the first workflow stage that has loaded details.',
+                'info'
+            );
+        } else {
+            unlockAllWorkflowTabs();
+        }
+
         // Disable Edit button after clicking it
         const editBtn = document.querySelector('[data-action-btn="edit"]');
         if (editBtn) editBtn.disabled = true;
@@ -2582,7 +3000,25 @@ function getTabDataFromPane(pane) {
         if (!key || key.startsWith('_')) return; // Skip internal fields
 
         const type = element.type?.toLowerCase() || '';
-        if (type === 'hidden' || type === 'button' || type === 'submit') return;
+        if ((type === 'hidden' && !element._flatpickr) || type === 'button' || type === 'submit') return;
+
+        if (element._flatpickr) {
+            const selectedDate = element._flatpickr.selectedDates?.[0];
+            if (selectedDate instanceof Date && !Number.isNaN(selectedDate.getTime())) {
+                payload[key] = formatClientMaintenanceIsoDate(selectedDate);
+                return;
+            }
+
+            const rawValue = String(element.value || element._flatpickr.altInput?.value || '').trim();
+            if (!rawValue) {
+                payload[key] = '';
+                return;
+            }
+
+            const parsedDate = parseClientMaintenanceDateValue(rawValue);
+            payload[key] = parsedDate ? formatClientMaintenanceIsoDate(parsedDate) : rawValue;
+            return;
+        }
 
         if (type === 'checkbox') {
             payload[key] = element.checked;
@@ -2606,8 +3042,10 @@ function getTabDataFromPane(pane) {
 function detectTabHasExistingData(pane) {
     if (!pane) return false;
 
-    // Check for data-cm-loaded marker
-    if (pane.querySelector('[data-cm-loaded]')) return true;
+    const explicitLoadedState = getPaneLoadedState(pane);
+    if (explicitLoadedState != null) {
+        return explicitLoadedState;
+    }
 
     // Check if there are any filled form fields (indicates data was loaded)
     const fields = pane.querySelectorAll('input:not([type="hidden"]), textarea, select');
@@ -2615,14 +3053,44 @@ function detectTabHasExistingData(pane) {
 
     fields.forEach((field) => {
         const type = field.type?.toLowerCase() || '';
-        if (type === 'checkbox' || type === 'radio') {
+        if (type === 'radio') {
+            return;
+        }
+
+        if (type === 'checkbox') {
             if (field.checked) filledCount++;
-        } else if (field.value && String(field.value).trim()) {
+            return;
+        }
+
+        if (field.tagName.toLowerCase() === 'select') {
+            if (field.value && String(field.value).trim()) {
+                filledCount++;
+            }
+            return;
+        }
+
+        if (field.value && String(field.value).trim()) {
             filledCount++;
         }
     });
 
     return filledCount > 0;
+}
+
+function getPaneLoadedState(pane) {
+    if (!pane) return null;
+
+    const ownMarker = pane.getAttribute('data-cm-loaded');
+    if (ownMarker === 'true') return true;
+    if (ownMarker === 'false') return false;
+
+    const nestedTrueMarker = pane.querySelector('[data-cm-loaded="true"]');
+    if (nestedTrueMarker) return true;
+
+    const nestedFalseMarker = pane.querySelector('[data-cm-loaded="false"]');
+    if (nestedFalseMarker) return false;
+
+    return null;
 }
 
 /**
@@ -2650,17 +3118,80 @@ function lockRemainingWorkflowTabs(currentTabIndex, isLocked) {
     });
 }
 
+function lockWorkflowTabsToSingleStage(activeTabIndex, isLocked = true) {
+    const navTabs = document.getElementById('nav_clientMaintenanceTabs');
+    if (!navTabs) return;
+
+    const tabs = Array.from(navTabs.querySelectorAll('.nav-link'));
+    tabs.forEach((tab, index) => {
+        const canAccess = !isLocked || index === activeTabIndex;
+        tab.style.pointerEvents = canAccess ? '' : 'none';
+        tab.classList.toggle('disabled-tab', !canAccess);
+    });
+}
+
+function paneHasWorkflowFetchedDetails(pane) {
+    if (!pane) return false;
+
+    if (typeof pane._cmHasWorkflowData === 'function') {
+        try {
+            if (pane._cmHasWorkflowData() === true) {
+                return true;
+            }
+        } catch (error) {
+            console.warn('[ClientMaintenance] _cmHasWorkflowData check failed:', error);
+        }
+    }
+
+    if (pane.querySelector('table tbody tr')) {
+        return true;
+    }
+
+    return detectTabHasExistingData(pane);
+}
+
+function getFirstWorkflowTabWithFetchedDetailsIndex() {
+    const tabs = Array.from(document.querySelectorAll('#nav_clientMaintenanceTabs .nav-link'));
+    if (tabs.length === 0) {
+        return 0;
+    }
+
+    for (let index = 0; index < tabs.length; index++) {
+        const tab = tabs[index];
+        const paneSelector = tab?.getAttribute('data-bs-target');
+        const pane = paneSelector ? document.querySelector(paneSelector) : null;
+        if (paneHasWorkflowFetchedDetails(pane)) {
+            return index;
+        }
+    }
+
+    const currentIndex = getCurrentTabIndex();
+    return currentIndex >= 0 ? currentIndex : 0;
+}
+
+function focusFirstWorkflowStageWithFetchedDetails() {
+    const targetIndex = getFirstWorkflowTabWithFetchedDetailsIndex();
+    lockWorkflowTabsToSingleStage(targetIndex, true);
+    activateWorkflowTabAt(targetIndex);
+    updateTabNavigationButtons();
+    return targetIndex;
+}
+
 /**
  * Build a request object for tab actions (create/update)
  */
 function buildTabActionRequest(tabKey, payload) {
-    const moduleId = window.ClientMaintenanceCore?.moduleId || '';
-    const clientId = window.ClientMaintenanceCore?.clientId || '';
-    const requestId = window.ClientMaintenanceCore?.requestId || '';
+    const requestContext = buildClientMaintenanceRequestContext({ requireSelection: false }) || {};
 
-    payload.ModuleID = moduleId;
-    payload.ClientID = clientId;
-    payload.RequestID = requestId;
+    payload.ModuleID = String(requestContext.ModuleID || window.ClientMaintenanceCore?.moduleId || '').trim();
+    payload.ClientID = String(requestContext.ClientID || window.ClientMaintenanceCore?.clientId || '').trim();
+    payload.RequestID = String(requestContext.RequestID || window.ClientMaintenanceCore?.requestId || '').trim();
+    payload.ApplicationID = String(payload.ApplicationID || payload.RequestID || requestContext.ApplicationID || '').trim();
+
+    const clientTypeId = String(requestContext.ClientTypeID || getClientMaintenanceClientTypeId() || '').trim();
+    if (!payload.ClientTypeID && clientTypeId) {
+        payload.ClientTypeID = clientTypeId;
+    }
 
     return payload;
     //return {
@@ -2669,6 +3200,110 @@ function buildTabActionRequest(tabKey, payload) {
     //    RequestID: requestId,
     //    Payload: payload || {}
     //};
+}
+
+function syncBasicDetailsContextFromResponse(response, requestData) {
+    const row = normalizeSingleRow(response) || {};
+
+    const resolvedClientId = String(
+        row?.ClientID ??
+        row?.ClientId ??
+        requestData?.ClientID ??
+        ''
+    ).trim();
+
+    const resolvedRequestId = String(
+        row?.RequestID ??
+        row?.RequestId ??
+        row?.ApplicationID ??
+        row?.ApplicationId ??
+        requestData?.RequestID ??
+        requestData?.ApplicationID ??
+        ''
+    ).trim();
+
+    const resolvedClientName = String(
+        row?.Name ??
+        row?.ClientName ??
+        row?.ClientFullName ??
+        row?.FullName ??
+        requestData?.Name ??
+        requestData?.ClientName ??
+        ''
+    ).trim();
+
+    if (resolvedClientId) {
+        window.ClientMaintenanceCore.clientId = resolvedClientId;
+        const mainClientIdInput = document.getElementById('txt_mainClientId');
+        if (mainClientIdInput) {
+            mainClientIdInput.value = resolvedClientId;
+        }
+    }
+
+    if (resolvedRequestId) {
+        window.ClientMaintenanceCore.requestId = resolvedRequestId;
+        const mainApplicationIdInput = document.getElementById('txt_mainApplicationId');
+        if (mainApplicationIdInput) {
+            mainApplicationIdInput.value = resolvedRequestId;
+        }
+    }
+
+    if (resolvedClientName) {
+        window.ClientMaintenanceCore.clientName = resolvedClientName;
+        const mainClientNameInput = document.getElementById('txt_mainClientName');
+        if (mainClientNameInput) {
+            mainClientNameInput.value = resolvedClientName;
+        }
+    }
+}
+
+async function invokeBasicDetailsAction(action, requestData) {
+    const service = window.ClientMaintenanceService;
+    const handler = action === 'create'
+        ? service?.createBasic
+        : service?.updateBasic;
+
+    if (typeof handler !== 'function') {
+        return {
+            success: false,
+            response: null,
+            errorMessage: `Basic details ${action} action is not available`
+        };
+    }
+
+    try {
+        const response = await handler(requestData || {});
+        const success = response?.Success === true ||
+            response?.success === true ||
+            response?.ResponseCode === '00' ||
+            response?.responseCode === '00';
+
+        if (!success) {
+            return {
+                success: false,
+                response,
+                errorMessage: response?.ErrorMessage ||
+                    response?.errorMessage ||
+                    response?.ResponseMessage ||
+                    response?.responseMessage ||
+                    `Basic details ${action} failed`
+            };
+        }
+
+        syncBasicDetailsContextFromResponse(response, requestData);
+
+        return {
+            success: true,
+            response,
+            errorMessage: null
+        };
+    } catch (error) {
+        return {
+            success: false,
+            response: null,
+            errorMessage: error?.message || `Basic details ${action} failed`
+        };
+    }
 }
 
 /**
@@ -2731,6 +3366,86 @@ async function invokeTabAction(tabKey, action, requestData) {
 async function processTabWorkflowStep(tabKey, pane, tabIndex) {
     if (!pane || !tabKey) return false;
 
+    // Special validation for Relations tab: share percent must total 100%
+    if (tabKey === 'Relations') {
+        const tbody = pane.querySelector('table tbody') || pane.querySelector('#tbl_clientRelationsBody');
+        if (tbody) {
+            const rows = tbody.querySelectorAll('tr[data-payload]');
+            let totalShare = 0;
+            rows.forEach((row) => {
+                try {
+                    const payload = JSON.parse(row.dataset.payload || '{}');
+                    const share = parseFloat(payload.SharePercent) || 0;
+                    totalShare += share;
+                } catch (_error) { }
+            });
+            if (totalShare !== 100) {
+                window.ClientMaintenanceCore.showToast(
+                    `Relations: Share percentage must total 100% (Current: ${totalShare.toFixed(2)}%)`,
+                    'warning'
+                );
+                return false;
+            }
+        }
+    }
+
+    const isAddMode = window.ClientMaintenanceCore?.shellState === 'add';
+    const isFirstWorkflowStep = Number(tabIndex) === 0;
+
+    if (typeof pane._cmHandleWorkflowStep === 'function') {
+        const workflowStepState = await pane._cmHandleWorkflowStep({
+            tabKey,
+            tabIndex,
+            isAddMode,
+            isFirstWorkflowStep
+        });
+
+        if (workflowStepState?.handled === true) {
+            if (workflowStepState.canNavigate !== true) {
+                const hookMessage = String(workflowStepState?.errorMessage || '').trim();
+                if (hookMessage) {
+                    window.ClientMaintenanceCore.showToast(`${tabKey}: ${hookMessage}`, 'warning');
+                }
+                return false;
+            }
+
+            if (isAddMode && workflowStepState.markPersisted !== false) {
+                markAddWorkflowStepPersisted(tabKey);
+            }
+
+            markTabAsCompleted(tabKey);
+
+            if (isAddMode) {
+                lockRemainingWorkflowTabs(tabIndex + 1, true);
+            }
+
+            return true;
+        }
+    }
+
+    if (typeof pane._cmConsumeWorkflowPersistedState === 'function') {
+        const persistedState = await pane._cmConsumeWorkflowPersistedState({
+            tabKey,
+            tabIndex,
+            isAddMode,
+            isFirstWorkflowStep
+        });
+
+        if (persistedState?.persisted === true) {
+            if (isAddMode) {
+                markAddWorkflowStepPersisted(tabKey);
+            }
+
+            markTabAsCompleted(tabKey);
+
+            if (isAddMode) {
+                lockRemainingWorkflowTabs(tabIndex + 1, true);
+            }
+
+            return true;
+        }
+    }
+
     // Step 1: Validate mandatory fields
     const validation = validateTabMandatoryFields(pane, tabKey);
     if (!validation.isValid) {
@@ -2754,25 +3469,51 @@ async function processTabWorkflowStep(tabKey, pane, tabIndex) {
         }
     }
 
-    // Step 2: Check if we're in Add or Edit mode, or if this tab has existing data
-    // A tab can have existing data if:
-    // 1. We're in Edit mode for an existing client
-    // 2. We're navigating back to a previously saved workflow step
-    // 3. The tab was already loaded with data from the server
-    const isAddMode = window.ClientMaintenanceCore?.shellState === 'add';
-    const hasExistingData = detectTabHasExistingData(pane);
-    
-    // Determine action: use 'create' only for new tabs in add workflow
-    // If a tab has existing data (from previous save or loaded from server), use 'update'
-    // This is critical for workflow where user navigates back and forth between steps
-    const action = hasExistingData ? 'update' : (isAddMode ? 'create' : 'update');
+    // Step 2: Resolve action mode.
+    // In Add workflow, a step must stay in create mode until its own create call succeeds.
+    // Do not infer persistence from filled fields; only trust successful server responses.
 
-    // Log the action determination for debugging workflow issues
-    console.log(`[ClientMaintenance] Tab: ${tabKey}, IsAddMode: ${isAddMode}, HasExistingData: ${hasExistingData}, Action: ${action}`);
-
-    // Step 3: Collect form data
+    // Build request once and use the same request path for both basic-details and step actions.
     const payload = getTabDataFromPane(pane);
     const requestData = buildTabActionRequest(tabKey, payload);
+
+    if (isFirstWorkflowStep) {
+        const basicAction = isAddMode
+            ? (addWorkflowBasicDetailsPersisted ? 'update' : 'create')
+            : 'update';
+
+        window.ClientMaintenanceCore.showToast(
+            `Basic details: ${basicAction === 'create' ? 'creating' : 'updating'}...`,
+            'info'
+        );
+
+        const basicResult = await invokeBasicDetailsAction(basicAction, requestData);
+        if (!basicResult.success) {
+            window.ClientMaintenanceCore.showToast(
+                `Basic details: ${basicResult.errorMessage}`,
+                'error'
+            );
+            return false;
+        }
+
+        // Keep the same request object aligned with context refreshed by basic-details response.
+        requestData.ModuleID = String(window.ClientMaintenanceCore?.moduleId || requestData.ModuleID || '').trim();
+        requestData.ClientID = String(window.ClientMaintenanceCore?.clientId || requestData.ClientID || '').trim();
+        requestData.RequestID = String(window.ClientMaintenanceCore?.requestId || requestData.RequestID || '').trim();
+
+        if (isAddMode && basicAction === 'create') {
+            addWorkflowBasicDetailsPersisted = true;
+        }
+    }
+
+    const isPersistedStep = hasAddWorkflowStepPersisted(tabKey);
+    const isEditExistingStep = hasEditModeStepExists(tabKey);
+    const action = isAddMode
+        ? (isPersistedStep ? 'update' : 'create')
+        : (isEditExistingStep ? 'update' : 'create');
+
+    // Log the action determination for debugging workflow issues
+    console.log(`[ClientMaintenance] Tab: ${tabKey}, IsAddMode: ${isAddMode}, IsPersistedStep: ${isPersistedStep}, IsEditExistingStep: ${isEditExistingStep}, Action: ${action}`);
 
     // Step 4: Invoke the action
     window.ClientMaintenanceCore.showToast(`${tabKey}: Saving...`, 'info');
@@ -2785,6 +3526,13 @@ async function processTabWorkflowStep(tabKey, pane, tabIndex) {
             'error'
         );
         return false; // Don't navigate
+    }
+
+    if (isAddMode && action === 'create') {
+        markAddWorkflowStepPersisted(tabKey);
+    } else if (!isAddMode && action === 'create') {
+        // In edit mode a successful create means the step now has server data.
+        markEditModeStepExists(tabKey, true);
     }
 
     // Step 6: On success, display confirmation message
@@ -2929,8 +3677,9 @@ async function saveCurrentTabData() {
     }
 
     // Check if tab has loaded data (look for _cmLoadData or data indicators)
-    const hasLoadedData = tabPane.querySelector('[data-cm-loaded]') !== null ||
-        tabPane.querySelectorAll('input[value], select option:selected, textarea').length > 0;
+    const explicitLoadedState = getPaneLoadedState(tabPane);
+    const hasLoadedData = explicitLoadedState === true ||
+        (explicitLoadedState == null && tabPane.querySelectorAll('input[value], select option:selected, textarea').length > 0);
 
     try {
         // Build request
@@ -2938,18 +3687,22 @@ async function saveCurrentTabData() {
         const selectedId = window.ClientMaintenanceCore.getSelectedId();
         const requestId = window.ClientMaintenanceCore.requestId || '';
 
-        const request = {
-            ModuleID: moduleId,
-            ClientID: selectedId,
-            RequestID: requestId,
-            Payload: {}
-        };
+        //const request = {
+        //    ModuleID: moduleId,
+        //    ClientID: selectedId,
+        //    RequestID: requestId,
+        //    Payload: {}
+        //};
+        const request = {};
+        request.ModuleID = moduleId;
+        request.ClientID = selectedId;
+        request.RequestID = requestId;
 
         // Collect form data from tab
         tabPane.querySelectorAll('input, select, textarea').forEach((element) => {
             const key = element.name || element.id;
             if (!key) return;
-            request.Payload[key] = element.type === 'checkbox' ? element.checked : element.value;
+            request[key] = element.type === 'checkbox' ? element.checked : element.value;
         });
 
         // Determine if we should call create or update
@@ -3109,6 +3862,13 @@ function setClientEditMode(isEditMode, options = {}) {
     const editMode = Boolean(isEditMode);
     if (window.ClientMaintenanceCore) {
         window.ClientMaintenanceCore.isEditMode = editMode;
+
+        if (!editMode) {
+            window.ClientMaintenanceCore.singleStageEditLockActive = false;
+            if (window.ClientMaintenanceCore.shellState !== 'add') {
+                unlockAllWorkflowTabs();
+            }
+        }
     }
 
     const stageTabs = Array.isArray(clientMaintenanceStageTabs) ? clientMaintenanceStageTabs : [];
@@ -3197,9 +3957,13 @@ async function beginNewClientMaintenance() {
     window.ClientMaintenanceCore.clientName = null;
     window.ClientMaintenanceCore.requestId = null;
     window.ClientMaintenanceCore.useRequestId = false;
+    window.ClientMaintenanceCore.recentActivityTrackedClientId = null;
     window.ClientMaintenanceCore.canEditCurrent = false;
     window.ClientMaintenanceCore.hasLoadedRecord = false;
     window.ClientMaintenanceCore.shellState = 'add';
+    window.ClientMaintenanceCore.singleStageEditLockActive = false;
+    clearAddWorkflowPersistedSteps();
+    clearEditModeExistingSteps();
 
     resetBehindSceneFields();
     setMainWorkflowLocked(true);
@@ -3337,10 +4101,14 @@ async function resetClientMaintenance() {
         window.ClientMaintenanceCore.clientName = null;
         window.ClientMaintenanceCore.requestId = null;
         window.ClientMaintenanceCore.useRequestId = false;
+        window.ClientMaintenanceCore.recentActivityTrackedClientId = null;
         window.ClientMaintenanceCore.workflowId = null;
         window.ClientMaintenanceCore.canEditCurrent = false;
         window.ClientMaintenanceCore.shellState = 'idle';
         window.ClientMaintenanceCore.hasLoadedRecord = false;
+        window.ClientMaintenanceCore.singleStageEditLockActive = false;
+        clearAddWorkflowPersistedSteps();
+        clearEditModeExistingSteps();
 
         // Clear all tab content
         const tabContentWrapper = document.getElementById('dv_clientMaintenanceTabContent');
