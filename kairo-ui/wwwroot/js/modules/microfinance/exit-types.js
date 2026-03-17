@@ -68,6 +68,7 @@
         wireLookupButtons();
         wireFormEvents();
         wireActionButtons();
+        wireRecordNavigation();
         wireReinstateCheckbox();
         wireChargeOffCheckbox();
         wireWithinDaysSync();
@@ -79,6 +80,7 @@
         // Default mode
         setMode('VIEW');
         setActionButtonsState({ canView: true, canAdd: false, canEdit: false, canDelete: false, canSave: false, canCancel: false });
+        setNavButtonsState({ canPrev: false, canNext: false });
 
         // Auto-load if exitTypeId provided
         const autoLoad = document.getElementById('autoLoad_exitTypes')?.value === 'true';
@@ -89,6 +91,46 @@
         }
 
         console.log('✅ Exit Types module initialized', state);
+    }
+
+    function wireRecordNavigation() {
+        const prevBtn = document.getElementById('btn_prevExitType');
+        const nextBtn = document.getElementById('btn_nextExitType');
+
+        prevBtn?.addEventListener('click', (e) => {
+            e.preventDefault();
+            navigateExitType(-1);
+        });
+
+        nextBtn?.addEventListener('click', (e) => {
+            e.preventDefault();
+            navigateExitType(1);
+        });
+    }
+
+    function setNavButtonsState({ canPrev = false, canNext = false } = {}) {
+        const prevBtn = document.getElementById('btn_prevExitType');
+        const nextBtn = document.getElementById('btn_nextExitType');
+        if (prevBtn) prevBtn.disabled = !canPrev;
+        if (nextBtn) nextBtn.disabled = !canNext;
+    }
+
+    function extractExitTypeRecord(response) {
+        // OldAPI can return multiple arrays:
+        // - Details02: main record when found
+        // - Details: sometimes metadata rows
+        // - Details01: often year-statistics rows
+        // At record navigation boundaries, the API may return ONLY stats/metadata arrays.
+        // Treat a row as a valid ExitType record only if it has a non-empty ExitTypeID.
+        const candidates = [response?.Details02, response?.Details, response?.Details01];
+        for (const arr of candidates) {
+            if (!Array.isArray(arr)) continue;
+            for (const row of arr) {
+                const id = String(row?.ExitTypeID ?? '').trim();
+                if (id) return row;
+            }
+        }
+        return null;
     }
 
     function enforceAfterDaysRule() {
@@ -286,11 +328,7 @@
 
             console.log('[View] Response:', response);
 
-            // IMPORTANT: OldAPI returns metadata rows under Details even when record is not found.
-            // The actual exit type record (when found) is in Details02.
-            const record = Array.isArray(response?.Details02) && response.Details02.length > 0
-                ? response.Details02[0]
-                : null;
+            const record = extractExitTypeRecord(response);
 
             if (record) {
                 populateForm(record, response);
@@ -298,6 +336,7 @@
                 state.currentData = record;
                 setMode('VIEW');
                 setActionButtonsState({ canView: false, canAdd: false, canEdit: true, canDelete: true, canSave: false, canCancel: true });
+                setNavButtonsState({ canPrev: true, canNext: true });
                 showSuccess(`Exit Type '${exitTypeId}' loaded`);
             } else {
                 // Not found: clear everything but keep the typed Exit Type ID
@@ -309,12 +348,82 @@
 
                 // Enable Add + Cancel (and allow View retry)
                 setActionButtonsState({ canView: false, canAdd: true, canEdit: false, canDelete: false, canSave: false, canCancel: true });
+                setNavButtonsState({ canPrev: false, canNext: false });
                 showError('Exit Type Details not Found');
             }
         } catch (error) {
             console.error('[View] Error:', error);
             showError('Error loading exit type: ' + error.message);
             setActionButtonsState({ canView: true, canAdd: false, canEdit: false, canDelete: false, canSave: false, canCancel: false });
+            setNavButtonsState({ canPrev: false, canNext: false });
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    async function navigateExitType(direction) {
+        const appCore = getAppCore();
+        if (!appCore) return;
+
+        const boundaryMessage = direction > 0
+            ? 'You have reached the Last Record'
+            : 'You have reached the First Record';
+
+        if (state.currentMode !== 'VIEW') {
+            showWarning('Please save or cancel changes before navigating');
+            return;
+        }
+
+        if (state.isDirty && !confirm('Discard unsaved changes?')) {
+            return;
+        }
+
+        const baseExitTypeId = String(state.currentExitTypeId || document.getElementById('txt_exitTypeId')?.value || '').trim();
+        if (!baseExitTypeId) {
+            showWarning('Please load an Exit Type first before navigating');
+            return;
+        }
+
+        showLoading(true);
+        try {
+            const response = await appCore.invokeControllerAsync('MicroFinance/ExitTypes/get', {
+                ExitTypeID: baseExitTypeId,
+                OurBranchID: state.branchId,
+                BankID: '00',
+                OperatorID: state.operatorId,
+                Direction: direction
+            });
+
+            console.log('[Navigate] Response:', response);
+            const record = extractExitTypeRecord(response);
+
+            if (record) {
+                const resolvedExitTypeId = String(record.ExitTypeID || '').trim() || baseExitTypeId;
+                const isSameRecord = resolvedExitTypeId.toLowerCase() === baseExitTypeId.toLowerCase();
+
+                document.getElementById('txt_exitTypeId').value = resolvedExitTypeId;
+
+                // Even if the API returns the same record at boundaries, keep the UI consistent.
+                populateForm(record, response);
+                state.currentExitTypeId = resolvedExitTypeId;
+                state.currentData = record;
+                state.isDirty = false;
+
+                setMode('VIEW');
+                setActionButtonsState({ canView: false, canAdd: false, canEdit: true, canDelete: true, canSave: false, canCancel: true });
+                setNavButtonsState({ canPrev: true, canNext: true });
+
+                if (isSameRecord) {
+                    showInfo(boundaryMessage);
+                } else {
+                    showSuccess(`Exit Type '${state.currentExitTypeId}' loaded`);
+                }
+            } else {
+                showInfo(boundaryMessage);
+            }
+        } catch (error) {
+            console.error('[Navigate] Error:', error);
+            showError('Error navigating exit types: ' + error.message);
         } finally {
             showLoading(false);
         }
@@ -343,6 +452,7 @@
         state.currentData = null;
         setMode('NEW');
         setActionButtonsState({ canView: false, canAdd: false, canEdit: false, canDelete: false, canSave: true, canCancel: true });
+        setNavButtonsState({ canPrev: false, canNext: false });
         showInfo('Enter new exit type details');
     }
 
@@ -356,6 +466,7 @@
         // Keep Exit Type ID disabled during edit (primary key)
         document.getElementById('txt_exitTypeId').disabled = true;
         setActionButtonsState({ canView: false, canAdd: false, canEdit: false, canDelete: false, canSave: true, canCancel: true });
+        setNavButtonsState({ canPrev: false, canNext: false });
 
         // Send user to the identifiers section to start editing immediately
         const descriptionEl = document.getElementById('txt_description');
@@ -378,6 +489,7 @@
             // Requirement: No / Close (X) should leave only Edit + Cancel enabled
             setMode('VIEW');
             setActionButtonsState({ canView: false, canAdd: false, canEdit: true, canDelete: false, canSave: false, canCancel: true });
+            setNavButtonsState({ canPrev: true, canNext: true });
             return;
         }
 
@@ -405,6 +517,7 @@
 
                 setMode('VIEW');
                 setActionButtonsState({ canView: true, canAdd: false, canEdit: false, canDelete: false, canSave: false, canCancel: false });
+                setNavButtonsState({ canPrev: false, canNext: false });
                 document.getElementById('txt_exitTypeId')?.focus();
                 showSuccess(`Exit Type '${deletedId}' deleted successfully`);
             } else {
@@ -454,6 +567,7 @@
 
                 setMode('VIEW');
                 setActionButtonsState({ canView: true, canAdd: false, canEdit: false, canDelete: false, canSave: false, canCancel: false });
+                setNavButtonsState({ canPrev: false, canNext: false });
                 document.getElementById('txt_exitTypeId')?.focus();
                 showSuccess('Data saved successfully');
             } else {
@@ -480,6 +594,7 @@
 
         setMode('VIEW');
         setActionButtonsState({ canView: true, canAdd: false, canEdit: false, canDelete: false, canSave: false, canCancel: false });
+        setNavButtonsState({ canPrev: false, canNext: false });
 
         // Set focus for quick next action
         document.getElementById('txt_exitTypeId')?.focus();
@@ -855,6 +970,10 @@
         if (exitTypeLookupBtn) {
             exitTypeLookupBtn.disabled = mode !== 'VIEW';
         }
+
+        // Record navigation: only when a record is loaded and in VIEW.
+        const canNavigate = mode === 'VIEW' && !!state.currentData && !!state.currentExitTypeId;
+        setNavButtonsState({ canPrev: canNavigate, canNext: canNavigate });
 
         // Sync nested controls
         handleReinstateChange();
