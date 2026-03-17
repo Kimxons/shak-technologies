@@ -24,7 +24,7 @@ namespace kairo_ui.Controllers.StaticData
 
         [HttpGet("")]
         [HttpGet("Index")]
-        public IActionResult Index() => RenderModuleView("ContactPerson");
+        public IActionResult Index() => RenderModuleView("ContactPersonPage");
 
         [HttpGet("Page")]
         [Route("~/StaticData/ContactPersonPage")]

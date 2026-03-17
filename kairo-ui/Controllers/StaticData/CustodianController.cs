@@ -24,7 +24,7 @@ namespace kairo_ui.Controllers.StaticData
 
         [HttpGet("")]
         [HttpGet("Index")]
-        public IActionResult Index() => RenderModuleView("Custodian");
+        public IActionResult Index() => RenderModuleView("CustodianPage");
 
         [HttpGet("Page")]
         [Route("~/StaticData/CustodianPage")]
