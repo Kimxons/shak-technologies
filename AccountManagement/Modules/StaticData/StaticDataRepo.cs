@@ -1,4 +1,3 @@
-using AccountManagement.Helpers;
 using AccountManagement.Modules.AccountMaintenance;
 using CBS.Entities.Common;
 using Microsoft.Data.SqlClient;
@@ -164,7 +163,7 @@ namespace AccountManagement.Modules.StaticData
                 new SqlParameter("@Direction", GetInt(data, "Direction"))
             };
 
-            return await ExecuteSpRaw(DBObjectConstants.GET_LOCATION, parameters, cancellationToken);
+            return await ExecuteSpRaw(StaticDataDbConstants.GET_LOCATION, parameters, cancellationToken);
         }
 
         public async Task<ResponseDetail<object>> AddEditLocation(string requestJson, CancellationToken cancellationToken = default)
@@ -185,7 +184,7 @@ namespace AccountManagement.Modules.StaticData
                 new SqlParameter("@OperatorID", GetString(data, "OperatorID"))
             };
 
-            return await ExecuteSpRaw(DBObjectConstants.ADD_EDIT_LOCATION, parameters, cancellationToken);
+            return await ExecuteSpRaw(StaticDataDbConstants.ADD_EDIT_LOCATION, parameters, cancellationToken);
         }
 
         public async Task<ResponseDetail<object>> DeleteLocation(string requestJson, CancellationToken cancellationToken = default)
@@ -197,7 +196,7 @@ namespace AccountManagement.Modules.StaticData
                 new SqlParameter("@OperatorID", GetString(data, "OperatorID"))
             };
 
-            return await ExecuteSpRaw(DBObjectConstants.DELETE_LOCATION, parameters, cancellationToken);
+            return await ExecuteSpRaw(StaticDataDbConstants.DELETE_LOCATION, parameters, cancellationToken);
         }
 
         public async Task<ResponseDetail<object>> GetContactPerson(string requestJson, CancellationToken cancellationToken = default)
@@ -209,7 +208,7 @@ namespace AccountManagement.Modules.StaticData
                 new SqlParameter("@Direction", GetInt(data, "Direction"))
             };
 
-            return await ExecuteSpRaw(DBObjectConstants.GET_CONTACT_PERSON, parameters, cancellationToken);
+            return await ExecuteSpRaw(StaticDataDbConstants.GET_CONTACT_PERSON, parameters, cancellationToken);
         }
 
         public async Task<ResponseDetail<object>> AddEditContactPerson(string requestJson, CancellationToken cancellationToken = default)
@@ -231,7 +230,7 @@ namespace AccountManagement.Modules.StaticData
                 new SqlParameter("@OperatorID", GetString(data, "OperatorID"))
             };
 
-            return await ExecuteSpRaw(DBObjectConstants.ADD_EDIT_CONTACT_PERSON, parameters, cancellationToken);
+            return await ExecuteSpRaw(StaticDataDbConstants.ADD_EDIT_CONTACT_PERSON, parameters, cancellationToken);
         }
 
         public async Task<ResponseDetail<object>> DeleteContactPerson(string requestJson, CancellationToken cancellationToken = default)
@@ -243,7 +242,7 @@ namespace AccountManagement.Modules.StaticData
                 new SqlParameter("@OperatorID", GetString(data, "OperatorID"))
             };
 
-            return await ExecuteSpRaw(DBObjectConstants.DELETE_CONTACT_PERSON, parameters, cancellationToken);
+            return await ExecuteSpRaw(StaticDataDbConstants.DELETE_CONTACT_PERSON, parameters, cancellationToken);
         }
 
         public async Task<ResponseDetail<object>> GetCustodian(string requestJson, CancellationToken cancellationToken = default)
@@ -255,7 +254,7 @@ namespace AccountManagement.Modules.StaticData
                 new SqlParameter("@Direction", GetInt(data, "Direction"))
             };
 
-            return await ExecuteSpRaw(DBObjectConstants.GET_CUSTODIAN, parameters, cancellationToken);
+            return await ExecuteSpRaw(StaticDataDbConstants.GET_CUSTODIAN, parameters, cancellationToken);
         }
 
         public async Task<ResponseDetail<object>> AddEditCustodian(string requestJson, CancellationToken cancellationToken = default)
@@ -274,7 +273,7 @@ namespace AccountManagement.Modules.StaticData
                 new SqlParameter("@NewRecord", GetInt(data, "NewRecord"))
             };
 
-            return await ExecuteSpRaw(DBObjectConstants.ADD_EDIT_CUSTODIAN, parameters, cancellationToken);
+            return await ExecuteSpRaw(StaticDataDbConstants.ADD_EDIT_CUSTODIAN, parameters, cancellationToken);
         }
 
         public async Task<ResponseDetail<object>> DeleteCustodian(string requestJson, CancellationToken cancellationToken = default)
@@ -286,7 +285,7 @@ namespace AccountManagement.Modules.StaticData
                 new SqlParameter("@OperatorID", GetString(data, "OperatorID"))
             };
 
-            return await ExecuteSpRaw(DBObjectConstants.DELETE_CUSTODIAN, parameters, cancellationToken);
+            return await ExecuteSpRaw(StaticDataDbConstants.DELETE_CUSTODIAN, parameters, cancellationToken);
         }
     }
 }

@@ -1,5 +1,5 @@
-using kairo_ui.Services;
 using Microsoft.AspNetCore.Mvc;
+using kairo_ui.Services;
 using System.Text.Json;
 
 namespace kairo_ui.Controllers.StaticData
@@ -87,7 +87,7 @@ namespace kairo_ui.Controllers.StaticData
 
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
-                    ApiEndpoints.GET_LOCATION,
+                    StaticDataEndpoints.GET_LOCATION,
                     request
                 );
 
@@ -111,7 +111,7 @@ namespace kairo_ui.Controllers.StaticData
 
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
-                    ApiEndpoints.ADD_EDIT_LOCATION,
+                    StaticDataEndpoints.ADD_EDIT_LOCATION,
                     request
                 );
 
@@ -135,7 +135,7 @@ namespace kairo_ui.Controllers.StaticData
 
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
-                    ApiEndpoints.DELETE_LOCATION,
+                    StaticDataEndpoints.DELETE_LOCATION,
                     request
                 );
 
@@ -159,7 +159,7 @@ namespace kairo_ui.Controllers.StaticData
 
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
-                    ApiEndpoints.GET_CONTACT_PERSON,
+                    StaticDataEndpoints.GET_CONTACT_PERSON,
                     request
                 );
 
@@ -183,7 +183,7 @@ namespace kairo_ui.Controllers.StaticData
 
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
-                    ApiEndpoints.ADD_EDIT_CONTACT_PERSON,
+                    StaticDataEndpoints.ADD_EDIT_CONTACT_PERSON,
                     request
                 );
 
@@ -207,7 +207,7 @@ namespace kairo_ui.Controllers.StaticData
 
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
-                    ApiEndpoints.DELETE_CONTACT_PERSON,
+                    StaticDataEndpoints.DELETE_CONTACT_PERSON,
                     request
                 );
 
@@ -231,7 +231,7 @@ namespace kairo_ui.Controllers.StaticData
 
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
-                    ApiEndpoints.GET_CUSTODIAN,
+                    StaticDataEndpoints.GET_CUSTODIAN,
                     request
                 );
 
@@ -255,7 +255,7 @@ namespace kairo_ui.Controllers.StaticData
 
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
-                    ApiEndpoints.ADD_EDIT_CUSTODIAN,
+                    StaticDataEndpoints.ADD_EDIT_CUSTODIAN,
                     request
                 );
 
@@ -279,7 +279,7 @@ namespace kairo_ui.Controllers.StaticData
 
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
-                    ApiEndpoints.DELETE_CUSTODIAN,
+                    StaticDataEndpoints.DELETE_CUSTODIAN,
                     request
                 );
 
