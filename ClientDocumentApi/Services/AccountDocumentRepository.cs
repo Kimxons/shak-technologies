@@ -1,3 +1,4 @@
+using CBS.Entities.Common;
 using ClientDocumentApi.Contracts;
 using ClientDocumentApi.Data;
 using ClientDocumentApi.Models;
@@ -24,7 +25,7 @@ namespace ClientDocumentApi.Services
         }
 
         public async Task<(bool Success, long ImageID, string Message)> UploadAccountDocumentAsync(
-            InData<AccountDocumentUploadRequest> request,
+            InDataRequest<AccountDocumentUploadRequest> request,
             CancellationToken cancellationToken = default)
         {
             try
