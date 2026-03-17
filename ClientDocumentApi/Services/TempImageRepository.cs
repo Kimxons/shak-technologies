@@ -4,6 +4,7 @@ using ClientDocumentApi.Data;
 using ClientDocumentApi.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
@@ -333,6 +334,98 @@ namespace ClientDocumentApi.Services
             }
         }
 
+        /// <summary>
+        /// Update image metadata and replace file
+        /// </summary>
+        public async Task<TempImage> UpdateAsync(IFormFile file, long imageID, string? imageTypeID, string? description,
+            string? imageStatusID, string? closedBy, DateTime? closedDate, string? supervisedBy,
+            DateTime? supervisedOn, string? modifiedBy, CancellationToken cancellationToken = default)
+        {
+            if (file == null || file.Length == 0)
+                throw new InvalidOperationException("A non-empty file is required.");
+
+            string filePath = string.Empty;
+            bool shouldKeepFile = false;
+
+            try
+            {
+
+                TempImage? entity = await _context.TempImages.FirstOrDefaultAsync(i => i.ImageID == imageID, cancellationToken);
+                if (entity == null)
+                    throw new KeyNotFoundException($"Image with ID {imageID} not found.");
+
+                // Save file to disk
+                filePath = await _fileStorage.SaveAsync(file, cancellationToken);
+
+                byte[] imageData;
+                //byte[]? thumbnailData = null;
+                //string? base64Content = null;
+
+                // Read the file into memory
+                using (var memoryStream = new MemoryStream())
+                {
+                    await file.CopyToAsync(memoryStream, cancellationToken);
+                    imageData = memoryStream.ToArray();
+                    //base64Content = Convert.ToBase64String(imageData);
+                }
+                // Update only provided fields
+                if (imageTypeID != null)
+                    entity.ImageTypeID = imageTypeID;
+
+                entity.Description = file.FileName;
+
+                if (description != null)
+                    entity.Description += ':' + description; ;
+
+                //if (imageStatusID != null)
+                //    entity.ImageStatusID = imageStatusID ?? "NEW";
+
+                if (closedBy != null)
+                    entity.DeletedBy = closedBy;
+
+                if (closedDate.HasValue)
+                    entity.DeletedOn = closedDate;
+
+                if (supervisedBy != null)
+                    entity.SupervisedBy = supervisedBy;
+
+                if (supervisedOn.HasValue)
+                    entity.SupervisedOn = supervisedOn;
+
+                //entity.sImage = base64Content;
+                entity.Image = imageData;
+                entity.FilePath = filePath;
+                // Always update ModifiedBy and ModifiedOn
+                entity.ModifiedBy = modifiedBy;
+                entity.ModifiedOn = DateTime.UtcNow;
+                entity.UpdateCount = (byte?)((entity.UpdateCount ?? 0) + 1);
+
+                _context.TempImages.Update(entity);
+                await _context.SaveChangesAsync(cancellationToken);
+
+                shouldKeepFile = true;
+                return entity;
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Failed to update temp image metadata for ID {imageID}.", ex);
+            }
+            finally
+            {
+                // Cleanup file if operation failed
+                if (!shouldKeepFile && !string.IsNullOrEmpty(filePath) && System.IO.File.Exists(filePath))
+                {
+                    try
+                    {
+                        System.IO.File.Delete(filePath);
+                    }
+                    catch
+                    {
+                        // Ignore cleanup errors
+                    }
+                }
+            }
+        }
         public async Task<List<TempImage>> GetByTempClientIdAsync(string clientID, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(clientID))
