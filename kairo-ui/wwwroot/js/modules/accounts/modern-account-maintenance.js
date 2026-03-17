@@ -270,13 +270,19 @@
             
             console.log('[AccountMaintenance] Sidebar loaded successfully');
             
-            // Re-wire sidebar event handlers after loading new HTML
-            wireSidebarAfterLoad();
+            // Initialize SidebarManager like Client Maintenance does
+            // SidebarManager handles data-child-form click events and opens URLs in iframe
+            if (window.SidebarManager && typeof window.SidebarManager.init === 'function') {
+                window.SidebarManager.init({
+                    moduleName: 'Account',
+                    isMainRecordLoaded: window.AccountMaintenanceState?.isAccountLoaded || false,
+                    primaryRecordId: window.AccountMaintenanceState?.AccountID || null
+                });
+                console.log('[AccountMaintenance] Initialized SidebarManager');
+            }
             
-            // NOTE: We do NOT call SidebarManager.init() here because 
-            // wireSidebarAfterLoad() already handles event wiring with 
-            // Account Maintenance-specific logic (CHILD_FORMS mapping, etc.)
-            // Calling both would result in duplicate handlers.
+            // Wire recent activities click handlers (specific to Account Maintenance)
+            wireRecentActivitiesHandlers();
         } catch (error) {
             console.error('[AccountMaintenance] Error loading sidebar:', error);
             // Fallback to client-side recent activities loading
@@ -285,70 +291,17 @@
     }
     
     /**
-     * Wire sidebar event handlers after dynamic load
+     * Wire recent activities click handlers after sidebar load
+     * SidebarManager handles the submodule items; this handles Account-specific recent activities
      */
-    function wireSidebarAfterLoad() {
-        // Wire sidebar toggle (for new dynamically loaded sidebar)
-        const sidebarToggle = document.getElementById('sidebarToggle');
-        const sidebar = document.getElementById('main-sidebar');
-        
-        if (sidebarToggle && sidebar) {
-            sidebarToggle.onclick = function() {
-                sidebar.classList.toggle('collapsed');
-                const mainContainer = document.querySelector('.main-container');
-                if (mainContainer) mainContainer.classList.toggle('sidebar-collapsed');
-            };
-        }
-        
-        // Wire data-child-form items (submodule items from _SideBarPartial)
-        document.querySelectorAll('.sidebar-item[data-child-form], .sidebar-item--enhanced[data-child-form]').forEach(item => {
-            item.addEventListener('click', function (e) {
-                e.stopPropagation();
-                const sidebar = document.getElementById('main-sidebar');
-                if (sidebar && sidebar.classList.contains('collapsed')) {
-                    sidebar.classList.remove('collapsed');
-                    document.querySelector('.main-container')?.classList.remove('sidebar-collapsed');
-                }
-
-                document.querySelectorAll('.sidebar-item, .sidebar-item--enhanced').forEach(i => i.classList.remove('active'));
-                this.classList.add('active');
-
-                const childKey = this.getAttribute('data-child-form');
-                if (childKey === 'blocking-unblocking') {
-                    showBlockingConfirmation();
-                } else if (childKey) {
-                    openChildForm(childKey);
-                }
-            });
-        });
-
-        // Wire data-submodule items (legacy hardcoded items if still present)
-        document.querySelectorAll('.sidebar-item[data-submodule], .sidebar-item--enhanced[data-submodule]').forEach(item => {
-            item.addEventListener('click', function (e) {
-                e.stopPropagation();
-                const sidebar = document.getElementById('main-sidebar');
-                if (sidebar && sidebar.classList.contains('collapsed')) {
-                    sidebar.classList.remove('collapsed');
-                    document.querySelector('.main-container')?.classList.remove('sidebar-collapsed');
-                }
-
-                document.querySelectorAll('.sidebar-item, .sidebar-item--enhanced').forEach(i => i.classList.remove('active'));
-                this.classList.add('active');
-
-                const submoduleName = this.getAttribute('data-submodule');
-                if (submoduleName) {
-                    loadSubmoduleView(submoduleName);
-                }
-            });
-        });
-        
+    function wireRecentActivitiesHandlers() {
         // Wire recent activities click handlers
         const recentContainer = document.querySelector('[data-recent-activities-container]');
         if (recentContainer) {
             recentContainer.querySelectorAll('[data-accessedfields]').forEach(item => {
                 item.addEventListener('click', async function() {
                     const accessedFields = this.getAttribute('data-accessedfields') || '';
-                    // Parse AccountID from accessedFields (format: "AccountID:xxxx")
+                    // Parse AccountID from accessedFields (format: "BranchID:xxxx,AccountID:yyyy")
                     const match = accessedFields.match(/AccountID[:\s]*([^\s,;]+)/i);
                     if (match) {
                         const accountId = match[1];
@@ -361,54 +314,6 @@
                 });
             });
         }
-        
-        // Re-wire nav section toggles
-        document.querySelectorAll('[data-nav-section] .nav-header').forEach(header => {
-            header.style.cursor = 'pointer';
-            header.addEventListener('click', function(e) {
-                if (e.target.closest('.nav-arrow')) return;
-                const section = this.closest('[data-nav-section]');
-                if (section) {
-                    const items = section.querySelector('.nav-items');
-                    const arrow = section.querySelector('.nav-arrow');
-                    if (items) {
-                        const isHidden = items.hasAttribute('hidden');
-                        if (isHidden) {
-                            items.removeAttribute('hidden');
-                            items.classList.add('is-visible');
-                            if (arrow) arrow.setAttribute('aria-expanded', 'true');
-                        } else {
-                            items.setAttribute('hidden', '');
-                            items.classList.remove('is-visible');
-                            if (arrow) arrow.setAttribute('aria-expanded', 'false');
-                        }
-                    }
-                }
-            });
-        });
-        
-        // Re-wire nav arrow buttons
-        document.querySelectorAll('[data-nav-section] .nav-arrow').forEach(arrow => {
-            arrow.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const section = this.closest('[data-nav-section]');
-                if (section) {
-                    const items = section.querySelector('.nav-items');
-                    if (items) {
-                        const isHidden = items.hasAttribute('hidden');
-                        if (isHidden) {
-                            items.removeAttribute('hidden');
-                            items.classList.add('is-visible');
-                            this.setAttribute('aria-expanded', 'true');
-                        } else {
-                            items.setAttribute('hidden', '');
-                            items.classList.remove('is-visible');
-                            this.setAttribute('aria-expanded', 'false');
-                        }
-                    }
-                }
-            });
-        });
     }
 
     // ============================================================================
@@ -794,20 +699,18 @@
         if (!event.data) return;
 
         if (event.data.action === 'submoduleOpened') {
-            // A submodule has opened - keep sidebar visible
             activeSubmodule = event.data.source;
-            console.log('Submodule opened:', activeSubmodule);
+            console.log('[AccountMaintenance] Submodule opened:', activeSubmodule);
         } else if (event.data.action === 'blockSubmoduleOpen') {
-            // A submodule is blocking another from opening
-            console.log('Cannot open ' + event.data.blockedModule + ': ' + event.data.reason);
+            console.log('[AccountMaintenance] Cannot open ' + event.data.blockedModule + ': ' + event.data.reason);
             showSystemToast('Please close \'' + event.data.source + '\' first');
         } else if (event.data.action === 'submoduleClosed') {
-            // A submodule has closed - close the iframe
-            if (activeSubmodule === event.data.source) {
-                activeSubmodule = null;
-                closeChildForm();
-                console.log('Submodule closed:', event.data.source);
+            // A submodule has closed - delegate to SidebarManager
+            activeSubmodule = null;
+            if (window.SidebarManager && typeof window.SidebarManager.closeChildForm === 'function') {
+                window.SidebarManager.closeChildForm();
             }
+            console.log('[AccountMaintenance] Submodule closed:', event.data.source);
         } else if (event.data.action === 'toggleSidebarForMaximize') {
             // Handle sidebar collapse/expand for maximize button
             const sidebar = document.querySelector('.sidebar');
@@ -829,6 +732,8 @@
     });
 
     function openChildForm(childKey) {
+        console.log('[AccountMaintenance] openChildForm called with key:', childKey);
+        
         // Check if another submodule is already active
         if (activeSubmodule) {
             showSystemToast('Please close \'' + activeSubmodule + '\' first');
@@ -836,8 +741,13 @@
         }
 
         const path = CHILD_FORMS[childKey];
+        console.log('[AccountMaintenance] Resolved path:', path);
+        
         const { iframe } = getOverlayEls();
-        if (!path || !iframe) return;
+        if (!path || !iframe) {
+            console.error('[AccountMaintenance] Cannot open child form - path:', path, 'iframe:', !!iframe);
+            return;
+        }
 
         // Check if this form requires a loaded account
         if (ACCOUNT_REQUIRED_FORMS.includes(childKey)) {
@@ -2094,48 +2004,6 @@
         });
     }
 
-    function wireSidebar() {
-        document.querySelectorAll('.sidebar-item[data-child-form], .sidebar-item--enhanced[data-child-form]').forEach(item => {
-            item.addEventListener('click', function (e) {
-                e.stopPropagation();
-                const sidebar = document.getElementById('main-sidebar');
-                if (sidebar && sidebar.classList.contains('collapsed')) {
-                    sidebar.classList.remove('collapsed');
-                    document.querySelector('.main-container')?.classList.remove('sidebar-collapsed');
-                }
-
-                document.querySelectorAll('.sidebar-item, .sidebar-item--enhanced').forEach(i => i.classList.remove('active'));
-                this.classList.add('active');
-
-                const childKey = this.getAttribute('data-child-form');
-                if (childKey === 'blocking-unblocking') {
-                    showBlockingConfirmation();
-                } else if (childKey) {
-                    openChildForm(childKey);
-                }
-            });
-        });
-
-        document.querySelectorAll('.sidebar-item[data-submodule], .sidebar-item--enhanced[data-submodule]').forEach(item => {
-            item.addEventListener('click', function (e) {
-                e.stopPropagation();
-                const sidebar = document.getElementById('main-sidebar');
-                if (sidebar && sidebar.classList.contains('collapsed')) {
-                    sidebar.classList.remove('collapsed');
-                    document.querySelector('.main-container')?.classList.remove('sidebar-collapsed');
-                }
-
-                document.querySelectorAll('.sidebar-item, .sidebar-item--enhanced').forEach(i => i.classList.remove('active'));
-                this.classList.add('active');
-
-                const submoduleName = this.getAttribute('data-submodule');
-                if (submoduleName) {
-                    loadSubmoduleView(submoduleName);
-                }
-            });
-        });
-    }
-
     function wireBlockingConfirmation() {
         const yesBtn = document.getElementById('blockingConfirmYes');
         const noBtn = document.getElementById('blockingConfirmNo');
@@ -2144,7 +2012,13 @@
         if (yesBtn) {
             yesBtn.addEventListener('click', function () {
                 hideBlockingConfirmation();
-                openChildForm('blocking-unblocking');
+                // Use SidebarManager to open the Blocking submodule with MVC route
+                if (window.SidebarManager && typeof window.SidebarManager.openChildForm === 'function') {
+                    window.SidebarManager.openChildForm('../AccountsMaintenance/Blocking', {
+                        requireMainRecord: true,
+                        mainRecordName: 'Account'
+                    });
+                }
             });
         }
         if (noBtn) noBtn.addEventListener('click', hideBlockingConfirmation);
@@ -2844,11 +2718,19 @@
             } else {
                 const msg = result.message || (data && data.ResponseMessage) || 'Failed to load account details';
                 showErrorMessage(msg, { useInlineAlert: true });
+                // Notify sidebar that no valid record is loaded (mirrors CM pattern)
+                if (window.SidebarManager && typeof window.SidebarManager.setMainRecordLoaded === 'function') {
+                    window.SidebarManager.setMainRecordLoaded(false, null);
+                }
             }
 
         } catch (error) {
             console.error('[AccountMaintenance] Error loading account:', error);
             showErrorMessage('Error loading account details: ' + error.message, { useInlineAlert: true });
+            // Notify sidebar that no valid record is loaded (mirrors CM pattern)
+            if (window.SidebarManager && typeof window.SidebarManager.setMainRecordLoaded === 'function') {
+                window.SidebarManager.setMainRecordLoaded(false, null);
+            }
         } finally {
             showPageLoader(false);
         }

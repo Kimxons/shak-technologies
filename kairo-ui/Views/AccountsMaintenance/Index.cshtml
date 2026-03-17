@@ -45,6 +45,11 @@
             background: inherit;
             width: 100%;
         }
+
+        /* Hide parent alert banner when a submodule iframe is open */
+        .main-container.child-open #accountMaintenanceAlertContainer {
+            display: none !important;
+        }
     </style>
 }
 
@@ -150,11 +155,9 @@
                 <!-- Persistent Alert Container (Common Notifications) -->
                 <div id="accountMaintenanceAlertContainer" class="px-2"></div>
 
-                <!-- Submodule Content Container (dynamically loaded partial views) -->
-                <div id="submodule-container" class="submodule-container">
-                    <!-- Default view: Account Search and Details -->
-                    <div class="form-card" data-main-form>
-                        <!-- Account Search Section - Collapsible -->
+                <!-- Main Form (hidden when submodule overlay is open) -->
+                <div class="form-card" data-main-form>
+                    <!-- Account Search Section - Collapsible -->
                         <div class="form-section" data-section="account-search">
                             <div class="section-header" data-section-toggle>
                                 <span class="section-header__title"><i class="bi bi-search"></i>Account Search</span>
@@ -537,8 +540,7 @@
                             </div>
                         </div>
                     </div>
-                    </div><!-- End default form-card -->
-                </div><!-- End submodule-container -->
+                    </div><!-- End default form-card / data-main-form -->
             </div><!-- End form-content -->
 
             <!-- Right Action Panel -->
