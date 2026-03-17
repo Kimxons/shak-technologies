@@ -13,8 +13,9 @@
     const MODES = { VIEW: 'View', EDIT: 'Edit' };
 
     const endpoints = {
-        getWorkflow:  'StaticData/ClientTypeWorkflow/GetClientTypeWorkflow',
-        saveWorkflow: 'StaticData/ClientTypeWorkflow/SaveClientTypeWorkflow'
+        getWorkflowOptions: '/StaticData/ClientTypeWorkflow/GetWorkflowOptions',
+        getWorkflow:        'StaticData/ClientTypeWorkflow/GetClientTypeWorkflow',
+        saveWorkflow:       'StaticData/ClientTypeWorkflow/SaveClientTypeWorkflow'
     };
 
     // ─── State ───────────────────────────────────────────────────────────
@@ -36,7 +37,7 @@
             moduleId:   (qs('#moduleId_ctw')?.value   || '').trim(),
             operatorId: (qs('#OperatorID')?.value      || '').trim() || sessionStorage.getItem('user_name')   || '',
             branchId:   (qs('#hdn_BranchCode')?.value  || '').trim() || sessionStorage.getItem('branch_code') || '',
-            bankId:     (qs('#hdn_BankId')?.value      || '').trim() || sessionStorage.getItem('bank_id')     || ''
+            bankId:     (qs('#hdn_BankId')?.value      || '').trim() || sessionStorage.getItem('bank_id')     || '00'
         };
     }
 
@@ -210,6 +211,8 @@
         const setText = (id, val) => { const el = qs('#' + id); if (el) el.textContent = String(val ?? '').trim(); };
         setText('CreatedBy',   data?.CreatedBy    ?? data?.createdBy);
         setText('CreatedOn',   data?.CreatedOn    ?? data?.createdOn);
+        setText('ModifiedBy',  data?.ModifiedBy   ?? data?.modifiedBy  ?? data?.OperatedBy  ?? data?.operatedBy);
+        setText('ModifiedOn',  data?.ModifiedOn   ?? data?.modifiedOn  ?? data?.OperatedOn  ?? data?.operatedOn);
         setText('SupervisedBy',data?.SupervisedBy ?? data?.supervisedBy);
         setText('SupervisedOn',data?.SupervisedOn ?? data?.supervisedOn);
     }
@@ -254,7 +257,7 @@
             const c = ctx();
             const resp = await apiInvoke(endpoints.getWorkflow, {
                 WorkFlowID:  workflowId,
-                ID:          'WFIClientTypeID',
+                ID:          'ClientTypeID',
                 BankID:      c.bankId,
                 OurBranchID: c.branchId,
                 OperatorID:  c.operatorId
@@ -372,6 +375,56 @@
         }
     }
 
+    // ─── Workflow dropdown loader ─────────────────────────────────────────
+    async function loadWorkflowOptions() {
+        const sel = qs('#WorkflowId');
+        if (!sel) return;
+
+        try {
+            const c = ctx();
+            const url = `${endpoints.getWorkflowOptions}?bankId=${encodeURIComponent(c.bankId)}`;
+            const response = await fetch(url, {
+                method: 'GET',
+                credentials: 'same-origin',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+            const resp = await response.json();
+            if (!resp?.success) return;
+
+            const data = resp.data || resp.Data || resp;
+
+            // Try Details01 → Details array → root array
+            let rows =
+                (data?.Details01 && Array.isArray(data.Details01))  ? data.Details01  :
+                (data?.Details   && Array.isArray(data.Details))    ? data.Details    :
+                Array.isArray(data)                                  ? data            : [];
+
+            // Details may be a JSON string
+            if (!rows.length && typeof data?.Details === 'string') {
+                try { rows = JSON.parse(data.Details); } catch { rows = []; }
+            }
+
+            rows.forEach(row => {
+                const value = (row.WorkflowID ?? row.WorkFlowID ?? '').toString().trim();
+                const text  = (row.Description ?? value).toString().trim();
+                if (!value) return;
+                const opt = document.createElement('option');
+                opt.value       = value;
+                opt.textContent = text;
+                sel.appendChild(opt);
+            });
+
+            // Refresh bootstrap-select if present
+            if (typeof $ !== 'undefined' && typeof $.fn?.selectpicker !== 'undefined') {
+                $(sel).selectpicker('refresh');
+            }
+        } catch (ex) {
+            console.error('Failed to load workflow options:', ex);
+        }
+    }
+
     // ─── Section toggles (matches LoanAnalysis pattern) ──────────────────
     function wireSectionToggles() {
         qsa('[data-section-toggle]').forEach(header => {
@@ -404,7 +457,7 @@
         save?.addEventListener('click',   handleSave);
         cancel?.addEventListener('click', handleCancel);
 
-        // Clear grid when workflow selection changes
+        // Auto-fetch when workflow selection changes
         qs('#WorkflowId')?.addEventListener('change', () => {
             populateGrid([]);
             clearAudit();
@@ -412,7 +465,8 @@
             state.allClientTypes      = [];
             state.originalClientTypes = [];
             clearMessage();
-            updateActionButtons();
+            setMode(MODES.VIEW);
+            void handleView();
         });
 
         // Select-all checkbox
@@ -433,6 +487,7 @@
         bindEvents();
         updateActionButtons();
         clearMessage();
+        void loadWorkflowOptions();
     }
 
     if (document.readyState === 'loading') {

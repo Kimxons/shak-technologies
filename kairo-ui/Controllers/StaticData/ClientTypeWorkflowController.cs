@@ -36,7 +36,7 @@ namespace kairo_ui.Controllers.StaticData
         [HttpGet("Index")]
         [HttpGet("~/StaticData/BankClientTypeWorkflow")]
         [HttpGet("~/StaticData/BankClientTypeWorkflow/Index")]
-        public async Task<IActionResult> Index(string? moduleId = null)
+        public IActionResult Index(string? moduleId = null)
         {
             ViewData["Title"]      = "Client Type Workflow";
             ViewData["ModuleId"]   = moduleId ?? string.Empty;
@@ -44,24 +44,45 @@ namespace kairo_ui.Controllers.StaticData
             ViewData["BranchCode"] = HttpContext.Session.GetString("branch_code") ?? string.Empty;
             ViewData["BankId"]     = HttpContext.Session.GetString("bank_id")     ?? string.Empty;
 
+            return RenderModuleView("ClientTypeWorkflow");
+        }
+
+        // -----------------------------------------------------------------------
+        // GET WORKFLOW OPTIONS – called by JS on page load to populate the dropdown
+        // -----------------------------------------------------------------------
+
+        [HttpGet("GetWorkflowOptions")]
+        public async Task<IActionResult> GetWorkflowOptions([FromQuery] string? bankId = null)
+        {
             try
             {
-                // "WFIClientTypeID" is the system-code table that holds the workflow types
-                var dropdownOptions = await _apiCachedService.GetMultipleDropdownCodeOptionsAsync(new[]
-                {
-                    "WFIClientTypeID"
-                });
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { success = false, message = "Not authenticated" });
 
-                dropdownOptions.TryGetValue("WFIClientTypeID", out var workflowOptions);
-                ViewData["WorkflowOptions"] = workflowOptions ?? Enumerable.Empty<SelectListItem>();
+                // Use query param if supplied; fall back through all known session keys, then default to "00"
+                if (string.IsNullOrWhiteSpace(bankId))
+                    bankId = HttpContext.Session.GetString("bank_id")
+                          ?? HttpContext.Session.GetString("bank_code")
+                          ?? HttpContext.Session.GetString("BankID")
+                          ?? "00";
+
+                var result = await _oldApiService.CreateAsync<JsonElement>(
+                    OldApiName,
+                    OldApiDBConstants.GET_WORKFLOW_TYPES,
+                    new
+                    {
+                        BankID       = bankId,
+                        ModuleTypeID = "ClientTypeID"
+                    }
+                );
+
+                return Ok(new { success = true, data = result });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error loading workflow dropdown for Client Type Workflow");
-                ViewData["WorkflowOptions"] = Enumerable.Empty<SelectListItem>();
+                _logger.LogError(ex, "Error loading workflow options for Client Type Workflow");
+                return StatusCode(500, new { success = false, message = ex.Message });
             }
-
-            return RenderModuleView("ClientTypeWorkflow");
         }
 
         // -----------------------------------------------------------------------
@@ -88,7 +109,7 @@ namespace kairo_ui.Controllers.StaticData
                     {
                         BankID      = request.BankID,
                         WorkFlowID  = request.WorkFlowID,
-                        ID          = request.ID ?? "WFIClientTypeID",
+                        ID          = request.ID ?? "ClientTypeID",
                         OurBranchID = request.OurBranchID,
                         OperatorID  = request.OperatorID
                     }
@@ -166,6 +187,45 @@ namespace kairo_ui.Controllers.StaticData
         // -----------------------------------------------------------------------
         // PRIVATE HELPERS
         // -----------------------------------------------------------------------
+
+        private static IEnumerable<SelectListItem> ParseWorkflowsToSelectList(JsonElement result)
+        {
+            var items = new List<SelectListItem>
+            {
+                new SelectListItem { Value = "", Text = "--Select--" }
+            };
+
+            JsonElement rows;
+            bool found = false;
+
+            if (result.ValueKind == JsonValueKind.Object)
+            {
+                if (TryGet(result, "Details01", out rows) && rows.ValueKind == JsonValueKind.Array) found = true;
+                else if (TryGet(result, "Details",   out rows) && rows.ValueKind == JsonValueKind.Array) found = true;
+                else rows = default;
+            }
+            else if (result.ValueKind == JsonValueKind.Array)
+            {
+                rows  = result;
+                found = true;
+            }
+            else
+            {
+                rows = default;
+            }
+
+            if (!found) return items;
+
+            foreach (var row in rows.EnumerateArray())
+            {
+                var value = GetString(row, "WorkflowID") ?? GetString(row, "WorkFlowID") ?? string.Empty;
+                var text  = GetString(row, "Description") ?? value;
+                if (!string.IsNullOrWhiteSpace(value))
+                    items.Add(new SelectListItem { Value = value, Text = text });
+            }
+
+            return items;
+        }
 
         private void EnsureDefaults<T>(T request) where T : ClientTypeWorkflowBaseRequest
         {

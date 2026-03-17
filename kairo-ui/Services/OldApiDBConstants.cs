@@ -337,6 +337,7 @@ namespace kairo_ui.Services
         // CLIENT TYPE WORKFLOW (StaticData/ClientTypeWorkflow)
         // ═══════════════════════════════════════════════════════════════════
         public const string GET_CLIENT_TYPE_WORKFLOW = "dbo.p_GetClientTypeWorkFlow";
+        public const string GET_WORKFLOW_TYPES = "dbo.p_GetClientsWorkFlows";
         public const string EDIT_CLIENT_TYPE_WORKFLOW = "dbo.p_EditClientTypeWorkFlow";
         public const string GET_CLIENT_TYPE_WORKFLOW_PENDING = "p_GetClientTypeWorkflowPending";
 
