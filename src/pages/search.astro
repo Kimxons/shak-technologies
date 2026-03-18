@@ -2,29 +2,131 @@
 import { getCollection } from "astro:content";
 import { SITE } from "@config";
 import Layout from "@layouts/Layout.astro";
-import Main from "@layouts/Main.astro";
 import Header from "@components/Header.astro";
 import Footer from "@components/Footer.astro";
 import SearchBar from "@components/Search";
 import getSortedPosts from "@utils/getSortedPosts";
+import getPostSlug from "@utils/getPostSlug";
 
 // Retrieve all published articles
 const posts = await getCollection("blog", ({ data }) => !data.draft);
 const sortedPosts = getSortedPosts(posts);
 
 // List of items to search in
-const searchList = sortedPosts.map(({ data, slug }) => ({
-  title: data.title,
-  description: data.description,
-  data,
-  slug,
+const searchList = sortedPosts.map(post => ({
+  title: post.data.title,
+  description: post.data.description,
+  data: post.data,
+  slug: getPostSlug(post),
 }));
+
+const searchSchema = {
+  "@context": "https://schema.org",
+  "@type": "SearchResultsPage",
+  name: `News Room Search | ${SITE.title}`,
+  description:
+    "Search Shak Technologies Ltd News Room coverage and technical commentary.",
+  url: new URL("search", SITE.website).href,
+};
 ---
 
-<Layout title={`Search | ${SITE.title}`}>
+<Layout
+  title={`News Room Search | ${SITE.title}`}
+  description="Search the News Room for technical stories, engineering commentary, and delivery notes."
+  schema={searchSchema}
+>
   <Header activeNav="search" />
-  <Main pageTitle="Search" pageDesc="">
+  <main id="search-main">
+    <section class="search-hero">
+      <div class="search-copy">
+        <p class="search-kicker">News Room Search</p>
+        <h1>Find stories, technical commentary, and delivery notes fast.</h1>
+        <p>
+          Search across the News Room by topic, title, or problem area to jump
+          straight into the most relevant coverage.
+        </p>
+      </div>
+
+      <aside class="search-rail">
+        <div>
+          <span>Published stories</span>
+          <strong>{sortedPosts.length}</strong>
+        </div>
+        <div>
+          <span>Searches</span>
+          <strong>Titles and descriptions</strong>
+        </div>
+      </aside>
+    </section>
+
     <SearchBar client:load searchList={searchList} />
-  </Main>
+  </main>
   <Footer />
 </Layout>
+
+<style>
+  #search-main {
+    @apply mx-auto flex w-full max-w-[90rem] flex-col gap-8 px-4 pb-12 sm:px-6;
+  }
+  @media (min-width: 1200px) {
+    #search-main {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+  }
+  .search-hero {
+    @apply grid gap-6 px-1 py-8 sm:px-0 sm:py-10;
+    border-top: 1px solid rgba(var(--color-border), 0.84);
+    border-bottom: 1px solid rgba(var(--color-border), 0.84);
+    background: radial-gradient(
+      circle at top left,
+      rgba(var(--color-accent), 0.08),
+      transparent 32%
+    );
+  }
+  @media (min-width: 1080px) {
+    .search-hero {
+      grid-template-columns: minmax(0, 1.18fr) minmax(18rem, 0.54fr);
+      align-items: end;
+    }
+  }
+  .search-kicker {
+    @apply text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-skin-accent;
+  }
+  .search-copy h1 {
+    @apply mt-3 max-w-5xl text-4xl font-semibold leading-[0.98] sm:text-6xl;
+    text-wrap: balance;
+  }
+  .search-copy > p {
+    @apply mt-4 max-w-3xl text-lg leading-8;
+    opacity: 0.84;
+  }
+  @media (max-width: 639px) {
+    .search-copy > p {
+      font-size: 1rem;
+      line-height: 1.75;
+    }
+  }
+  .search-rail {
+    @apply grid gap-3;
+  }
+  @media (max-width: 1079px) {
+    .search-rail {
+      padding-top: 1rem;
+      border-top: 1px solid rgba(var(--color-border), 0.78);
+    }
+  }
+  .search-rail div {
+    @apply py-3;
+    border-bottom: 1px solid rgba(var(--color-border), 0.78);
+  }
+  .search-rail div:last-child {
+    border-bottom: 0;
+  }
+  .search-rail span {
+    @apply block text-[0.68rem] font-semibold uppercase tracking-[0.16em] opacity-65;
+  }
+  .search-rail strong {
+    @apply mt-1 block text-xl font-semibold;
+  }
+</style>

@@ -19,7 +19,7 @@ export type SocialObjects = {
 export const SITE: Site = {
   website: "https://kitonga-meshack.vercel.app/",
   author: "Shak Technologies Ltd",
-  desc: "Official website of Shak Technologies Ltd: courses, consultancy, and practical AI engineering insights.",
+  desc: "Official website of Shak Technologies Ltd: software engineering, AI consultancy, training, and practical technical insights.",
   title: "Shak Technologies Ltd",
   ogImage: "astropaper-og.jpg",
   lightAndDarkMode: true,

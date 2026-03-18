@@ -12,33 +12,49 @@ const { noMarginTop = false } = Astro.props;
 const currentYear = new Date().getFullYear();
 ---
 
-<footer class:list={["w-full site-footer", { "mt-auto": !noMarginTop }]}>
+<footer class:list={["site-footer w-full", { "mt-auto": !noMarginTop }]}>
   <Hr noPadding />
   <div class="footer-shell">
     <div class="footer-top">
       <div class="message-block">
-        <span class="chip">Consultancy Core + Training Track</span>
-        <h2>Lead with reliable AI delivery, then upskill your team as you scale.</h2>
+        <p class="section-label">Why teams reach out</p>
+        <span class="chip">Software Studio + Delivery Support</span>
+        <h2>Need proof before you book a call?</h2>
         <p>
-          Shak Technologies Ltd works with organizations that need practical AI execution:
-          from architecture and implementation support to team enablement through applied
-          training.
+          Browse selected work, then reach out if you need a product, internal
+          tool, workflow system, or AI-enabled feature built with stronger
+          delivery discipline.
         </p>
       </div>
 
       <div class="booking-block">
+        <p class="section-label">Book a session</p>
         <p class="booking-label">Start Here</p>
         <ul class="booking-links">
           <li>
-            <a href={CONSULT_BOOKING_LINKS.quick15} target="_blank" rel="noopener noreferrer">
-              15-Minute Triage Call
-              <span>Fast qualification for urgent delivery decisions.</span>
+            <a
+              href={CONSULT_BOOKING_LINKS.quick15}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              15-Minute Intro Call
+              <span
+                >Quick fit check for new projects, scoping questions, or
+                delivery rescue.</span
+              >
             </a>
           </li>
           <li>
-            <a href={CONSULT_BOOKING_LINKS.strategy30} target="_blank" rel="noopener noreferrer">
+            <a
+              href={CONSULT_BOOKING_LINKS.strategy30}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               30-Minute Strategy Session
-              <span>Scope architecture, milestones, and execution path.</span>
+              <span
+                >Discuss architecture, project direction, and the right
+                engagement model.</span
+              >
             </a>
           </li>
         </ul>
@@ -46,6 +62,9 @@ const currentYear = new Date().getFullYear();
     </div>
 
     <div class="footer-middle">
+      <div class="footer-section-heading">
+        <p class="section-label">Next step</p>
+      </div>
       <div class="cta-row">
         <LinkButton
           href={CONSULT_BOOKING_LINKS.strategy30}
@@ -53,19 +72,24 @@ const currentYear = new Date().getFullYear();
           target="_blank"
           rel="noopener noreferrer"
         >
-          Book Consultancy Call
+          Book Strategy Call
         </LinkButton>
-        <LinkButton href="/consultancy" className="btn-secondary">
-          Explore Consultancy Services
+        <LinkButton href="/work" className="btn-secondary">
+          View Selected Work
         </LinkButton>
-        <a href="/courses" class="footer-link">Explore Training Courses</a>
+        <a href="/consultancy" class="footer-link">Explore Services</a>
       </div>
 
       <nav aria-label="Footer links">
+        <p class="section-label utility-label">Browse the site</p>
         <ul class="utility-links">
+          <li><a href="/work">Work</a></li>
+          <li><a href="/consultancy">Services</a></li>
+          <li><a href="/about">About</a></li>
+          <li><a href="/courses">Training</a></li>
           <li><a href="/pricing">Pricing</a></li>
           <li><a href="/research">Research</a></li>
-          <li><a href="/posts">Insights</a></li>
+          <li><a href="/posts">News Room</a></li>
           <li><a href="/enroll">Enroll</a></li>
         </ul>
       </nav>
@@ -73,11 +97,15 @@ const currentYear = new Date().getFullYear();
 
     <div class="footer-bottom">
       <div class="copyright-wrapper">
+        <p class="section-label footer-meta-label">Studio</p>
         <span>&copy; {currentYear}</span>
         <span class="separator">|</span>
         <span>{SITE.author}. All rights reserved.</span>
       </div>
-      <Socials centered />
+      <div class="social-block">
+        <p class="section-label footer-meta-label">Follow</p>
+        <Socials centered />
+      </div>
     </div>
   </div>
 </footer>
@@ -103,6 +131,13 @@ const currentYear = new Date().getFullYear();
   .footer-top {
     @apply grid gap-8;
   }
+  .section-label {
+    @apply text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-skin-accent;
+    opacity: 0.82;
+  }
+  .footer-section-heading {
+    display: contents;
+  }
   @media (min-width: 980px) {
     .footer-top {
       grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
@@ -117,11 +152,47 @@ const currentYear = new Date().getFullYear();
   .message-block > p {
     @apply mt-4 max-w-3xl text-base opacity-85;
   }
+  @media (max-width: 639px) {
+    .footer-shell {
+      margin-top: 2rem;
+      gap: 1.75rem;
+      padding-top: 1.75rem;
+    }
+    .footer-top {
+      gap: 1.15rem;
+    }
+    .message-block,
+    .booking-block,
+    .footer-middle,
+    .footer-bottom {
+      border: 1px solid rgba(var(--color-border), 0.74);
+      border-radius: 1.35rem;
+      background: rgba(var(--color-card), 0.62);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    }
+    .message-block,
+    .booking-block,
+    .footer-middle {
+      padding: 1rem;
+    }
+    .message-block h2 {
+      font-size: 1.8rem;
+      line-height: 1.1;
+    }
+    .message-block > p {
+      font-size: 0.98rem;
+      line-height: 1.75;
+    }
+    .message-block .chip {
+      margin-top: 0.55rem;
+    }
+  }
   .booking-block {
     @apply self-start;
   }
   .booking-label {
-    @apply text-xs font-semibold uppercase tracking-[0.22em] text-skin-accent;
+    @apply mt-2 text-xs font-semibold uppercase tracking-[0.22em] text-skin-accent;
+    opacity: 0.72;
   }
   .booking-links {
     @apply mt-3;
@@ -142,6 +213,19 @@ const currentYear = new Date().getFullYear();
   .booking-links a span {
     @apply mt-1 block text-sm opacity-75;
   }
+  @media (max-width: 639px) {
+    .booking-block {
+      width: 100%;
+    }
+    .booking-links a {
+      padding-top: 0.9rem;
+      padding-bottom: 0.9rem;
+    }
+    .booking-links a span {
+      font-size: 0.82rem;
+      line-height: 1.55;
+    }
+  }
   .footer-middle {
     @apply grid gap-5 border-t border-skin-line border-opacity-85 pt-6;
   }
@@ -155,6 +239,22 @@ const currentYear = new Date().getFullYear();
   .cta-row {
     @apply flex flex-wrap items-center gap-3;
   }
+  @media (max-width: 639px) {
+    .footer-middle {
+      gap: 1rem;
+      padding-top: 1rem;
+      border-top-color: rgba(var(--color-border), 0.74);
+    }
+    .cta-row {
+      display: grid;
+      gap: 0.75rem;
+    }
+    .cta-row :global(a),
+    .footer-link {
+      width: 100%;
+      justify-content: center;
+    }
+  }
   .footer-link {
     @apply inline-flex items-center gap-1 text-sm font-semibold text-skin-accent no-underline;
   }
@@ -164,8 +264,28 @@ const currentYear = new Date().getFullYear();
   .utility-links {
     @apply flex flex-wrap items-center gap-2;
   }
+  .utility-label {
+    margin-bottom: 0.65rem;
+  }
+  @media (max-width: 639px) {
+    .utility-links {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.55rem;
+    }
+  }
   .utility-links a {
     @apply inline-flex rounded-full border border-skin-line px-3 py-1 text-xs font-semibold uppercase tracking-wide no-underline transition;
+  }
+  @media (max-width: 639px) {
+    .utility-links a {
+      width: 100%;
+      justify-content: center;
+      padding-top: 0.7rem;
+      padding-bottom: 0.7rem;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+    }
   }
   .utility-links a:hover {
     border-color: hsl(var(--accent));
@@ -177,7 +297,34 @@ const currentYear = new Date().getFullYear();
   .copyright-wrapper {
     @apply flex flex-col items-start whitespace-nowrap text-sm opacity-75 sm:flex-row sm:items-center;
   }
+  .social-block {
+    @apply grid gap-2;
+  }
+  .footer-meta-label {
+    opacity: 0.68;
+  }
+  @media (max-width: 639px) {
+    .footer-bottom {
+      gap: 1rem;
+      align-items: stretch;
+      padding: 1rem;
+      padding-bottom: calc(0.2rem + env(safe-area-inset-bottom, 0px));
+    }
+    .copyright-wrapper {
+      white-space: normal;
+      line-height: 1.6;
+      gap: 0.15rem;
+    }
+    .social-block {
+      gap: 0.55rem;
+      padding-top: 0.1rem;
+    }
+    .footer-bottom :global(.social-icons) {
+      justify-content: flex-start;
+      gap: 0.55rem;
+    }
+  }
   .separator {
-    @apply hidden sm:inline px-2;
+    @apply hidden px-2 sm:inline;
   }
 </style>

@@ -5,6 +5,7 @@ import Header from "@components/Header.astro";
 import Footer from "@components/Footer.astro";
 import LinkButton from "@components/LinkButton.astro";
 import getSortedPosts from "@utils/getSortedPosts";
+import getPostSlug from "@utils/getPostSlug";
 import { CONSULT_BOOKING_LINKS, SITE } from "@config";
 
 const posts = await getCollection("blog");
@@ -14,98 +15,98 @@ const homeInsights = sortedPosts.slice(0, 4);
 
 const impactStats = [
   {
-    value: "Strategy & Architecture",
-    label: "Executive and technical direction for high-impact AI initiatives",
+    value: "Better Scope",
+    label: "Avoid building the wrong thing first.",
   },
   {
-    value: "Build & Delivery",
-    label: "Hands-on implementation oversight and rollout support",
+    value: "Senior Delivery",
+    label: "Keep technical decisions clean from scope to rollout.",
   },
   {
-    value: "Courses (Optional)",
-    label: "Structured upskilling tracks when your team needs them",
+    value: "Clean Handover",
+    label: "Launch with docs, review, and internal ownership in place.",
   },
 ];
 
 const audiencePaths = [
   {
-    title: "International Teams",
+    title: "Startups and Product Teams",
     description:
-      "Need a reliable implementation partner for strategy, architecture, and rollout support?",
-    primaryLabel: "Book Global Strategy Call",
+      "Need a studio partner to scope, build, or stabilize a product, platform, API, or internal tool?",
+    primaryLabel: "Book Product Strategy Call",
     primaryHref: CONSULT_BOOKING_LINKS.strategy30,
-    secondaryLabel: "Consultancy Scope",
+    secondaryLabel: "View Consultancy",
     secondaryHref: "/consultancy",
     external: true,
   },
   {
-    title: "Local and Regional Professionals",
+    title: "Organizations and Institutions",
     description:
-      "Want practical evening training and mentorship aligned to real AI delivery standards?",
-    primaryLabel: "Enroll in Cohort 01",
-    primaryHref: "/enroll",
-    secondaryLabel: "View Courses",
-    secondaryHref: "/courses",
-    external: false,
+      "Need to modernize workflows, digitize operations, or add AI-enabled services without overcomplicating delivery?",
+    primaryLabel: "Book Delivery Planning Call",
+    primaryHref: CONSULT_BOOKING_LINKS.quick15,
+    secondaryLabel: "About the Studio",
+    secondaryHref: "/about",
+    external: true,
   },
 ];
 
 const leadershipPillars = [
   {
-    title: "Execution-First Delivery",
+    title: "Studio-Level Execution",
     description:
-      "From architecture to rollout, every engagement is designed around production outcomes, not slide decks.",
+      "We stay close to architecture, implementation details, and rollout realities instead of stopping at recommendations.",
   },
   {
-    title: "Strategy + Engineering Alignment",
+    title: "Business-Driven Engineering",
     description:
-      "Leadership priorities are translated into technical roadmaps teams can execute with confidence.",
+      "Product goals and operational needs are translated into delivery plans teams can actually execute.",
   },
   {
-    title: "Responsible AI Standards",
+    title: "Systems That Hold Up",
     description:
-      "Security, reliability, and governance are embedded early so systems scale without hidden risk.",
+      "Reliability, maintainability, and sensible architecture decisions are built in from the start.",
   },
   {
-    title: "Capability Transfer",
+    title: "Clean Handover",
     description:
-      "We do not just deliver; we upskill internal teams so gains are durable after engagement.",
+      "Documentation, reviews, and team enablement are part of delivery so internal ownership is realistic after launch.",
   },
 ];
 
 const executionModel = [
   {
-    phase: "Diagnose",
+    phase: "Scope",
     detail:
-      "Rapid discovery of business goals, technical constraints, and highest-value AI opportunities.",
+      "Clarify the problem, users, constraints, and success metrics before build work starts.",
   },
   {
-    phase: "Design",
+    phase: "Architect",
     detail:
-      "Clear architecture, implementation plan, and delivery milestones matched to real team capacity.",
+      "Turn priorities into the right system shape, delivery phases, and technical decisions.",
   },
   {
-    phase: "Deploy",
+    phase: "Ship",
     detail:
-      "Hands-on build support, quality reviews, and rollout guidance for measurable impact.",
+      "Build, review, integrate, and harden the system so rollout is practical and maintainable.",
   },
 ];
 
 const expertiseBlocks = [
   {
-    title: "AI Product Engineering",
+    title: "Product and Platform Engineering",
     description:
-      "Design and deploy practical GenAI features with robust backend architecture, evaluation, and guardrails.",
+      "Web apps, portals, dashboards, APIs, and internal systems built around how teams actually work.",
   },
   {
-    title: "Applied Machine Learning",
+    title: "Workflow Automation and AI Systems",
     description:
-      "Build data pipelines, train models, and operationalize analytics for measurable product and business outcomes.",
+      "Document flows, search, assistants, and AI-enabled automations added where they create real operational value.",
   },
   {
-    title: "Mentorship and Training",
+    title: "Technical Advisory and Team Enablement",
     description:
-      "Structured coaching for engineers and teams moving from experimentation to production-grade AI delivery.",
+      "Architecture reviews, delivery rescue, implementation guidance, and capability transfer for in-house teams.",
   },
 ];
 
@@ -130,38 +131,226 @@ const coursePreview = [
   },
 ];
 
+const heroTrustSignals = [
+  "Direct with engineering",
+  "Fast fit check",
+  "Clear next step",
+];
+
+const heroDecisionCards = [
+  {
+    title: "Scope is unclear",
+    description:
+      "You need sharper product, architecture, or rollout direction.",
+    label: "Start with Strategy",
+    href: CONSULT_BOOKING_LINKS.strategy30,
+    external: true,
+  },
+  {
+    title: "Build needs momentum",
+    description: "You need a partner to design and ship the system properly.",
+    label: "See Build Work",
+    href: "/work",
+    external: false,
+  },
+  {
+    title: "Team needs backup",
+    description:
+      "You need senior guidance on architecture, review, or rollout.",
+    label: "View Support Options",
+    href: "/consultancy#embedded",
+    external: false,
+  },
+] as const;
+
+const ambientLine = (plain: string, html: string) => ({
+  plain,
+  html,
+  chars: Math.max(plain.length, 2),
+});
+
+const heroAmbientScenes = [
+  {
+    key: "portal",
+    label: "Portal Scene",
+    columns: [
+      [
+        ambientLine(
+          "const portal = buildPortal({",
+          `<span class="token-keyword">const</span> portal = <span class="token-fn">buildPortal</span>({`
+        ),
+        ambientLine(
+          '  users: ["ops", "vendors"],',
+          `  <span class="token-property">users</span>: [<span class="token-string">"ops"</span>, <span class="token-string">"vendors"</span>],`
+        ),
+        ambientLine(
+          "  approvals: true,",
+          `  <span class="token-property">approvals</span>: <span class="token-boolean">true</span>,`
+        ),
+        ambientLine(
+          '  reporting: "live",',
+          `  <span class="token-property">reporting</span>: <span class="token-string">"live"</span>,`
+        ),
+        ambientLine("});", `});`),
+      ],
+      [
+        ambientLine(
+          "const intake = defineFlow({",
+          `<span class="token-keyword">const</span> intake = <span class="token-fn">defineFlow</span>({`
+        ),
+        ambientLine(
+          '  source: "requests",',
+          `  <span class="token-property">source</span>: <span class="token-string">"requests"</span>,`
+        ),
+        ambientLine(
+          '  visibility: "shared",',
+          `  <span class="token-property">visibility</span>: <span class="token-string">"shared"</span>,`
+        ),
+        ambientLine(
+          "  auditTrail: true,",
+          `  <span class="token-property">auditTrail</span>: <span class="token-boolean">true</span>,`
+        ),
+        ambientLine("});", `});`),
+        ambientLine(
+          'ship(portal, { rollout: "guided" });',
+          `<span class="token-fn">ship</span>(portal, { <span class="token-property">rollout</span>: <span class="token-string">"guided"</span> });`
+        ),
+      ],
+    ],
+  },
+  {
+    key: "internal-tool",
+    label: "Internal Tool Scene",
+    columns: [
+      [
+        ambientLine(
+          "const queue = mapProcess({",
+          `<span class="token-keyword">const</span> queue = <span class="token-fn">mapProcess</span>({`
+        ),
+        ambientLine(
+          '  type: "internal-tool",',
+          `  <span class="token-property">type</span>: <span class="token-string">"internal-tool"</span>,`
+        ),
+        ambientLine(
+          '  owners: ["sales", "ops"],',
+          `  <span class="token-property">owners</span>: [<span class="token-string">"sales"</span>, <span class="token-string">"ops"</span>],`
+        ),
+        ambientLine(
+          '  status: "tracked",',
+          `  <span class="token-property">status</span>: <span class="token-string">"tracked"</span>,`
+        ),
+        ambientLine("});", `});`),
+      ],
+      [
+        ambientLine(
+          "const handoff = assignWork({",
+          `<span class="token-keyword">const</span> handoff = <span class="token-fn">assignWork</span>({`
+        ),
+        ambientLine(
+          "  routing: true,",
+          `  <span class="token-property">routing</span>: <span class="token-boolean">true</span>,`
+        ),
+        ambientLine(
+          '  dashboard: "ops-view",',
+          `  <span class="token-property">dashboard</span>: <span class="token-string">"ops-view"</span>,`
+        ),
+        ambientLine(
+          "  exports: true,",
+          `  <span class="token-property">exports</span>: <span class="token-boolean">true</span>,`
+        ),
+        ambientLine("});", `});`),
+        ambientLine(
+          'stabilize(handoff, { mode: "team-ready" });',
+          `<span class="token-fn">stabilize</span>(handoff, { <span class="token-property">mode</span>: <span class="token-string">"team-ready"</span> });`
+        ),
+      ],
+    ],
+  },
+  {
+    key: "ai-workflow",
+    label: "AI Workflow Scene",
+    columns: [
+      [
+        ambientLine(
+          "const docs = ingest({",
+          `<span class="token-keyword">const</span> docs = <span class="token-fn">ingest</span>({`
+        ),
+        ambientLine(
+          '  search: "semantic",',
+          `  <span class="token-property">search</span>: <span class="token-string">"semantic"</span>,`
+        ),
+        ambientLine(
+          '  review: "human-in-loop",',
+          `  <span class="token-property">review</span>: <span class="token-string">"human-in-loop"</span>,`
+        ),
+        ambientLine(
+          "  summaries: true,",
+          `  <span class="token-property">summaries</span>: <span class="token-boolean">true</span>,`
+        ),
+        ambientLine("});", `});`),
+      ],
+      [
+        ambientLine(
+          "const assistant = enableAI({",
+          `<span class="token-keyword">const</span> assistant = <span class="token-fn">enableAI</span>({`
+        ),
+        ambientLine(
+          '  guardrails: "strict",',
+          `  <span class="token-property">guardrails</span>: <span class="token-string">"strict"</span>,`
+        ),
+        ambientLine(
+          "  retrieval: true,",
+          `  <span class="token-property">retrieval</span>: <span class="token-boolean">true</span>,`
+        ),
+        ambientLine(
+          '  mode: "assistive",',
+          `  <span class="token-property">mode</span>: <span class="token-string">"assistive"</span>,`
+        ),
+        ambientLine("});", `});`),
+        ambientLine(
+          'ship(assistant, { rollout: "reviewed" });',
+          `<span class="token-fn">ship</span>(assistant, { <span class="token-property">rollout</span>: <span class="token-string">"reviewed"</span> });`
+        ),
+      ],
+    ],
+  },
+];
+
 const homeSchema = {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  name: `AI Courses and Consultancy | ${SITE.title}`,
+  name: `Software Engineering, AI, and Consultancy | ${SITE.title}`,
   description:
-    "Shak Technologies Ltd provides online AI courses, practical data science training, and implementation-focused consultancy.",
+    "Shak Technologies Ltd provides software engineering services, AI implementation support, practical technical training, and implementation-focused consultancy.",
   url: SITE.website,
   mainEntity: [
     {
       "@type": "Service",
-      name: "AI and ML Consultancy",
-      serviceType: "AI product strategy and implementation",
+      name: "Software and AI Consultancy",
+      serviceType:
+        "Software product engineering, AI strategy, and implementation",
     },
     {
       "@type": "Course",
-      name: "Online Evening AI Classes",
+      name: "Software and AI Engineering Training",
       courseMode: "online",
     },
     {
       "@type": "Organization",
       name: SITE.title,
       description:
-        "Execution-focused AI engineering company delivering consultancy, training, and research.",
+        "Execution-focused software engineering studio delivering consultancy, AI systems, training, and research.",
     },
   ],
 };
 ---
 
 <Layout
-  title={`AI Courses and Consultancy | ${SITE.title}`}
-  description="Shak Technologies Ltd offers online AI engineering courses, practical data science training, and execution-first consultancy."
+  title={`Software Engineering, AI, and Consultancy | ${SITE.title}`}
+  description="Shak Technologies Ltd offers software engineering services, AI implementation support, practical technical training, and execution-first consultancy."
   keywords={[
+    "software engineering studio",
+    "software development consultancy",
     "ai courses online",
     "data science training",
     "machine learning consultancy",
@@ -174,97 +363,114 @@ const homeSchema = {
   <main id="main-content">
     <section id="hero" data-reveal>
       <div class="hero-shell">
+        <div class="hero-ambient-code" aria-hidden="true">
+          {
+            heroAmbientScenes.map((scene, sceneIndex) => (
+              <div
+                class={`ambient-scene scene-${scene.key}`}
+                style={`--scene-delay:${sceneIndex * 6000}ms;`}
+              >
+                <span class="ambient-scene-label">{scene.label}</span>
+                <div class="ambient-scene-grid">
+                  {scene.columns.map((column, columnIndex) => (
+                    <div
+                      class="ambient-column"
+                      style={`--ambient-column-offset:${columnIndex * 3.2}s;`}
+                    >
+                      {column.map((line, lineIndex) => (
+                        <div
+                          class="ambient-line"
+                          style={`--ambient-chars:${line.chars}; --ambient-line-delay:${sceneIndex * 180 + columnIndex * 520 + lineIndex * 260}ms;`}
+                        >
+                          <span set:html={line.html} />
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))
+          }
+        </div>
         <div class="hero-grid">
           <div class="hero-copy">
-            <span class="chip">AI Engineering Lab</span>
-            <h1>AI consultancy for teams building production-ready systems.</h1>
-            <p>
-              Shak Technologies Ltd helps organizations define strategy, design robust
-              architecture, and execute AI delivery with measurable outcomes.
-              Courses are available as a secondary path for team upskilling.
+            <span class="chip">Software Engineering Studio</span>
+            <h1>We build software that moves work forward.</h1>
+            <p class="hero-lead">
+              Products, portals, internal tools, and AI workflows scoped well,
+              built cleanly, and ready for real teams to use.
             </p>
             <div class="hero-actions">
               <LinkButton
-                href={CONSULT_BOOKING_LINKS.strategy30}
+                href={CONSULT_BOOKING_LINKS.quick15}
                 className="btn-primary"
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Book Strategy Session
+                Book 15-Min Intro
               </LinkButton>
-              <LinkButton href="/consultancy" className="btn-secondary">
-                Explore Consultancy
+              <LinkButton href="/work" className="btn-secondary">
+                View Selected Work
               </LinkButton>
-              <a href="/courses" class="hero-text-link">View Courses</a>
+              <a href="/consultancy" class="hero-text-link">Explore Services</a>
             </div>
-            <p class="hero-microcopy">
-              Need a faster start?
-              <a href={CONSULT_BOOKING_LINKS.quick15} target="_blank" rel="noopener noreferrer">
-                Book a 15-min triage call
-              </a>.
+            <p class="hero-reassurance">
+              15-minute intro. Direct with engineering. Clear next step.
             </p>
-
-            <div class="audience-split" data-reveal>
-              {
-                audiencePaths.map(path => (
-                  <article class="audience-path">
-                    <h2>{path.title}</h2>
-                    <p>{path.description}</p>
-                    <div class="audience-actions">
-                      {path.external ? (
-                        <a
-                          href={path.primaryHref}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          class="audience-primary"
-                        >
-                          {path.primaryLabel}
-                        </a>
-                      ) : (
-                        <a href={path.primaryHref} class="audience-primary">
-                          {path.primaryLabel}
-                        </a>
-                      )}
-                      <a href={path.secondaryHref} class="audience-secondary">{path.secondaryLabel}</a>
-                    </div>
-                  </article>
-                ))
-              }
-            </div>
-          </div>
-
-          <aside class="hero-rail" data-reveal>
-            <p class="hero-rail-kicker">Consultancy Core</p>
-            <ul class="hero-rail-list">
-              <li>
-                <h3>Clear architecture decisions.</h3>
-                <p>Get concrete next steps for model, data, and implementation decisions.</p>
-              </li>
-              <li>
-                <h3>Reduced delivery risk.</h3>
-                <p>Resolve blockers early across quality, reliability, and rollout planning.</p>
-              </li>
-              <li>
-                <h3>Hands-on advisory support.</h3>
-                <p>Support aligned to founders, product leaders, and engineering teams.</p>
-              </li>
+            <ul class="hero-trust-list" aria-label="Why teams start here">
+              {heroTrustSignals.map(signal => <li>{signal}</li>)}
             </ul>
-            <div class="hero-rail-actions">
-              <a
-                href={CONSULT_BOOKING_LINKS.quick15}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                15-min triage
-              </a>
+            <p class="hero-microcopy">
+              Already shipping?
               <a
                 href={CONSULT_BOOKING_LINKS.strategy30}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                30-min strategy
+                Book the 30-minute strategy session
               </a>
-            </div>
+              .
+            </p>
+          </div>
+
+          <aside class="hero-paths" data-reveal>
+            <p class="hero-panel-kicker">Start Here</p>
+            <h2>Start where the work is.</h2>
+            <p class="hero-paths-intro">
+              Most teams start in one of these three states.
+            </p>
+
+            <ol class="hero-decision-list">
+              {
+                heroDecisionCards.map((card, index) => (
+                  <li class="hero-decision-item">
+                    <span class="hero-decision-index">0{index + 1}</span>
+                    <div class="hero-decision-copy">
+                      <h3>{card.title}</h3>
+                      <p>{card.description}</p>
+                      {card.external ? (
+                        <a
+                          href={card.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          class="hero-decision-link"
+                        >
+                          {card.label}
+                        </a>
+                      ) : (
+                        <a href={card.href} class="hero-decision-link">
+                          {card.label}
+                        </a>
+                      )}
+                    </div>
+                  </li>
+                ))
+              }
+            </ol>
+
+            <p class="hero-decision-note">
+              If it is not a fit, we will say so quickly.
+            </p>
           </aside>
         </div>
         <ul class="impact-track">
@@ -281,13 +487,54 @@ const homeSchema = {
       </div>
     </section>
 
+    <section id="entry-paths" class="section-block section-early" data-reveal>
+      <div class="section-heading">
+        <span class="chip">Starting Points</span>
+        <h2>Choose the right way into the studio.</h2>
+        <p>
+          Different teams need different starting points. These are the two most
+          common paths into delivery work with Shak Technologies.
+        </p>
+      </div>
+      <div class="audience-split">
+        {
+          audiencePaths.map(path => (
+            <article class="audience-path">
+              <h3>{path.title}</h3>
+              <p>{path.description}</p>
+              <div class="audience-actions">
+                {path.external ? (
+                  <a
+                    href={path.primaryHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="audience-primary"
+                  >
+                    {path.primaryLabel}
+                  </a>
+                ) : (
+                  <a href={path.primaryHref} class="audience-primary">
+                    {path.primaryLabel}
+                  </a>
+                )}
+                <a href={path.secondaryHref} class="audience-secondary">
+                  {path.secondaryLabel}
+                </a>
+              </div>
+            </article>
+          ))
+        }
+      </div>
+    </section>
+
     <section id="leadership-proof" class="section-block" data-reveal>
       <div class="section-heading">
-        <span class="chip">Leadership Positioning</span>
-        <h2>Built to lead serious AI transformation work.</h2>
+        <span class="chip">Why Teams Hire Us</span>
+        <h2>Built for teams that need software shipped properly.</h2>
         <p>
-          We operate at the intersection of executive strategy and deep technical
-          execution, helping teams move from experiments to dependable systems.
+          Our work sits between product thinking and deep implementation,
+          helping teams make the right calls early and carry them through
+          delivery.
         </p>
       </div>
       <ul class="pillar-list">
@@ -304,10 +551,10 @@ const homeSchema = {
 
     <section id="execution-model" class="section-block" data-reveal>
       <div class="section-heading">
-        <h2>Our Leadership Operating Model</h2>
+        <h2>How Engagements Move</h2>
         <p>
-          A disciplined model that keeps strategy, delivery, and measurable
-          outcomes aligned from day one.
+          A simple working model that reduces ambiguity and keeps delivery tied
+          to real business and operational outcomes.
         </p>
       </div>
       <ol class="model-track">
@@ -327,10 +574,10 @@ const homeSchema = {
 
     <section id="expertise" class="section-block" data-reveal>
       <div class="section-heading">
-        <h2>What We Help You Build</h2>
+        <h2>What We Build</h2>
         <p>
-          Clear systems thinking across data, model, and product layers to move
-          quickly without sacrificing quality.
+          We focus on software that solves operational problems, supports
+          product growth, and stays maintainable after launch.
         </p>
       </div>
       <div class="expertise-list">
@@ -349,30 +596,28 @@ const homeSchema = {
       homeInsights.length > 0 && (
         <section id="recent-posts" class="section-block" data-reveal>
           <div class="section-heading">
-            <h2>Latest Insights</h2>
+            <h2>Latest News Room Stories</h2>
             <p>
-              Practical notes on AI tooling, architecture, and delivery for
-              teams shipping in production.
+              Practical notes on software architecture, AI tooling, product
+              engineering, and delivery for teams shipping in production.
             </p>
           </div>
           <ul class="insight-list">
-            {
-              homeInsights.map(({ data, slug }) => (
-                <li class="insight-row" data-reveal>
-                  <a href={`/posts/${slug}`} class="insight-link">
-                    <h3>{data.title}</h3>
-                    <p>{data.description}</p>
-                    <span class="insight-meta">
-                      {(data.tags ?? []).slice(0, 2).join(" • ")}
-                    </span>
-                  </a>
-                </li>
-              ))
-            }
+            {homeInsights.map(post => (
+              <li class="insight-row" data-reveal>
+                <a href={`/posts/${getPostSlug(post)}`} class="insight-link">
+                  <h3>{post.data.title}</h3>
+                  <p>{post.data.description}</p>
+                  <span class="insight-meta">
+                    {(post.data.tags ?? []).slice(0, 2).join(" • ")}
+                  </span>
+                </a>
+              </li>
+            ))}
           </ul>
           <div class="all-posts-btn-wrapper">
             <LinkButton href="/posts" className="btn-secondary">
-              View All Insights
+              View All News Room Stories
             </LinkButton>
           </div>
         </section>
@@ -381,10 +626,10 @@ const homeSchema = {
 
     <section id="course-preview" class="section-block" data-reveal>
       <div class="section-heading">
-        <h2>Courses and Training</h2>
+        <h2>Training and Capability Building</h2>
         <p>
-          Structured learning tracks for developers and teams adopting modern AI
-          engineering practices.
+          Structured learning tracks for teams that want stronger software and
+          AI engineering capability alongside delivery work.
         </p>
       </div>
       <div class="course-list">
@@ -396,7 +641,11 @@ const homeSchema = {
                 <h3>{course.title}</h3>
                 <p>{course.description}</p>
               </div>
-              <a href="/courses" class="course-arrow" aria-label={`Learn more about ${course.title}`}>
+              <a
+                href="/courses"
+                class="course-arrow"
+                aria-label={`Learn more about ${course.title}`}
+              >
                 &#8594;
               </a>
             </article>
@@ -407,7 +656,9 @@ const homeSchema = {
         <LinkButton href="/courses" className="btn-primary">
           View Full Course Catalog
           <svg xmlns="http://www.w3.org/2000/svg">
-            <path d="m11.293 17.293 1.414 1.414L19.414 12l-6.707-6.707-1.414 1.414L15.586 11H6v2h9.586z"></path>
+            <path
+              d="m11.293 17.293 1.414 1.414L19.414 12l-6.707-6.707-1.414 1.414L15.586 11H6v2h9.586z"
+            ></path>
           </svg>
         </LinkButton>
         <LinkButton
@@ -426,9 +677,14 @@ const homeSchema = {
     (() => {
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-      const revealTargets = Array.from(document.querySelectorAll("[data-reveal]"));
+      const revealTargets = Array.from(
+        document.querySelectorAll("[data-reveal]")
+      );
       revealTargets.forEach((item, index) => {
-        item.style.setProperty("--reveal-delay", `${Math.min(index * 55, 700)}ms`);
+        item.style.setProperty(
+          "--reveal-delay",
+          `${Math.min(index * 55, 700)}ms`
+        );
       });
 
       const observer = new IntersectionObserver(
@@ -454,13 +710,22 @@ const homeSchema = {
     @apply mx-auto flex w-full max-w-7xl flex-col gap-16 px-4 pb-20 sm:px-6;
   }
   #hero {
-    @apply relative py-12 sm:py-16;
+    @apply relative py-8 sm:py-10;
   }
   #hero > * {
     @apply relative z-[1];
   }
+  @media (min-width: 1100px) {
+    #hero {
+      min-height: calc(100svh - 6.75rem);
+      display: grid;
+      align-items: center;
+    }
+  }
   .hero-shell {
-    @apply relative mx-auto w-full max-w-6xl;
+    @apply relative mx-auto w-full max-w-none;
+    overflow: hidden;
+    background: transparent;
   }
   .hero-shell::before,
   .hero-shell::after {
@@ -475,38 +740,204 @@ const homeSchema = {
     bottom: 0;
   }
   .hero-grid {
-    @apply grid gap-10 py-9 sm:py-11;
+    @apply grid gap-7 py-5 sm:py-6;
+    position: relative;
+    z-index: 1;
   }
   @media (min-width: 1100px) {
     .hero-grid {
-      grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
-      align-items: start;
-      column-gap: 2.4rem;
+      grid-template-columns: minmax(0, 1.28fr) minmax(24rem, 0.72fr);
+      align-items: center;
+      column-gap: clamp(2.5rem, 4vw, 4.5rem);
     }
   }
   .hero-copy {
-    @apply min-w-0;
+    @apply min-w-0 self-center;
+    padding-right: clamp(0rem, 1.4vw, 1rem);
+  }
+  .hero-ambient-code {
+    position: absolute;
+    inset: 1px 0;
+    pointer-events: none;
+    overflow: hidden;
+    opacity: 0.58;
+    z-index: 0;
+    mask-image: linear-gradient(
+      180deg,
+      transparent 0%,
+      rgba(0, 0, 0, 0.96) 10%,
+      rgba(0, 0, 0, 0.96) 90%,
+      transparent 100%
+    );
+  }
+  .hero-ambient-code::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(
+        180deg,
+        rgba(var(--color-fill), 0.3),
+        rgba(var(--color-fill), 0.48)
+      ),
+      radial-gradient(
+        circle at center,
+        transparent 16%,
+        rgba(var(--color-fill), 0.24) 84%
+      );
+  }
+  .ambient-scene {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    animation: ambient-scene-cycle 18s linear infinite;
+    animation-delay: var(--scene-delay);
+  }
+  .ambient-scene::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: var(--scene-glow);
+  }
+  .ambient-scene-grid {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    height: 100%;
+    padding: 2.8rem 1.2rem 1.4rem;
+  }
+  .ambient-scene-label {
+    display: none;
+  }
+  .scene-portal {
+    --scene-glow:
+      radial-gradient(
+        circle at 12% 22%,
+        rgba(76, 93, 112, 0.08),
+        transparent 24%
+      ),
+      radial-gradient(
+        circle at 84% 18%,
+        rgba(94, 110, 129, 0.06),
+        transparent 28%
+      ),
+      linear-gradient(180deg, rgba(7, 11, 23, 0.02), rgba(7, 11, 23, 0.12));
+  }
+  .scene-internal-tool {
+    --scene-glow:
+      radial-gradient(
+        circle at 18% 18%,
+        rgba(92, 103, 118, 0.07),
+        transparent 24%
+      ),
+      radial-gradient(
+        circle at 82% 68%,
+        rgba(70, 88, 109, 0.06),
+        transparent 28%
+      ),
+      linear-gradient(180deg, rgba(7, 11, 23, 0.02), rgba(7, 11, 23, 0.1));
+  }
+  .scene-ai-workflow {
+    --scene-glow:
+      radial-gradient(
+        circle at 16% 72%,
+        rgba(79, 97, 118, 0.08),
+        transparent 24%
+      ),
+      radial-gradient(
+        circle at 84% 18%,
+        rgba(96, 108, 122, 0.06),
+        transparent 28%
+      ),
+      linear-gradient(180deg, rgba(7, 11, 23, 0.02), rgba(7, 11, 23, 0.12));
+  }
+  .ambient-column {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: 0.55rem;
+    min-height: 100%;
+    padding: 1rem 0.7rem;
+    border-right: 1px dashed rgba(var(--color-border), 0.12);
+    opacity: 0.3;
+    transform: translateY(0);
+    animation: ambient-drift 26s linear infinite;
+    animation-delay: var(--ambient-column-offset);
+  }
+  .ambient-column:last-child {
+    border-right: 0;
+  }
+  .ambient-line {
+    overflow: hidden;
+    width: 0;
+    max-width: 100%;
+    white-space: pre;
+    font-family:
+      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+      "Courier New", monospace;
+    font-size: 0.8rem;
+    line-height: 1.65;
+    color: rgba(53, 69, 88, 0.4);
+    text-shadow: none;
+    animation:
+      ambient-type 12s steps(var(--ambient-chars)) infinite alternate,
+      ambient-fade 7s ease-in-out infinite;
+    animation-delay:
+      var(--ambient-line-delay), calc(var(--ambient-line-delay) + 300ms);
+  }
+  .scene-ai-workflow .ambient-line {
+    color: rgba(53, 69, 88, 0.42);
+  }
+  html[data-theme="dark"] .hero-shell {
+    background: transparent;
+  }
+  html[data-theme="dark"] .ambient-scene-label {
+    color: rgba(219, 228, 255, 0.24);
+  }
+  html[data-theme="dark"] .ambient-line {
+    color: rgba(219, 228, 255, 0.28);
+    text-shadow: none;
+  }
+  @media (max-width: 960px) {
+    .ambient-scene-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      padding-inline: 0.85rem;
+    }
+  }
+  @media (max-width: 680px) {
+    .hero-ambient-code {
+      opacity: 0.42;
+    }
+    .ambient-scene-grid {
+      grid-template-columns: minmax(0, 1fr);
+      padding-top: 2.6rem;
+    }
+    .ambient-column:nth-child(2) {
+      display: none;
+    }
   }
   .hero-copy h1 {
-    @apply mt-5 max-w-4xl text-4xl font-bold leading-[0.97] sm:text-6xl;
+    @apply mt-4 font-bold;
+    max-width: 12ch;
+    font-size: clamp(3rem, 5.2vw, 4.8rem);
+    line-height: 0.93;
     text-wrap: balance;
   }
-  .hero-copy p {
-    @apply mt-5 max-w-3xl text-lg leading-relaxed opacity-85;
+  .hero-lead {
+    @apply mt-4 max-w-[42rem] text-[1.05rem] leading-relaxed opacity-85;
   }
   .hero-actions {
-    @apply mt-7 flex flex-wrap items-center gap-3;
+    @apply mt-6 flex flex-wrap items-center gap-3;
   }
   .hero-actions :global(a) {
-    transition:
-      transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1),
-      box-shadow 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition: transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
   }
   .hero-actions :global(a:hover) {
     transform: translateY(-2px) scale(1.01);
-  }
-  .hero-actions :global(a.btn-primary) {
-    box-shadow: 0 10px 30px rgba(var(--color-accent), 0.24);
   }
   .hero-text-link {
     @apply inline-flex items-center gap-1 text-sm font-semibold text-skin-accent no-underline;
@@ -523,8 +954,23 @@ const homeSchema = {
   .hero-text-link:hover::after {
     transform: translateX(2px);
   }
+  .hero-reassurance {
+    @apply mt-5 max-w-[40rem] pl-4 text-sm font-medium leading-relaxed;
+    border-left: 1px solid rgba(var(--color-border), 0.7);
+  }
+  .hero-trust-list {
+    @apply mt-4 flex flex-wrap gap-x-4 gap-y-1.5;
+  }
+  .hero-trust-list li {
+    @apply inline-flex items-center text-[0.7rem] font-semibold uppercase tracking-[0.12em];
+    opacity: 0.74;
+  }
+  .hero-trust-list li::before {
+    content: "";
+    @apply mr-2 inline-flex h-1.5 w-1.5 rounded-full bg-skin-accent;
+  }
   .hero-microcopy {
-    @apply mt-3 text-sm opacity-80;
+    @apply mt-3 max-w-[32rem] text-sm leading-relaxed opacity-80;
   }
   .hero-microcopy a {
     @apply font-semibold text-skin-accent;
@@ -541,7 +987,8 @@ const homeSchema = {
     border-bottom: 0;
     padding-bottom: 0;
   }
-  .audience-path h2 {
+  .audience-path h2,
+  .audience-path h3 {
     @apply text-xl font-semibold;
   }
   .audience-path p {
@@ -580,65 +1027,134 @@ const homeSchema = {
     }
   }
 
-  .hero-rail {
-    @apply relative pl-7;
-    border-left: 1px solid rgba(var(--color-border), 0.82);
-  }
-  .hero-rail::before {
-    content: "";
-    @apply absolute left-0 top-0 h-20 w-px;
-    background: linear-gradient(180deg, rgba(var(--color-accent), 0.88), rgba(var(--color-accent), 0.08));
-  }
-  .hero-rail-kicker {
+  .hero-panel-kicker {
     @apply text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-skin-accent;
   }
-  .hero-rail-list {
-    @apply mt-3 grid gap-0;
+  .hero-paths {
+    @apply min-w-0 self-center pl-7;
+    position: relative;
+    max-width: 31rem;
+    justify-self: end;
+    border-left: 1px solid rgba(var(--color-border), 0.5);
   }
-  .hero-rail-list li {
-    @apply border-b border-dashed border-skin-line py-4;
+  .hero-paths::before {
+    content: "";
+    position: absolute;
+    left: -1px;
+    top: 0;
+    height: 4.75rem;
+    width: 1px;
+    background: linear-gradient(
+      180deg,
+      rgba(var(--color-accent), 0.52),
+      rgba(var(--color-accent), 0.02)
+    );
   }
-  .hero-rail-list li:last-child {
-    border-bottom: 0;
-    padding-bottom: 0;
-  }
-  .hero-rail-list h3 {
-    @apply text-xl font-semibold leading-tight;
+  .hero-paths h2 {
+    @apply mt-3 text-2xl font-semibold leading-tight;
+    max-width: 14ch;
+    font-size: clamp(1.7rem, 2vw, 2.15rem);
     text-wrap: balance;
   }
-  .hero-rail-list p {
-    @apply mt-2 text-sm leading-relaxed opacity-80;
+  .hero-paths-intro {
+    @apply mt-3 max-w-[25rem] text-sm leading-relaxed opacity-80;
   }
-  .hero-rail-actions {
-    @apply relative mt-6 flex flex-wrap gap-3;
+  .hero-decision-list {
+    @apply mt-5 grid gap-0;
   }
-  .hero-rail-actions::before {
-    content: "";
-    @apply pointer-events-none absolute -left-7 -top-5 h-7 w-7;
-    border: 1px dashed rgba(var(--color-accent), 0.62);
-    border-right-color: transparent;
-    border-bottom-color: transparent;
-    border-radius: 999px;
-    transform: rotate(-18deg);
-  }
-  .hero-rail-actions a {
-    @apply inline-flex items-center rounded-full border border-skin-line px-4 py-2 text-sm font-semibold no-underline;
+  .hero-decision-item {
+    @apply grid grid-cols-[auto_1fr] gap-3 border-t border-dashed border-skin-line py-4;
     transition:
-      border-color 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
-      transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
-      background-color 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+      transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      border-color 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
   }
-  .hero-rail-actions a:hover {
+  .hero-decision-item:hover {
+    transform: translateX(3px);
     border-color: hsl(var(--accent));
-    transform: translateY(-1px);
+  }
+  .hero-decision-index {
+    @apply mt-0.5 inline-flex h-8 w-8 items-center justify-center text-[0.68rem] font-semibold tracking-[0.14em] text-skin-accent;
+    opacity: 0.62;
+  }
+  .hero-decision-copy h3 {
+    @apply text-[1.02rem] font-semibold;
+  }
+  .hero-decision-copy p {
+    @apply mt-1.5 max-w-[24rem] text-sm leading-relaxed opacity-80;
+  }
+  .hero-decision-link {
+    @apply mt-2.5 inline-flex items-center text-xs font-semibold uppercase tracking-[0.14em] text-skin-accent no-underline;
+  }
+  .hero-decision-link::after {
+    content: "\2192";
+    margin-left: 0.35rem;
+    transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .hero-decision-link:hover::after {
+    transform: translateX(2px);
+  }
+  .hero-decision-note {
+    @apply mt-5 border-t border-dashed border-skin-line pt-4 text-sm leading-relaxed opacity-80;
+    max-width: 22rem;
+  }
+  @media (max-width: 900px) {
+    .hero-paths {
+      padding-left: 0;
+      border-left: 0;
+      border-top: 1px solid rgba(var(--color-border), 0.74);
+      padding-top: 1.35rem;
+      max-width: none;
+      justify-self: stretch;
+    }
+    .hero-paths::before {
+      left: 0;
+      top: -1px;
+      height: 1px;
+      width: 4.75rem;
+      background: linear-gradient(
+        90deg,
+        rgba(var(--color-accent), 0.88),
+        rgba(var(--color-accent), 0.08)
+      );
+    }
+  }
+  .token-keyword {
+    color: rgba(82, 96, 112, 0.72);
+  }
+  .token-fn {
+    color: rgba(61, 82, 106, 0.72);
+  }
+  .token-property {
+    color: rgba(91, 104, 120, 0.72);
+  }
+  .token-string {
+    color: rgba(104, 112, 122, 0.68);
+  }
+  .token-boolean {
+    color: rgba(94, 104, 116, 0.68);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ambient-scene,
+    .ambient-column,
+    .ambient-line {
+      animation: none;
+    }
+    .ambient-line {
+      width: auto;
+    }
+    .ambient-scene:not(:first-child) {
+      display: none;
+    }
   }
 
   .impact-track {
-    @apply mt-7 grid gap-3 py-5;
+    @apply mt-5 grid gap-2 py-4;
     border-top: 1px solid rgba(var(--color-border), 0.85);
+    position: relative;
+    z-index: 1;
   }
   .impact-item {
-    @apply relative grid gap-1 py-3 pl-8;
+    @apply relative grid gap-1 py-2 pl-7;
     border-top: 1px dashed rgba(var(--color-border), 0.72);
   }
   .impact-item::before {
@@ -649,7 +1165,7 @@ const homeSchema = {
     @apply text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-skin-accent;
   }
   .impact-value {
-    @apply text-3xl font-bold leading-none;
+    @apply text-2xl font-bold leading-none sm:text-[1.85rem];
   }
   .impact-label {
     @apply text-sm leading-relaxed opacity-80;
@@ -658,10 +1174,10 @@ const homeSchema = {
   @media (min-width: 960px) {
     .impact-track {
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 0.75rem;
+      gap: 1rem;
     }
     .impact-item {
-      padding-right: 1rem;
+      padding-right: 0.9rem;
       border-top: 0;
     }
     .impact-item:not(:last-child) {
@@ -677,6 +1193,9 @@ const homeSchema = {
 
   .section-block {
     @apply border-t border-skin-line pt-14;
+  }
+  .section-early {
+    @apply pt-10;
   }
   .section-heading h2 {
     @apply text-3xl font-semibold sm:text-4xl;
@@ -828,4 +1347,45 @@ const homeSchema = {
     transform: translateY(0);
   }
 
+  @keyframes ambient-scene-cycle {
+    0%,
+    28% {
+      opacity: 1;
+    }
+    33%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes ambient-type {
+    from {
+      width: 0;
+    }
+    to {
+      width: calc(var(--ambient-chars) * 1ch);
+    }
+  }
+
+  @keyframes ambient-fade {
+    0%,
+    100% {
+      opacity: 0.5;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes ambient-drift {
+    from {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-1.2rem);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
 </style>

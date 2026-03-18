@@ -1,11 +1,10 @@
 ---
 import { type CollectionEntry } from "astro:content";
 import Layout from "@layouts/Layout.astro";
-import Main from "@layouts/Main.astro";
 import Header from "@components/Header.astro";
 import Footer from "@components/Footer.astro";
-import Card from "@components/Card";
 import Pagination from "@components/Pagination.astro";
+import getPostSlug from "@utils/getPostSlug";
 import { SITE } from "@config";
 
 export interface Props {
@@ -17,24 +16,94 @@ export interface Props {
 }
 
 const { currentPage, totalPages, paginatedPosts, tag, tagName } = Astro.props;
+const featuredPost = paginatedPosts[0];
+const remainingPosts = paginatedPosts.slice(1);
+const topicCanonical =
+  currentPage > 1
+    ? new URL(`tags/${tag}/${currentPage}`, SITE.website).href
+    : new URL(`tags/${tag}`, SITE.website).href;
 ---
 
-<Layout title={`Tag: ${tagName} | ${SITE.title}`}>
+<Layout
+  title={`${tagName} | News Room | ${SITE.title}`}
+  description={`News Room stories filed under ${tagName}.`}
+  canonicalURL={topicCanonical}
+>
   <Header activeNav="tags" />
-  <Main
-    pageTitle={[`Tag:`, `${tagName}`]}
-    titleTransition={tag}
-    pageDesc={`All the articles with the tag "${tagName}".`}
-  >
-    <h1 slot="title" transition:name={tag}>{`Tag:${tag}`}</h1>
-    <ul>
-      {
-        paginatedPosts.map(({ data, slug }) => (
-          <Card href={`/posts/${slug}`} frontmatter={data} />
-        ))
-      }
-    </ul>
-  </Main>
+
+  <main id="tag-main">
+    <section class="tag-hero">
+      <div class="tag-hero-copy">
+        <p class="tag-kicker">News Room Topic</p>
+        <h1 transition:name={tag}>#{tagName}</h1>
+        <p>
+          Browse stories, commentary, and implementation notes related to {
+            tagName
+          }.
+        </p>
+        <div class="tag-actions">
+          <a href="/posts" class="tag-link">Back to News Room</a>
+          <a href="/search" class="tag-link">Search coverage</a>
+        </div>
+      </div>
+
+      <aside class="tag-hero-rail">
+        <div>
+          <span>Total stories</span>
+          <strong>{paginatedPosts.length}</strong>
+        </div>
+        <div>
+          <span>Page</span>
+          <strong>{currentPage} / {totalPages}</strong>
+        </div>
+      </aside>
+    </section>
+
+    {
+      featuredPost && (
+        <section class="topic-feature">
+          <div class="topic-feature-copy">
+            <p class="feature-kicker">Lead Story</p>
+            <h2>
+              <a href={`/posts/${getPostSlug(featuredPost)}`}>
+                {featuredPost.data.title}
+              </a>
+            </h2>
+            <p class="feature-summary">{featuredPost.data.description}</p>
+          </div>
+          <a href={`/posts/${getPostSlug(featuredPost)}`} class="feature-link">
+            Read story
+          </a>
+        </section>
+      )
+    }
+
+    {
+      remainingPosts.length > 0 && (
+        <section class="topic-grid">
+          {remainingPosts.map((post, index) => (
+            <article class="topic-card">
+              <div class="topic-row-top">
+                <span class="topic-index">
+                  {String(index + 2).padStart(2, "0")}
+                </span>
+                <p class="topic-label">Story</p>
+              </div>
+              <div class="topic-main">
+                <a href={`/posts/${getPostSlug(post)}`} class="topic-title">
+                  {post.data.title}
+                </a>
+                <p class="topic-summary">{post.data.description}</p>
+              </div>
+              <a href={`/posts/${getPostSlug(post)}`} class="topic-link">
+                Read story
+              </a>
+            </article>
+          ))}
+        </section>
+      )
+    }
+  </main>
 
   <Pagination
     {currentPage}
@@ -47,3 +116,167 @@ const { currentPage, totalPages, paginatedPosts, tag, tagName } = Astro.props;
 
   <Footer noMarginTop={totalPages > 1} />
 </Layout>
+
+<style>
+  #tag-main {
+    @apply mx-auto flex w-full max-w-[90rem] flex-col gap-8 px-4 pb-12 sm:px-6;
+  }
+  @media (min-width: 1200px) {
+    #tag-main {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+  }
+
+  .tag-hero {
+    @apply grid gap-6 px-1 py-8 sm:px-0 sm:py-10;
+    border-top: 1px solid rgba(var(--color-border), 0.84);
+    border-bottom: 1px solid rgba(var(--color-border), 0.84);
+    background: radial-gradient(
+      circle at top left,
+      rgba(var(--color-accent), 0.08),
+      transparent 32%
+    );
+  }
+  @media (min-width: 1080px) {
+    .tag-hero {
+      grid-template-columns: minmax(0, 1.18fr) minmax(16rem, 0.52fr);
+      align-items: end;
+    }
+  }
+
+  .tag-kicker,
+  .feature-kicker,
+  .topic-index {
+    @apply text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-skin-accent;
+  }
+  .tag-hero-copy h1 {
+    @apply mt-3 text-4xl font-semibold leading-[0.98] sm:text-6xl;
+    text-wrap: balance;
+  }
+  .tag-hero-copy > p {
+    @apply mt-4 max-w-3xl text-lg leading-8;
+    opacity: 0.84;
+  }
+  @media (max-width: 639px) {
+    .tag-hero-copy > p {
+      font-size: 1rem;
+      line-height: 1.75;
+    }
+    .topic-feature h2,
+    .topic-title {
+      font-size: 1.65rem;
+      line-height: 1.1;
+    }
+  }
+  .tag-actions {
+    @apply mt-6 flex flex-wrap gap-3;
+  }
+  .tag-link,
+  .feature-link,
+  .topic-link {
+    @apply inline-flex items-center gap-2 text-sm font-semibold text-skin-accent no-underline;
+  }
+  .tag-link::after,
+  .feature-link::after,
+  .topic-link::after {
+    content: "\2192";
+  }
+  .tag-hero-rail {
+    @apply grid gap-3;
+  }
+  @media (max-width: 1079px) {
+    .tag-hero-rail {
+      padding-top: 1rem;
+      border-top: 1px solid rgba(var(--color-border), 0.78);
+    }
+  }
+  .tag-hero-rail div {
+    @apply py-3;
+    border-bottom: 1px solid rgba(var(--color-border), 0.78);
+  }
+  .tag-hero-rail div:last-child {
+    border-bottom: 0;
+  }
+  .tag-hero-rail span {
+    @apply block text-[0.68rem] font-semibold uppercase tracking-[0.16em] opacity-65;
+  }
+  .tag-hero-rail strong {
+    @apply mt-1 block text-xl font-semibold;
+  }
+  .topic-feature {
+    @apply grid gap-4 py-3;
+    border-bottom: 1px solid rgba(var(--color-border), 0.84);
+  }
+  @media (min-width: 980px) {
+    .topic-feature {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      column-gap: 1.5rem;
+    }
+  }
+  .topic-feature h2 {
+    @apply text-3xl font-semibold leading-tight;
+    text-wrap: balance;
+  }
+  .topic-feature h2 a,
+  .topic-title {
+    @apply no-underline;
+  }
+  .topic-feature h2 a:hover,
+  .topic-title:hover {
+    color: hsl(var(--accent));
+  }
+  .feature-summary,
+  .topic-summary {
+    @apply text-sm leading-7;
+    opacity: 0.82;
+  }
+  .topic-grid {
+    @apply grid;
+  }
+  .topic-card {
+    @apply grid gap-4 py-5;
+    border-bottom: 1px solid rgba(var(--color-border), 0.78);
+  }
+  @media (min-width: 980px) {
+    .topic-grid {
+      grid-template-columns: 1fr;
+    }
+    .topic-card {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: start;
+      column-gap: 1.5rem;
+    }
+  }
+  .topic-row-top {
+    @apply flex items-start justify-between gap-3;
+  }
+  @media (min-width: 980px) {
+    .topic-row-top {
+      flex-direction: column;
+      justify-content: flex-start;
+      min-width: 3rem;
+      padding-top: 0.2rem;
+    }
+  }
+  .topic-label {
+    @apply text-xs font-semibold uppercase tracking-[0.18em] opacity-55;
+  }
+  .topic-main {
+    @apply min-w-0;
+  }
+  .topic-title {
+    @apply text-2xl font-semibold leading-tight;
+    text-wrap: balance;
+  }
+  .topic-link {
+    white-space: nowrap;
+  }
+  @media (max-width: 979px) {
+    .topic-link,
+    .feature-link {
+      margin-top: 0.2rem;
+    }
+  }
+</style>

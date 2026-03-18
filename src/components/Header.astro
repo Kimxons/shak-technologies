@@ -9,6 +9,7 @@ export interface Props {
     | "tags"
     | "courses"
     | "consultancy"
+    | "work"
     | "research"
     | "pricing"
     | "about"
@@ -19,149 +20,171 @@ const { activeNav } = Astro.props;
 
 const courseLinks = [
   {
-    name: "All Courses",
+    name: "Training Overview",
     href: "/courses",
-    description: "See every available training track.",
+    description: "See the current cohort and capability-building tracks.",
     external: false,
   },
   {
-    name: "Learning Format",
+    name: "Delivery Format",
     href: "/courses#delivery",
-    description: "Understand cohort flow and delivery model.",
+    description: "Understand how the cohort is taught and reviewed.",
     external: false,
   },
   {
-    name: "Enroll Now",
+    name: "Apply for Cohort",
     href: "/enroll",
-    description: "Submit your enrollment form and secure your next cohort slot.",
+    description: "Submit your enrollment form and secure a cohort slot.",
     external: false,
   },
   {
-    name: "Pricing Plans",
+    name: "Pricing",
     href: "/pricing",
-    description: "View online class pricing and consultancy options.",
+    description: "View training fees and service pricing context.",
     external: false,
   },
 ] as const;
 
 const consultLinks = [
   {
-    name: "Consultancy Overview",
+    name: "Services Overview",
     href: "/consultancy",
-    description: "Review service scope and outcomes.",
+    description: "Review service scope, offers, and engagement paths.",
     external: false,
   },
   {
-    name: "Book 15-Min Discovery",
-    href: CONSULT_BOOKING_LINKS.quick15,
-    description: "Fast fit check and next-step guidance.",
-    external: true,
+    name: "Advisory Sprint",
+    href: "/consultancy#advisory",
+    description: "For scoping, architecture direction, and delivery triage.",
+    external: false,
   },
   {
-    name: "Book 30-Min Strategy",
-    href: CONSULT_BOOKING_LINKS.strategy30,
-    description: "Deep dive into roadmap and implementation.",
-    external: true,
+    name: "Build Partnership",
+    href: "/consultancy#build",
+    description: "For product, workflow, and end-to-end delivery support.",
+    external: false,
   },
   {
-    name: "Secret Meeting",
-    href: CONSULT_BOOKING_LINKS.secret,
-    description: "Private booking link for direct coordination.",
-    external: true,
+    name: "Embedded Support",
+    href: "/consultancy#embedded",
+    description: "For teams that need senior guidance during implementation.",
+    external: false,
   },
 ] as const;
 ---
 
 <header class="site-header">
-  <a id="skip-to-content" href="#main-content" class="skip-link">Skip to content</a>
+  <a id="skip-to-content" href="#main-content" class="skip-link"
+    >Skip to content</a
+  >
   <div class="nav-shell">
     <a href="/" class="logo" aria-label={`${SITE.title} home page`}>
-      {
-        LOGO_IMAGE.enable ? (
-          LOGO_IMAGE.svg ? (
-            <LogoSVG />
+      <span class="logo-mark" aria-hidden="true">
+        {
+          LOGO_IMAGE.enable ? (
+            LOGO_IMAGE.svg ? (
+              <LogoSVG />
+            ) : (
+              <img
+                src={`/assets/logo.png`}
+                alt={SITE.title}
+                width={LOGO_IMAGE.width}
+                height={LOGO_IMAGE.height}
+              />
+            )
           ) : (
-            <img
-              src={`/assets/logo.png`}
-              alt={SITE.title}
-              width={LOGO_IMAGE.width}
-              height={LOGO_IMAGE.height}
-            />
+            <span class="logo-pulse" />
           )
-        ) : (
-          <span>
-            <span class="brand-title">{SITE.title}</span>
-          </span>
-        )
-      }
+        }
+      </span>
+      <span class="logo-copy">
+        <span class="brand-kicker">Software Engineering Studio</span>
+        <span class="brand-title">{SITE.title}</span>
+      </span>
     </a>
 
     <nav class="desktop-nav" aria-label="Main navigation">
       <ul class="desktop-nav-list">
+        <li>
+          <a
+            href="/work"
+            class:list={["desktop-link", { active: activeNav === "work" }]}
+          >
+            Work
+          </a>
+        </li>
+
         <li class="desktop-dropdown">
           <details>
-            <summary class:list={["desktop-link", { active: activeNav === "courses" }]}>
-              Courses
+            <summary
+              class:list={[
+                "desktop-link",
+                { active: activeNav === "consultancy" },
+              ]}
+            >
+              Services
               <svg xmlns="http://www.w3.org/2000/svg" class="chevron">
                 <path d="m7 10 5 5 5-5z"></path>
               </svg>
             </summary>
             <ul class="dropdown-menu">
-              {courseLinks.map(link => (
-                <li>
-                  <a href={link.href} class="dropdown-link">
-                    <span class="dropdown-name">{link.name}</span>
-                    <span class="dropdown-desc">{link.description}</span>
-                  </a>
-                </li>
-              ))}
+              {
+                consultLinks.map(link => (
+                  <li>
+                    <a
+                      href={link.href}
+                      class="dropdown-link"
+                      target={link.external ? "_blank" : undefined}
+                      rel={link.external ? "noopener noreferrer" : undefined}
+                    >
+                      <span class="dropdown-name">{link.name}</span>
+                      <span class="dropdown-desc">{link.description}</span>
+                    </a>
+                  </li>
+                ))
+              }
             </ul>
           </details>
         </li>
 
         <li class="desktop-dropdown">
           <details>
-            <summary class:list={["desktop-link", { active: activeNav === "consultancy" }]}>
-              Consult
+            <summary
+              class:list={["desktop-link", { active: activeNav === "courses" }]}
+            >
+              Training
               <svg xmlns="http://www.w3.org/2000/svg" class="chevron">
                 <path d="m7 10 5 5 5-5z"></path>
               </svg>
             </summary>
             <ul class="dropdown-menu">
-              {consultLinks.map(link => (
-                <li>
-                  <a
-                    href={link.href}
-                    class="dropdown-link"
-                    target={link.external ? "_blank" : undefined}
-                    rel={link.external ? "noopener noreferrer" : undefined}
-                  >
-                    <span class="dropdown-name">{link.name}</span>
-                    <span class="dropdown-desc">{link.description}</span>
-                  </a>
-                </li>
-              ))}
+              {
+                courseLinks.map(link => (
+                  <li>
+                    <a href={link.href} class="dropdown-link">
+                      <span class="dropdown-name">{link.name}</span>
+                      <span class="dropdown-desc">{link.description}</span>
+                    </a>
+                  </li>
+                ))
+              }
             </ul>
           </details>
         </li>
 
         <li>
-          <a href="/research" class:list={["desktop-link", { active: activeNav === "research" }]}>
-            Research
+          <a
+            href="/posts"
+            class:list={["desktop-link", { active: activeNav === "posts" }]}
+          >
+            News Room
           </a>
         </li>
         <li>
-          <a href="/pricing" class:list={["desktop-link", { active: activeNav === "pricing" }]}>
-            Pricing
-          </a>
-        </li>
-        <li>
-          <a href="/posts" class:list={["desktop-link", { active: activeNav === "posts" }]}>
-            Insights
-          </a>
-        </li>
-        <li>
-          <a href="/about" class:list={["desktop-link", { active: activeNav === "about" }]}>
+          <a
+            href="/about"
+            class:list={["desktop-link", { active: activeNav === "about" }]}
+          >
             About
           </a>
         </li>
@@ -176,7 +199,9 @@ const consultLinks = [
         title="Search"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="search-icon">
-          <path d="M19.023 16.977a35.13 35.13 0 0 1-1.367-1.384c-.372-.378-.596-.653-.596-.653l-2.8-1.337A6.962 6.962 0 0 0 16 9c0-3.859-3.14-7-7-7S2 5.141 2 9s3.14 7 7 7c1.763 0 3.37-.66 4.603-1.739l1.337 2.8s.275.224.653.596c.387.363.896.854 1.384 1.367l1.358 1.392.604.646 2.121-2.121-.646-.604c-.379-.372-.885-.866-1.391-1.36zM9 14c-2.757 0-5-2.243-5-5s2.243-5 5-5 5 2.243 5 5-2.243 5-5 5z"></path>
+          <path
+            d="M19.023 16.977a35.13 35.13 0 0 1-1.367-1.384c-.372-.378-.596-.653-.596-.653l-2.8-1.337A6.962 6.962 0 0 0 16 9c0-3.859-3.14-7-7-7S2 5.141 2 9s3.14 7 7 7c1.763 0 3.37-.66 4.603-1.739l1.337 2.8s.275.224.653.596c.387.363.896.854 1.384 1.367l1.358 1.392.604.646 2.121-2.121-.646-.604c-.379-.372-.885-.866-1.391-1.36zM9 14c-2.757 0-5-2.243-5-5s2.243-5 5-5 5 2.243 5 5-2.243 5-5 5z"
+          ></path>
         </svg>
         <span class="sr-only">Search</span>
       </LinkButton>
@@ -190,11 +215,19 @@ const consultLinks = [
             aria-label="Current theme: auto"
             aria-live="polite"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" id="moon-svg" class="theme-icon">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              id="moon-svg"
+              class="theme-icon"
+            >
               <path d="M20.742 13.045a8.088 8.088 0 0 1-2.077.271c-2.135 0-4.14-.83-5.646-2.336a8.025 8.025 0 0 1-2.064-7.723A1 1 0 0 0 9.73 2.034a10.014 10.014 0 0 0-4.489 2.582c-3.898 3.898-3.898 10.243 0 14.143a9.937 9.937 0 0 0 7.072 2.93 9.93 9.93 0 0 0 7.07-2.929 10.007 10.007 0 0 0 2.583-4.491 1.001 1.001 0 0 0-1.224-1.224zm-2.772 4.301a7.947 7.947 0 0 1-5.656 2.343 7.953 7.953 0 0 1-5.658-2.344c-3.118-3.119-3.118-8.195 0-11.314a7.923 7.923 0 0 1 2.06-1.483 10.027 10.027 0 0 0 2.89 7.848 9.972 9.972 0 0 0 7.848 2.891 8.036 8.036 0 0 1-1.484 2.059z" />
             </svg>
-            <svg xmlns="http://www.w3.org/2000/svg" id="sun-svg" class="theme-icon">
-              <path d="M6.993 12c0 2.761 2.246 5.007 5.007 5.007s5.007-2.246 5.007-5.007S14.761 6.993 12 6.993 6.993 9.239 6.993 12zM12 8.993c1.658 0 3.007 1.349 3.007 3.007S13.658 15.007 12 15.007 8.993 13.658 8.993 12 10.342 8.993 12 8.993zM10.998 19h2v3h-2zm0-17h2v3h-2zm-9 9h3v2h-3zm17 0h3v2h-3zM4.219 18.363l2.12-2.122 1.415 1.414-2.12 2.122zM16.24 6.344l2.122-2.122 1.414 1.414-2.122 2.122zM6.342 7.759 4.22 5.637l1.415-1.414 2.12 2.122zm13.434 10.605-1.414 1.414-2.122-2.122 1.414-1.414z"></path>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              id="sun-svg"
+              class="theme-icon"
+            >
+              <path d="M6.993 12c0 2.761 2.246 5.007 5.007 5.007s5.007-2.246 5.007-5.007S14.761 6.993 12 6.993 6.993 9.239 6.993 12zM12 8.993c1.658 0 3.007 1.349 3.007 3.007S13.658 15.007 12 15.007 8.993 13.658 8.993 12 10.342 8.993 12 8.993zM10.998 19h2v3h-2zm0-17h2v3h-2zm-9 9h3v2h-3zm17 0h3v2h-3zM4.219 18.363l2.12-2.122 1.415 1.414-2.12 2.122zM16.24 6.344l2.122-2.122 1.414 1.414-2.122 2.122zM6.342 7.759 4.22 5.637l1.415-1.414 2.12 2.122zm13.434 10.605-1.414 1.414-2.122-2.122 1.414-1.414z" />
             </svg>
           </button>
         )
@@ -203,11 +236,11 @@ const consultLinks = [
       <LinkButton
         href={CONSULT_BOOKING_LINKS.quick15}
         className="cta-btn"
-        title="Book a 15 minute discovery call"
+        title="Book an intro call"
         target="_blank"
         rel="noopener noreferrer"
       >
-        Book 15-Min Call
+        Book Intro Call
       </LinkButton>
     </div>
 
@@ -235,73 +268,92 @@ const consultLinks = [
       </svg>
     </button>
 
-    <div id="mobile-panel" class="mobile-panel hidden">
+    <div id="mobile-panel" class="mobile-panel" aria-hidden="true">
       <nav aria-label="Mobile navigation">
         <ul class="mobile-nav-list">
+          <li>
+            <a
+              href="/work"
+              class:list={["mobile-link", { active: activeNav === "work" }]}
+            >
+              Work
+            </a>
+          </li>
+
           <li class="mobile-group">
             <details>
-              <summary class:list={["mobile-link", { active: activeNav === "courses" }]}>
-                Courses
+              <summary
+                class:list={[
+                  "mobile-link",
+                  { active: activeNav === "consultancy" },
+                ]}
+              >
+                Services
                 <svg xmlns="http://www.w3.org/2000/svg" class="chevron">
                   <path d="m7 10 5 5 5-5z"></path>
                 </svg>
               </summary>
               <ul class="mobile-submenu">
-                {courseLinks.map(link => (
-                  <li>
-                    <a href={link.href} class="dropdown-link">
-                      <span class="dropdown-name">{link.name}</span>
-                      <span class="dropdown-desc">{link.description}</span>
-                    </a>
-                  </li>
-                ))}
+                {
+                  consultLinks.map(link => (
+                    <li>
+                      <a
+                        href={link.href}
+                        class="dropdown-link"
+                        target={link.external ? "_blank" : undefined}
+                        rel={link.external ? "noopener noreferrer" : undefined}
+                      >
+                        <span class="dropdown-name">{link.name}</span>
+                        <span class="dropdown-desc">{link.description}</span>
+                      </a>
+                    </li>
+                  ))
+                }
               </ul>
             </details>
           </li>
 
           <li class="mobile-group">
             <details>
-              <summary class:list={["mobile-link", { active: activeNav === "consultancy" }]}>
-                Consult
+              <summary
+                class:list={[
+                  "mobile-link",
+                  { active: activeNav === "courses" },
+                ]}
+              >
+                Training
                 <svg xmlns="http://www.w3.org/2000/svg" class="chevron">
                   <path d="m7 10 5 5 5-5z"></path>
                 </svg>
               </summary>
               <ul class="mobile-submenu">
-                {consultLinks.map(link => (
-                  <li>
-                    <a
-                      href={link.href}
-                      class="dropdown-link"
-                      target={link.external ? "_blank" : undefined}
-                      rel={link.external ? "noopener noreferrer" : undefined}
-                    >
-                      <span class="dropdown-name">{link.name}</span>
-                      <span class="dropdown-desc">{link.description}</span>
-                    </a>
-                  </li>
-                ))}
+                {
+                  courseLinks.map(link => (
+                    <li>
+                      <a href={link.href} class="dropdown-link">
+                        <span class="dropdown-name">{link.name}</span>
+                        <span class="dropdown-desc">{link.description}</span>
+                      </a>
+                    </li>
+                  ))
+                }
               </ul>
             </details>
           </li>
 
           <li>
-            <a href="/research" class:list={["mobile-link", { active: activeNav === "research" }]}>
-              Research
+            <a
+              href="/posts"
+              class:list={["mobile-link", { active: activeNav === "posts" }]}
+            >
+              News Room
             </a>
           </li>
           <li>
-            <a href="/pricing" class:list={["mobile-link", { active: activeNav === "pricing" }]}>
-              Pricing
-            </a>
-          </li>
-          <li>
-            <a href="/posts" class:list={["mobile-link", { active: activeNav === "posts" }]}>
-              Insights
-            </a>
-          </li>
-          <li>
-            <a href="/about" class:list={["mobile-link", { active: activeNav === "about" }]}>
+            <a
+              href="/about"
+              class:list={["mobile-link", { active: activeNav === "about" }]}
+            >
               About
             </a>
           </li>
@@ -315,10 +367,10 @@ const consultLinks = [
           target="_blank"
           rel="noopener noreferrer"
         >
-          Book 15-Min Call
+          Book Intro Call
         </LinkButton>
         <LinkButton href="/search" className="mobile-secondary">
-          Search Insights
+          Search News Room
         </LinkButton>
       </div>
     </div>
@@ -340,15 +392,25 @@ const consultLinks = [
   .nav-shell {
     max-width: 1360px;
     margin: 0 auto;
-    border: 1px solid rgb(var(--color-border));
-    border-radius: 20px;
-    background: rgba(var(--color-card), 0.9);
-    backdrop-filter: blur(14px);
+    border: 1px solid rgba(var(--color-border), 0.86);
+    border-radius: 24px;
+    background:
+      linear-gradient(
+        180deg,
+        rgba(var(--color-card), 0.95),
+        rgba(var(--color-card), 0.82)
+      ),
+      radial-gradient(
+        circle at top left,
+        rgba(var(--color-accent), 0.14),
+        transparent 34%
+      );
+    backdrop-filter: blur(18px) saturate(140%);
     box-shadow:
-      0 14px 32px rgba(6, 23, 39, 0.12),
-      0 4px 10px rgba(6, 23, 39, 0.08);
+      0 18px 40px rgba(6, 23, 39, 0.12),
+      0 4px 14px rgba(6, 23, 39, 0.08);
     width: 100%;
-    padding: 0.78rem 1rem;
+    padding: 0.82rem 1rem;
     display: grid;
     grid-template-columns: 1fr auto;
     align-items: center;
@@ -358,23 +420,87 @@ const consultLinks = [
       box-shadow 220ms ease,
       background-color 220ms ease;
   }
+  @media (max-width: 479px) {
+    .nav-shell {
+      padding: 0.72rem 0.8rem;
+      gap: 0.55rem 0.7rem;
+    }
+  }
 
   .logo {
     min-width: 0;
-    display: block;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.82rem;
     max-width: 100%;
   }
-  .logo > span {
+  @media (max-width: 479px) {
+    .logo {
+      gap: 0.65rem;
+    }
+    .logo-mark {
+      width: 2.35rem;
+      height: 2.35rem;
+      border-radius: 15px;
+    }
+    .logo-mark img,
+    .logo-mark svg {
+      width: 1.3rem;
+      height: 1.3rem;
+    }
+    .brand-kicker {
+      font-size: 0.56rem;
+      letter-spacing: 0.16em;
+    }
+    .brand-title {
+      font-size: 0.98rem;
+    }
+  }
+  .logo-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.7rem;
+    height: 2.7rem;
+    flex-shrink: 0;
+    border: 1px solid rgba(var(--color-border), 0.84);
+    border-radius: 18px;
+    background:
+      radial-gradient(
+        circle at 30% 30%,
+        rgba(var(--color-accent), 0.3),
+        transparent 58%
+      ),
+      rgba(var(--color-fill), 0.78);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+  .logo-mark img,
+  .logo-mark svg {
+    width: 1.55rem;
+    height: 1.55rem;
+  }
+  .logo-pulse {
     display: block;
+    width: 0.72rem;
+    height: 0.72rem;
+    border-radius: 999px;
+    background: rgb(var(--color-accent));
+    box-shadow:
+      0 0 0 6px rgba(var(--color-accent), 0.12),
+      0 0 24px rgba(var(--color-accent), 0.26);
+  }
+  .logo-copy {
+    display: grid;
     min-width: 0;
     max-width: 100%;
+    gap: 0.1rem;
   }
   .brand-kicker {
     display: block;
     font-size: 0.66rem;
     text-transform: uppercase;
     letter-spacing: 0.2em;
-    opacity: 0.72;
+    opacity: 0.68;
     white-space: nowrap;
     text-overflow: ellipsis;
     max-height: 1rem;
@@ -386,17 +512,13 @@ const consultLinks = [
   }
   .brand-title {
     display: block;
-    font-size: clamp(1.2rem, 1.4vw + 0.7rem, 1.7rem);
+    font-size: clamp(1.08rem, 1vw + 0.78rem, 1.38rem);
     font-weight: 700;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.03em;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     transition: font-size 220ms ease;
-  }
-  .logo img,
-  .logo svg {
-    @apply inline-block;
   }
 
   .desktop-nav,
@@ -405,27 +527,90 @@ const consultLinks = [
   }
 
   .mobile-toggle {
-    @apply rounded-xl border border-skin-line bg-skin-fill p-2;
+    @apply rounded-2xl border border-skin-line p-2;
+    background: rgba(var(--color-fill), 0.72);
     justify-self: end;
+    transition:
+      transform 220ms ease,
+      background-color 220ms ease,
+      border-color 220ms ease,
+      box-shadow 220ms ease;
+  }
+  .mobile-toggle:hover {
+    transform: translateY(-1px);
   }
   .mobile-toggle svg {
     @apply h-6 w-6 fill-none stroke-current;
   }
+  .nav-shell.mobile-open .mobile-toggle {
+    background: rgba(var(--color-fill), 0.92);
+    border-color: rgba(var(--color-accent), 0.26);
+    box-shadow: 0 10px 22px rgba(5, 20, 34, 0.12);
+  }
 
   .mobile-panel {
     grid-column: 1 / -1;
-    border-top: 1px solid rgba(var(--color-border), 0.75);
-    padding-top: 0.75rem;
+    border-top: 1px solid transparent;
+    margin-top: 0;
+    padding-top: 0;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-0.9rem);
+    transition:
+      max-height 320ms cubic-bezier(0.2, 0.9, 0.2, 1),
+      opacity 220ms ease,
+      transform 320ms cubic-bezier(0.2, 0.9, 0.2, 1),
+      padding-top 220ms ease,
+      margin-top 220ms ease,
+      border-color 220ms ease;
+  }
+  .nav-shell.mobile-open .mobile-panel {
+    border-top-color: rgba(var(--color-border), 0.75);
+    margin-top: 0.35rem;
+    padding-top: 0.95rem;
+    max-height: 80vh;
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+  @media (max-width: 479px) {
+    .dropdown-desc {
+      font-size: 0.7rem;
+    }
   }
   .mobile-nav-list {
     display: grid;
-    gap: 0.4rem;
+    gap: 0.55rem;
+    transform: translateY(-0.45rem);
+    opacity: 0;
+    transition:
+      transform 280ms cubic-bezier(0.2, 0.9, 0.2, 1),
+      opacity 220ms ease;
+  }
+  .nav-shell.mobile-open .mobile-nav-list,
+  .nav-shell.mobile-open .mobile-actions {
+    transform: translateY(0);
+    opacity: 1;
   }
   .mobile-link {
-    @apply inline-flex w-full items-center justify-between rounded-full px-3 py-2 text-sm font-semibold;
+    @apply inline-flex w-full items-center justify-between text-sm font-semibold;
+    background: rgba(var(--color-fill), 0.48);
+    padding: 0.85rem 1rem;
+    border-radius: 1rem;
+    transition:
+      background-color 180ms ease,
+      border-color 180ms ease,
+      transform 180ms ease;
+  }
+  .mobile-link:hover {
+    transform: translateX(2px);
   }
   .mobile-link.active {
-    @apply bg-skin-fill text-skin-accent;
+    @apply text-skin-accent;
+    background: rgba(var(--color-fill), 0.92);
+    box-shadow: inset 0 0 0 1px rgba(var(--color-accent), 0.24);
   }
   .mobile-group summary {
     list-style: none;
@@ -436,12 +621,12 @@ const consultLinks = [
   }
   .mobile-submenu {
     display: none;
-    margin-top: 0.35rem;
-    gap: 0.35rem;
-    border: 1px solid rgb(var(--color-border));
-    border-radius: 12px;
-    background: rgba(var(--color-fill), 0.6);
-    padding: 0.35rem;
+    margin-top: 0.45rem;
+    gap: 0.45rem;
+    border: 1px solid rgba(var(--color-border), 0.84);
+    border-radius: 18px;
+    background: rgba(var(--color-card), 0.68);
+    padding: 0.45rem;
   }
   .mobile-group details[open] > .mobile-submenu {
     display: grid;
@@ -449,12 +634,12 @@ const consultLinks = [
 
   .dropdown-link {
     display: block;
-    border-radius: 10px;
-    padding: 0.45rem 0.55rem;
+    border-radius: 14px;
+    padding: 0.55rem 0.7rem;
     transition: background-color 150ms ease;
   }
   .dropdown-link:hover {
-    background: rgba(var(--color-fill), 0.7);
+    background: rgba(var(--color-fill), 0.74);
   }
   .dropdown-name {
     display: block;
@@ -476,14 +661,31 @@ const consultLinks = [
 
   .mobile-actions {
     display: grid;
-    gap: 0.45rem;
-    margin-top: 0.7rem;
+    gap: 0.65rem;
+    margin-top: 1rem;
+    padding-top: 0.95rem;
+    border-top: 1px solid rgba(var(--color-border), 0.7);
+    transform: translateY(-0.35rem);
+    opacity: 0;
+    transition:
+      transform 320ms cubic-bezier(0.2, 0.9, 0.2, 1) 40ms,
+      opacity 220ms ease 40ms;
   }
   .mobile-cta {
     @apply inline-flex w-full justify-center rounded-full border border-skin-accent bg-skin-accent px-4 py-2 text-sm font-semibold text-skin-inverted transition hover:bg-skin-fill hover:text-skin-accent;
   }
   .mobile-secondary {
     @apply inline-flex w-full justify-center rounded-full border border-skin-line bg-skin-fill px-4 py-2 text-sm font-semibold transition hover:border-skin-accent hover:text-skin-accent;
+  }
+  @media (max-width: 639px) {
+    .nav-shell.mobile-open .mobile-panel {
+      padding-top: 1rem;
+    }
+    .mobile-cta,
+    .mobile-secondary {
+      min-height: 3rem;
+      border-radius: 1rem;
+    }
   }
 
   .menu-icon line {
@@ -502,8 +704,8 @@ const consultLinks = [
   @media (min-width: 960px) {
     .nav-shell {
       grid-template-columns: minmax(240px, 1.2fr) auto minmax(250px, 1fr);
-      min-height: 4.5rem;
-      padding: 0.68rem 1.08rem;
+      min-height: 4.8rem;
+      padding: 0.66rem 1.08rem;
       gap: 0.75rem 1.15rem;
     }
 
@@ -515,16 +717,26 @@ const consultLinks = [
     .desktop-nav-list {
       display: flex;
       align-items: center;
-      gap: 0.3rem;
+      gap: 0.2rem;
+      padding: 0.28rem;
+      border: 1px solid rgba(var(--color-border), 0.78);
+      border-radius: 999px;
+      background: rgba(var(--color-fill), 0.56);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22);
     }
     .desktop-link {
       @apply inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm font-semibold;
+      color: rgba(var(--color-text-base), 0.84);
     }
     .desktop-link:hover {
       @apply text-skin-accent;
     }
     .desktop-link.active {
-      @apply bg-skin-fill text-skin-accent shadow-sm;
+      @apply text-skin-accent;
+      background: rgba(var(--color-card), 0.94);
+      box-shadow:
+        0 8px 18px rgba(9, 20, 32, 0.08),
+        inset 0 0 0 1px rgba(var(--color-accent), 0.12);
     }
 
     .desktop-dropdown {
@@ -547,13 +759,14 @@ const consultLinks = [
       left: 50%;
       transform: translateX(-50%);
       min-width: 19rem;
-      border: 1px solid rgb(var(--color-border));
-      border-radius: 14px;
-      background: rgba(var(--color-card), 0.97);
+      border: 1px solid rgba(var(--color-border), 0.84);
+      border-radius: 20px;
+      background: rgba(var(--color-card), 0.94);
+      backdrop-filter: blur(18px) saturate(140%);
       box-shadow:
-        0 20px 38px rgba(5, 20, 34, 0.16),
+        0 24px 48px rgba(5, 20, 34, 0.18),
         0 6px 16px rgba(5, 20, 34, 0.1);
-      padding: 0.5rem;
+      padding: 0.55rem;
       z-index: 80;
       gap: 0.3rem;
     }
@@ -567,14 +780,16 @@ const consultLinks = [
       display: flex;
       align-items: center;
       justify-self: end;
-      gap: 0.55rem;
+      gap: 0.6rem;
       grid-column: 3;
     }
     .icon-btn {
-      @apply inline-flex rounded-full border border-skin-line bg-skin-fill p-2 hover:border-skin-accent;
+      @apply inline-flex rounded-full border border-skin-line p-2 hover:border-skin-accent;
+      background: rgba(var(--color-fill), 0.62);
     }
     .icon-btn.active {
       @apply border-skin-accent;
+      box-shadow: inset 0 0 0 1px rgba(var(--color-accent), 0.12);
     }
     .search-icon,
     .theme-icon {
@@ -582,6 +797,7 @@ const consultLinks = [
     }
     .cta-btn {
       @apply inline-flex rounded-full border border-skin-accent bg-skin-accent px-4 py-2 text-sm font-semibold text-skin-inverted transition hover:bg-skin-fill hover:text-skin-accent;
+      box-shadow: 0 12px 24px rgba(var(--color-accent), 0.18);
     }
 
     .mobile-toggle,
@@ -616,7 +832,17 @@ const consultLinks = [
     box-shadow:
       0 12px 26px rgba(5, 20, 34, 0.16),
       0 4px 10px rgba(5, 20, 34, 0.09);
-    background: rgba(var(--color-card), 0.96);
+    background:
+      linear-gradient(
+        180deg,
+        rgba(var(--color-card), 0.97),
+        rgba(var(--color-card), 0.9)
+      ),
+      radial-gradient(
+        circle at top left,
+        rgba(var(--color-accent), 0.12),
+        transparent 34%
+      );
   }
   .site-header.is-scrolled .brand-kicker {
     max-height: 0;
@@ -657,7 +883,8 @@ const consultLinks = [
     };
 
     const closeMobilePanel = () => {
-      mobilePanel.classList.add("hidden");
+      navShell.classList.remove("mobile-open");
+      mobilePanel.setAttribute("aria-hidden", "true");
       mobileToggle.setAttribute("aria-expanded", "false");
       mobileToggle.setAttribute("aria-label", "Open navigation menu");
       menuIcon.classList.remove("is-active");
@@ -665,7 +892,8 @@ const consultLinks = [
 
     const toggleMobilePanel = () => {
       const isExpanded = mobileToggle.getAttribute("aria-expanded") === "true";
-      mobilePanel.classList.toggle("hidden", isExpanded);
+      navShell.classList.toggle("mobile-open", !isExpanded);
+      mobilePanel.setAttribute("aria-hidden", String(isExpanded));
       mobileToggle.setAttribute("aria-expanded", String(!isExpanded));
       mobileToggle.setAttribute(
         "aria-label",

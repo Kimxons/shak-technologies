@@ -43,11 +43,17 @@ const socialImageURL = new URL(
 ).href;
 
 const keywordContent = keywords.length > 0 ? keywords.join(", ") : undefined;
-const xProfile = SOCIALS.find(social => social.name === "X" && social.active)?.href;
+const xProfile = SOCIALS.find(
+  social => social.name === "X" && social.active
+)?.href;
 const xHandle = xProfile?.replace(/\/+$/, "").split("/").at(-1);
 const twitterHandle = xHandle ? `@${xHandle}` : undefined;
-const mailProfile = SOCIALS.find(social => social.name === "Mail" && social.active)?.href;
-const email = mailProfile?.startsWith("mailto:") ? mailProfile.replace("mailto:", "") : undefined;
+const mailProfile = SOCIALS.find(
+  social => social.name === "Mail" && social.active
+)?.href;
+const email = mailProfile?.startsWith("mailto:")
+  ? mailProfile.replace("mailto:", "")
+  : undefined;
 
 const baseSchemas: SchemaNode[] = [
   {
@@ -98,7 +104,9 @@ const ogLocale = (LOCALE.langTag[0] ?? "en-EN").replace("-", "_");
     <meta name="author" content={author} />
     <meta
       name="robots"
-      content={noindex ? "noindex, nofollow" : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"}
+      content={noindex
+        ? "noindex, nofollow"
+        : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"}
     />
     {keywordContent && <meta name="keywords" content={keywordContent} />}
     <link rel="sitemap" href="/sitemap-index.xml" />
@@ -135,11 +143,19 @@ const ogLocale = (LOCALE.langTag[0] ?? "en-EN").replace("-", "_");
     <meta property="twitter:description" content={description} />
     <meta property="twitter:image" content={socialImageURL} />
     {twitterHandle && <meta property="twitter:site" content={twitterHandle} />}
-    {twitterHandle && <meta property="twitter:creator" content={twitterHandle} />}
+    {
+      twitterHandle && (
+        <meta property="twitter:creator" content={twitterHandle} />
+      )
+    }
 
     {
       schemaPayloads.map(payload => (
-        <script type="application/ld+json" set:html={JSON.stringify(payload)} />
+        <script
+          is:inline
+          type="application/ld+json"
+          set:html={JSON.stringify(payload)}
+        />
       ))
     }
 
@@ -161,12 +177,18 @@ const ogLocale = (LOCALE.langTag[0] ?? "en-EN").replace("-", "_");
       )
     }
 
-    <script type="text/partytown" async src="https://www.googletagmanager.com/gtag/js?id=G-JCR2S41KRX"></script>
-    <script type="text/partytown">
+    <script
+      is:inline
+      type="text/partytown"
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-JCR2S41KRX"></script>
+    <script is:inline type="text/partytown">
       window.dataLayer = window.dataLayer || [];
-      function gtag(){window.dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-JCR2S41KRX');
+      function gtag() {
+        window.dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+      gtag("config", "G-JCR2S41KRX");
     </script>
 
     <script is:inline src="/toggle-theme.js"></script>

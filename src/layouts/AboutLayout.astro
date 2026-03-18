@@ -16,50 +16,50 @@ export interface Props {
 const { frontmatter } = Astro.props;
 const aboutDescription =
   frontmatter.description ??
-  `About ${SITE.title}: consultancy-led AI strategy, implementation, and delivery support for teams building production systems.`;
+  `About ${SITE.title}: software engineering studio for product delivery, internal tools, workflow automation, and AI-enabled systems.`;
 
 const deliveryRail = [
   {
-    title: "Diagnose",
-    description: "Clarify business priorities, technical constraints, and outcome targets.",
+    title: "Scope",
+    description: "Clarify the product, process, or operational problem worth solving.",
   },
   {
-    title: "Design",
-    description: "Define architecture, rollout milestones, and ownership boundaries.",
+    title: "Architect",
+    description: "Shape the system, delivery phases, and technical approach.",
   },
   {
-    title: "Deploy",
-    description: "Support execution with quality controls, governance, and enablement.",
+    title: "Ship",
+    description: "Support build, rollout, and handover so the work holds up in production.",
   },
 ];
 
 const serviceLines = [
   {
-    title: "AI Strategy and Roadmapping",
+    title: "Product and Platform Engineering",
     description:
-      "Prioritized initiatives tied to measurable business value and practical delivery windows.",
+      "Customer-facing software, portals, dashboards, APIs, and internal tools built for real use.",
   },
   {
-    title: "Architecture and Delivery Design",
+    title: "Workflow Systems and Automation",
     description:
-      "Technical blueprinting across data, model, and application layers for stable implementation.",
+      "Manual processes turned into cleaner digital workflows with integrations and dependable backend systems.",
   },
   {
-    title: "Implementation and Rollout Advisory",
+    title: "AI-Enabled Features",
     description:
-      "Hands-on build oversight, risk reduction, and launch support for production readiness.",
+      "Search, assistants, document flows, and model-driven features added where they improve outcomes.",
   },
   {
-    title: "Responsible AI and Governance",
+    title: "Advisory and Delivery Support",
     description:
-      "Reliability, accountability, and monitoring frameworks for responsible long-term operations.",
+      "Scoping, architecture review, delivery oversight, and implementation guidance for active teams.",
   },
 ];
 
 const engagementTracks = [
-  "Advisory Sprint for fast diagnosis and strategy direction.",
-  "Delivery Partnership for architecture and implementation support.",
-  "Transformation Support for multi-team AI capability scaling.",
+  "Advisory Sprint for scoping, architecture direction, or delivery recovery.",
+  "Build Partnership for end-to-end product, platform, or workflow delivery.",
+  "Embedded Support for teams that need senior engineering guidance during implementation.",
 ];
 
 const aboutSchema = {
@@ -81,9 +81,10 @@ const aboutSchema = {
   description={aboutDescription}
   keywords={[
     "about shak technologies",
-    "ai consultancy company",
+    "software engineering studio",
+    "product engineering partner",
     "ai implementation partner",
-    "data science innovation africa",
+    "digital systems consultancy",
   ]}
   schema={aboutSchema}
 >
@@ -92,7 +93,7 @@ const aboutSchema = {
   <main id="main-content">
     <section id="about-hero">
       <div class="hero-copy">
-        <span class="chip">Consultancy-Led AI Partner</span>
+        <span class="chip">Software Engineering Studio</span>
         <h1>{frontmatter.title}</h1>
         <p>{aboutDescription}</p>
         <div class="hero-actions">
@@ -107,18 +108,18 @@ const aboutSchema = {
               <path d="m11.293 17.293 1.414 1.414L19.414 12l-6.707-6.707-1.414 1.414L15.586 11H6v2h9.586z"></path>
             </svg>
           </LinkButton>
-          <LinkButton href="/consultancy" className="btn-secondary">
-            View Consultancy Services
+          <LinkButton href="/work" className="btn-secondary">
+            View Selected Work
           </LinkButton>
         </div>
         <ul class="hero-tags" aria-label="Engagement context">
-          <li>International and local delivery</li>
-          <li>Consultancy is our core business</li>
-          <li>Courses as capability extension</li>
+          <li>Software delivery and advisory</li>
+          <li>AI used where it improves the work</li>
+          <li>Training as capability transfer</li>
         </ul>
       </div>
 
-      <aside class="hero-rail" aria-label="Consultancy delivery path">
+      <aside class="hero-rail" aria-label="Studio delivery path">
         <p class="rail-kicker">Delivery Path</p>
         <ol>
           {deliveryRail.map((item, index) => (
@@ -136,8 +137,8 @@ const aboutSchema = {
 
     <section id="consultancy-lines" aria-labelledby="consultancy-lines-title">
       <div class="section-heading">
-        <span class="chip">Consultancy Services</span>
-        <h2 id="consultancy-lines-title">Service lines built for accountable AI execution.</h2>
+        <span class="chip">Studio Capabilities</span>
+        <h2 id="consultancy-lines-title">Service lines built for accountable software delivery.</h2>
       </div>
       <div class="services-list">
         {serviceLines.map((service, index) => (
@@ -181,10 +182,10 @@ const aboutSchema = {
 
     <section id="about-cta">
       <div class="cta-copy">
-        <h2>Need senior AI consultancy support that delivers in production?</h2>
+        <h2>Need a senior partner to scope, build, or stabilize a product?</h2>
         <p>
-          Partner with Shak Technologies Ltd for strategy, architecture, and implementation
-          oversight that keeps business goals and engineering execution aligned.
+          Partner with Shak Technologies Ltd for product engineering, workflow
+          systems, software architecture, and AI delivery that stays grounded in real execution.
         </p>
       </div>
       <div class="cta-actions">

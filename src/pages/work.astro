@@ -1,0 +1,550 @@
+---
+import Layout from "@layouts/Layout.astro";
+import Header from "@components/Header.astro";
+import Footer from "@components/Footer.astro";
+import LinkButton from "@components/LinkButton.astro";
+import { CONSULT_BOOKING_LINKS, SITE } from "@config";
+
+const workHighlights = [
+  { label: "Case Studies", value: "04 representative projects" },
+  { label: "Focus", value: "Products, workflows, and AI-enabled systems" },
+  { label: "Disclosure", value: "Client details anonymized where needed" },
+];
+
+const caseStudies = [
+  {
+    client: "Regional organization",
+    engagement: "Build Partnership",
+    title: "Operations portal for approvals, reporting, and field coordination",
+    summary:
+      "A distributed team needed one system to replace spreadsheet-heavy coordination and fragmented approvals.",
+    challenge:
+      "Operational work was spread across email, spreadsheets, and disconnected forms. Teams had limited visibility into request status, approvals, and reporting accuracy.",
+    approach: [
+      "Mapped roles, workflow states, and reporting needs before implementation started.",
+      "Designed a role-based portal with dashboards, approval routing, and shared operational records.",
+      "Structured the backend so reporting stayed maintainable and future integrations remained possible.",
+    ],
+    outcome:
+      "The organization moved into a single operating system with clearer handoffs, stronger visibility across teams, and a more dependable reporting process.",
+    tags: ["Workflow System", "Portal Development", "Backend Architecture"],
+  },
+  {
+    client: "Growing service business",
+    engagement: "Embedded Engineering Support",
+    title: "Internal tool to standardize intake, handoffs, and service delivery",
+    summary:
+      "The business had demand, but internal operations were too manual to scale cleanly.",
+    challenge:
+      "Requests arrived through multiple channels, ownership changed too often, and delivery teams were losing time to follow-up and status tracking instead of actual execution.",
+    approach: [
+      "Reviewed the real handoff points across sales, operations, and delivery before proposing software changes.",
+      "Designed a lightweight internal system for intake, assignment, tracking, and operational visibility.",
+      "Supported implementation decisions so the tool matched the team's actual working rhythm.",
+    ],
+    outcome:
+      "The service team gained a single source of truth for work in progress, reduced manual follow-up, and a clearer delivery path for each request.",
+    tags: ["Internal Tools", "Operations", "Delivery Support"],
+  },
+  {
+    client: "Document-heavy institution",
+    engagement: "Advisory Sprint + Build Partnership",
+    title: "AI-assisted document intake, search, and review workflow",
+    summary:
+      "The team needed faster retrieval and first-pass review without turning the project into a novelty AI demo.",
+    challenge:
+      "Important documents were difficult to retrieve consistently, review cycles were slow, and staff needed better support without losing human oversight on important decisions.",
+    approach: [
+      "Separated deterministic workflow needs from the parts where AI could genuinely help.",
+      "Designed an ingestion and search flow with tagging, structured retrieval, and assisted summarization.",
+      "Kept verification and review controls in place so staff could validate outputs before action was taken.",
+    ],
+    outcome:
+      "The institution reduced friction around document retrieval and first-pass review while keeping human judgment in the workflow where it mattered.",
+    tags: ["AI Integration", "Search", "Document Workflow"],
+  },
+  {
+    client: "Startup product team",
+    engagement: "Advisory Sprint",
+    title: "Architecture reset and delivery recovery for a product drifting in implementation",
+    summary:
+      "A promising product had momentum, but the engineering effort was starting to sprawl and decision-making was slowing down.",
+    challenge:
+      "Features were being added faster than the system design was being clarified, creating uncertainty around boundaries, build order, and what had to be stabilized first.",
+    approach: [
+      "Audited the product direction, backlog pressure, and current technical assumptions.",
+      "Reset the delivery path around clearer system boundaries and a more defensible implementation sequence.",
+      "Provided architecture guidance and review checkpoints for the next stage of build work.",
+    ],
+    outcome:
+      "The team left with a cleaner roadmap, stronger technical direction, and a more practical sequence for shipping the next version of the product.",
+    tags: ["Architecture Review", "Delivery Rescue", "Product Engineering"],
+  },
+];
+
+const proofAreas = [
+  {
+    title: "Greenfield Product Builds",
+    description:
+      "New products, portals, and internal systems scoped from the real operating problem rather than from feature lists alone.",
+  },
+  {
+    title: "Workflow Modernization",
+    description:
+      "Manual processes reshaped into clearer digital flows with better visibility, ownership, and reporting.",
+  },
+  {
+    title: "AI Used With Restraint",
+    description:
+      "AI is introduced where it genuinely improves search, document handling, or workflow speed, not where it adds noise.",
+  },
+  {
+    title: "Delivery Recovery",
+    description:
+      "Architecture resets and implementation guidance for teams whose projects have stalled, drifted, or become too ambiguous.",
+  },
+];
+
+const fitSignals = [
+  "You have a product, workflow, or platform idea that still needs sharper scope.",
+  "You are replacing spreadsheets, email-heavy approvals, or fragmented internal processes.",
+  "Your team needs architecture direction or delivery support before more engineering effort is spent.",
+  "You want AI features grounded in product value and operational reality.",
+];
+
+const workSchema = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  name: `Work | ${SITE.title}`,
+  description:
+    "Selected work and representative case studies from Shak Technologies Ltd across products, workflows, internal tools, and AI-enabled systems.",
+  url: new URL("work", SITE.website).href,
+  hasPart: caseStudies.map(study => ({
+    "@type": "CreativeWork",
+    name: study.title,
+    description: study.summary,
+    about: study.tags,
+  })),
+};
+---
+
+<Layout
+  title={`Work | ${SITE.title}`}
+  description="Selected work and representative case studies from Shak Technologies Ltd across products, internal tools, workflow systems, and AI-enabled delivery."
+  keywords={[
+    "software case studies",
+    "product engineering work",
+    "internal tools portfolio",
+    "workflow automation projects",
+    "ai integration case studies",
+    "shak technologies work",
+  ]}
+  schema={workSchema}
+>
+  <Header activeNav="work" />
+  <main id="main-content">
+    <section id="work-hero">
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <span class="chip">Selected Work</span>
+          <h1>Representative case studies showing how the studio scopes, architects, and ships.</h1>
+          <p>
+            The examples below are anonymized where needed, but the delivery
+            problems are real: product builds, workflow systems, stabilization
+            work, and AI-enabled features designed to hold up in production.
+          </p>
+          <div class="hero-actions">
+            <LinkButton
+              href={CONSULT_BOOKING_LINKS.strategy30}
+              className="btn-primary"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Discuss Your Project
+            </LinkButton>
+            <LinkButton href="/consultancy" className="btn-secondary">
+              Explore Services
+            </LinkButton>
+          </div>
+          <ul class="hero-metrics">
+            {
+              workHighlights.map(item => (
+                <li>
+                  <span class="metric-label">{item.label}</span>
+                  <span class="metric-value">{item.value}</span>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+
+        <aside class="hero-rail">
+          <p class="rail-kicker">Confidentiality Note</p>
+          <h2>Client names may be hidden, but the delivery logic stays visible.</h2>
+          <p>
+            Each case study is written around the actual problem shape, system
+            decisions, and delivery outcome so you can see how we approach real work.
+          </p>
+          <ul>
+            <li>Problem context before build work started.</li>
+            <li>What was designed, implemented, or corrected.</li>
+            <li>Why the delivery path made sense for that team.</li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+    <section id="case-studies" class="section-block">
+      <div class="section-heading">
+        <h2>Selected Case Studies</h2>
+        <p>
+          These examples show the kinds of delivery problems the studio is built
+          to handle across products, operations, and AI-enabled workflows.
+        </p>
+      </div>
+
+      <div class="study-list">
+        {
+          caseStudies.map((study, index) => (
+            <article class="study-card">
+              <div class="study-head">
+                <span class="study-index">0{index + 1}</span>
+                <div class="study-intro">
+                  <p class="study-meta">{study.client} • {study.engagement}</p>
+                  <h3>{study.title}</h3>
+                  <p>{study.summary}</p>
+                </div>
+              </div>
+
+              <div class="study-grid">
+                <div class="study-column">
+                  <h4>Challenge</h4>
+                  <p>{study.challenge}</p>
+                </div>
+
+                <div class="study-column">
+                  <h4>Approach</h4>
+                  <ul class="study-points">
+                    {study.approach.map(item => <li>{item}</li>)}
+                  </ul>
+                </div>
+
+                <div class="study-column">
+                  <h4>Outcome</h4>
+                  <p>{study.outcome}</p>
+                  <ul class="study-tags" aria-label={`Project categories for ${study.title}`}>
+                    {study.tags.map(tag => <li>{tag}</li>)}
+                  </ul>
+                </div>
+              </div>
+            </article>
+          ))
+        }
+      </div>
+    </section>
+
+    <section id="proof-areas" class="section-block">
+      <div class="section-heading">
+        <h2>What This Work Demonstrates</h2>
+        <p>
+          The studio sits best where product decisions, system design, and
+          delivery execution need to stay tightly connected.
+        </p>
+      </div>
+      <div class="proof-grid">
+        {
+          proofAreas.map(area => (
+            <article class="proof-card">
+              <h3>{area.title}</h3>
+              <p>{area.description}</p>
+            </article>
+          ))
+        }
+      </div>
+    </section>
+
+    <section id="fit" class="section-block">
+      <div class="fit-grid">
+        <div class="fit-copy">
+          <span class="chip">Good Fit</span>
+          <h2>This is usually the right kind of engagement when:</h2>
+          <ul class="fit-list">
+            {fitSignals.map(item => <li>{item}</li>)}
+          </ul>
+        </div>
+
+        <div class="fit-panel">
+          <p class="panel-kicker">Next Step</p>
+          <h3>Bring the real problem, not a polished brief.</h3>
+          <p>
+            The fastest path is usually a short conversation about the system,
+            workflow, or delivery issue you are dealing with now. We can then
+            determine whether the right move is advisory, build partnership, or embedded support.
+          </p>
+          <div class="panel-actions">
+            <LinkButton
+              href={CONSULT_BOOKING_LINKS.quick15}
+              className="btn-primary"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Book 15-Min Intro
+            </LinkButton>
+            <LinkButton href="/consultancy" className="btn-secondary">
+              View Services
+            </LinkButton>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</Layout>
+
+<style>
+  #main-content {
+    @apply mx-auto flex w-full max-w-7xl flex-col gap-16 px-4 pb-20 sm:px-6;
+  }
+
+  #work-hero {
+    @apply mt-8;
+  }
+  .hero-grid {
+    @apply grid gap-10 py-10;
+    border-top: 1px solid rgba(var(--color-border), 0.84);
+    border-bottom: 1px solid rgba(var(--color-border), 0.84);
+  }
+  @media (min-width: 1080px) {
+    .hero-grid {
+      grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+      align-items: start;
+      column-gap: 2.35rem;
+    }
+  }
+
+  .hero-copy h1 {
+    @apply mt-4 max-w-5xl text-4xl font-bold leading-[0.98] sm:text-6xl;
+    text-wrap: balance;
+  }
+  .hero-copy > p {
+    @apply mt-4 max-w-3xl text-lg leading-relaxed opacity-85;
+  }
+  .hero-actions {
+    @apply mt-6 flex flex-wrap gap-3;
+  }
+
+  .hero-metrics {
+    @apply mt-7 grid gap-2;
+    border-top: 1px solid rgba(var(--color-border), 0.84);
+    padding-top: 1rem;
+  }
+  .hero-metrics li {
+    @apply border-b border-dashed border-skin-line pb-2;
+  }
+  .hero-metrics li:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+  .metric-label {
+    @apply text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-skin-accent;
+  }
+  .metric-value {
+    @apply mt-1 block text-base font-semibold;
+  }
+  @media (min-width: 760px) {
+    .hero-metrics {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+    }
+    .hero-metrics li {
+      border-bottom: 0;
+      padding-bottom: 0;
+      border-right: 1px dashed rgba(var(--color-border), 0.76);
+      padding-right: 0.75rem;
+    }
+    .hero-metrics li:last-child {
+      border-right: 0;
+      padding-right: 0;
+    }
+  }
+
+  .hero-rail {
+    @apply relative pl-7;
+    border-left: 1px solid rgba(var(--color-border), 0.82);
+  }
+  .hero-rail::before {
+    content: "";
+    @apply absolute left-0 top-0 h-20 w-px;
+    background: linear-gradient(180deg, rgba(var(--color-accent), 0.88), rgba(var(--color-accent), 0.08));
+  }
+  .rail-kicker {
+    @apply text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-skin-accent;
+  }
+  .hero-rail h2 {
+    @apply mt-3 text-3xl font-semibold leading-tight;
+    text-wrap: balance;
+  }
+  .hero-rail p {
+    @apply mt-3 text-sm leading-relaxed opacity-80;
+  }
+  .hero-rail ul {
+    @apply mt-5 grid gap-2;
+  }
+  .hero-rail li {
+    @apply relative border-b border-dashed border-skin-line pb-2 pl-5 text-sm;
+  }
+  .hero-rail li::before {
+    content: "";
+    @apply absolute left-0 top-2 h-1.5 w-1.5 rounded-full bg-skin-accent;
+  }
+  .hero-rail li:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .section-block {
+    @apply border-t border-skin-line pt-14;
+  }
+  .section-heading h2 {
+    @apply text-3xl font-semibold sm:text-4xl;
+    text-wrap: balance;
+  }
+  .section-heading p {
+    @apply mt-3 max-w-3xl opacity-80;
+  }
+
+  .study-list {
+    @apply mt-8 grid gap-6;
+  }
+  .study-card {
+    @apply rounded-2xl border border-skin-line p-5 sm:p-6;
+    background:
+      linear-gradient(180deg, rgba(var(--color-fill), 0.55), rgba(var(--color-card), 0.7)),
+      radial-gradient(circle at top right, rgba(var(--color-accent), 0.08), transparent 28%);
+  }
+  .study-head {
+    @apply grid gap-4 border-b border-dashed border-skin-line pb-5;
+  }
+  @media (min-width: 900px) {
+    .study-head {
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: start;
+    }
+  }
+  .study-index {
+    @apply inline-flex h-11 w-11 items-center justify-center rounded-full border border-skin-line text-xs font-semibold tracking-[0.18em] text-skin-accent;
+  }
+  .study-meta {
+    @apply text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-skin-accent;
+  }
+  .study-intro h3 {
+    @apply mt-2 max-w-4xl text-2xl font-semibold sm:text-3xl;
+    text-wrap: balance;
+  }
+  .study-intro p:last-child {
+    @apply mt-3 max-w-3xl opacity-80;
+  }
+
+  .study-grid {
+    @apply mt-5 grid gap-5;
+  }
+  @media (min-width: 1100px) {
+    .study-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      column-gap: 1.25rem;
+    }
+  }
+  .study-column h4 {
+    @apply text-sm font-semibold uppercase tracking-[0.14em] text-skin-accent;
+  }
+  .study-column p {
+    @apply mt-3 text-sm leading-relaxed opacity-80;
+  }
+  .study-points {
+    @apply mt-3 grid gap-2;
+  }
+  .study-points li {
+    @apply relative border-b border-dashed border-skin-line pb-2 pl-5 text-sm leading-relaxed;
+  }
+  .study-points li::before {
+    content: "";
+    @apply absolute left-0 top-2 h-1.5 w-1.5 rounded-full bg-skin-accent;
+  }
+  .study-points li:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+  .study-tags {
+    @apply mt-4 flex flex-wrap gap-2;
+  }
+  .study-tags li {
+    @apply rounded-full border border-skin-line px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em];
+  }
+
+  .proof-grid {
+    @apply mt-8 grid gap-3;
+  }
+  @media (min-width: 900px) {
+    .proof-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .proof-card {
+    @apply rounded-xl border-l-4 border-skin-line bg-skin-card bg-opacity-60 px-4 py-4;
+  }
+  .proof-card h3 {
+    @apply text-xl font-semibold;
+  }
+  .proof-card p {
+    @apply mt-2 opacity-80;
+  }
+
+  .fit-grid {
+    @apply grid gap-8;
+  }
+  @media (min-width: 1040px) {
+    .fit-grid {
+      grid-template-columns: minmax(0, 1.04fr) minmax(0, 0.96fr);
+      align-items: start;
+      column-gap: 2.4rem;
+    }
+  }
+  .fit-copy h2 {
+    @apply mt-4 text-3xl font-semibold sm:text-4xl;
+    text-wrap: balance;
+  }
+  .fit-list {
+    @apply mt-6 grid gap-2;
+  }
+  .fit-list li {
+    @apply relative border-b border-skin-line py-3 pl-5;
+  }
+  .fit-list li::before {
+    content: "";
+    @apply absolute left-0 top-5 h-1.5 w-1.5 rounded-full bg-skin-accent;
+  }
+  .fit-list li:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .fit-panel {
+    @apply rounded-2xl border border-skin-line p-5 sm:p-6;
+    background:
+      linear-gradient(180deg, rgba(var(--color-fill), 0.58), rgba(var(--color-card), 0.76)),
+      radial-gradient(circle at top right, rgba(var(--color-accent), 0.12), transparent 34%);
+  }
+  .panel-kicker {
+    @apply text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-skin-accent;
+  }
+  .fit-panel h3 {
+    @apply mt-3 text-2xl font-semibold;
+    text-wrap: balance;
+  }
+  .fit-panel p {
+    @apply mt-3 opacity-80;
+  }
+  .panel-actions {
+    @apply mt-6 flex flex-wrap gap-3;
+  }
+</style>

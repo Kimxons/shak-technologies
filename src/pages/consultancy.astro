@@ -19,22 +19,22 @@ const consultFormNextURL = consultNextURL.href;
 
 const consultingOffers = [
   {
-    id: "strategy",
-    title: "AI Product Strategy",
+    id: "advisory",
+    title: "Advisory Sprint",
     description:
-      "Define the right AI roadmap, identify high-impact use cases, and align technical delivery with business goals.",
+      "Use this when you need sharp scoping, architecture direction, delivery triage, or a second opinion before spending more engineering time.",
   },
   {
-    id: "architecture",
-    title: "Architecture and Implementation",
+    id: "build",
+    title: "Build Partnership",
     description:
-      "Design robust GenAI and ML architecture, improve reliability, and support your team through implementation.",
+      "For teams that need a studio partner to design and deliver a product, portal, workflow system, internal tool, or AI-enabled capability.",
   },
   {
-    id: "enablement",
-    title: "Team Enablement",
+    id: "embedded",
+    title: "Embedded Engineering Support",
     description:
-      "Train engineers and analysts through practical sessions focused on shipping secure, measurable AI systems.",
+      "For in-house teams that need senior architecture review, implementation support, delivery oversight, and a cleaner handover path.",
   },
 ];
 
@@ -43,21 +43,21 @@ const bookingOptions = [
     title: "15-Min Discovery",
     duration: "Quick Fit Check",
     description:
-      "A focused call to understand your goal and identify the best engagement path.",
+      "Best for early-stage ideas, fit checks, or deciding whether you need advisory or build support.",
     href: CONSULT_BOOKING_LINKS.quick15,
   },
   {
     title: "30-Min Strategy Session",
     duration: "Deep Planning",
     description:
-      "Detailed discussion on architecture, delivery priorities, and consulting scope.",
+      "Best for active projects, architecture questions, delivery planning, or a scoped technical discussion.",
     href: CONSULT_BOOKING_LINKS.strategy30,
   },
   {
     title: "Secret Meeting",
     duration: "Private Link",
     description:
-      "Reserved private booking link for direct and confidential coordination.",
+      "Reserved private booking link for returning clients or confidential coordination.",
     href: CONSULT_BOOKING_LINKS.secret,
   },
 ] as const;
@@ -94,51 +94,53 @@ const deliveryTimelines = [
 const consultancySchema = {
   "@context": "https://schema.org",
   "@type": "Service",
-  name: "AI and ML Consultancy",
+  name: "Software Engineering and AI Consultancy",
   description:
-    "Implementation-focused consultancy for AI product strategy, architecture, and team enablement.",
+    "Consultancy and delivery support for software products, internal tools, workflow systems, and AI-enabled solutions.",
   provider: {
     "@type": "Organization",
     name: SITE.title,
     url: SITE.website,
   },
   areaServed: "Global",
-  serviceType: "AI Strategy and Engineering Advisory",
+  serviceType: "Software Product Engineering, Architecture Advisory, and AI Implementation Support",
 };
 
 const leadershipStandards = [
-  "Executive and engineering alignment from kickoff to deployment.",
-  "Decision-ready roadmaps with clear priorities, trade-offs, and milestones.",
-  "Implementation oversight to reduce delivery risk and timeline drift.",
-  "Capability transfer so internal teams can sustain momentum independently.",
+  "A clearer problem statement, scope, and delivery path before effort is wasted.",
+  "Architecture decisions matched to your budget, timeline, and team capacity.",
+  "Hands-on guidance through implementation, integration, and rollout.",
+  "AI recommended only where it improves the product or workflow in a meaningful way.",
+  "Documentation, handover, and enablement so the work remains maintainable after launch.",
 ];
 
 const deliveryPhases = [
   {
-    title: "Advisory Alignment",
+    title: "Scope the Right Build",
     description:
-      "Define strategic priorities, success metrics, and governance expectations with leadership stakeholders.",
+      "Clarify the problem, users, constraints, and success criteria so the team is not building on vague assumptions.",
   },
   {
-    title: "Technical Blueprint",
+    title: "Shape the Architecture",
     description:
-      "Design architecture, operating model, and implementation sequence based on your current stack and team maturity.",
+      "Translate priorities into a realistic system design, delivery sequence, and implementation approach.",
   },
   {
-    title: "Execution and Enablement",
+    title: "Support Delivery",
     description:
-      "Support rollout, review delivery quality, and upskill teams for durable internal capability.",
+      "Stay close to build and rollout through reviews, implementation support, risk reduction, and handover.",
   },
 ];
 ---
 
 <Layout
   title={`Consultancy | ${SITE.title}`}
-  description="AI and ML consultancy services by Shak Technologies Ltd."
+  description="Software engineering and AI consultancy services by Shak Technologies Ltd."
   keywords={[
-    "ai consultancy",
-    "machine learning consulting",
-    "genai product strategy",
+    "software consultancy",
+    "product engineering partner",
+    "internal tools development",
+    "ai integration consulting",
     "ai implementation partner",
     "shak technologies consultancy",
   ]}
@@ -147,11 +149,12 @@ const deliveryPhases = [
   <Header activeNav="consultancy" />
   <main id="main-content">
     <section id="consultancy-hero" class="surface-card">
-      <span class="chip">Consultancy</span>
-      <h1>AI and ML consulting built for execution, not theory.</h1>
+      <span class="chip">Consultancy + Delivery</span>
+      <h1>Software engineering support for teams that need to scope, build, or stabilize real systems.</h1>
       <p>
-        We work with founders, product teams, and engineering leaders to design
-        and ship practical AI capabilities with strong technical foundations.
+        We help startups, organizations, and institutions plan and deliver web
+        products, internal tools, workflow systems, and AI-enabled capabilities.
+        Engagements stay close to architecture, implementation, and rollout.
       </p>
       <div class="hero-actions">
         <LinkButton
@@ -162,20 +165,15 @@ const deliveryPhases = [
         >
           Book 15-Min Discovery
         </LinkButton>
-        <LinkButton
-          href={CONSULT_BOOKING_LINKS.strategy30}
-          className="btn-secondary"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Book 30-Min Strategy
+        <LinkButton href="/work" className="btn-secondary">
+          View Selected Work
         </LinkButton>
       </div>
     </section>
 
     <section id="offers">
       <div class="section-heading">
-        <h2>How We Can Help</h2>
+        <h2>Ways to Work With Us</h2>
       </div>
       <div class="offers-grid">
         {
@@ -190,10 +188,10 @@ const deliveryPhases = [
     </section>
 
     <section id="leadership-standard" class="surface-card">
-      <h2>Consultancy Standard for Leadership Teams</h2>
+      <h2>What You Can Expect</h2>
       <p>
-        Engagements are built for decision-makers who need strategic clarity and
-        technical certainty, not generic consulting deliverables.
+        This is not presentation-only consulting. Engagements are designed to
+        remove ambiguity, reduce delivery risk, and move real engineering work forward.
       </p>
       <ul>
         {leadershipStandards.map(item => <li>{item}</li>)}
@@ -202,7 +200,7 @@ const deliveryPhases = [
 
     <section id="delivery-phases">
       <div class="section-heading">
-        <h2>How We Deliver</h2>
+        <h2>How Engagements Usually Run</h2>
       </div>
       <div class="phase-grid">
         {
@@ -219,10 +217,10 @@ const deliveryPhases = [
 
     <section id="book-call" class="scroll-mt-28">
       <div class="section-heading">
-        <h2>Book your consultancy call</h2>
+        <h2>Start the Conversation</h2>
         <p>
-          Choose the slot that matches your need, or send your brief directly by
-          email if you prefer async coordination.
+          Choose the slot that matches your need, or send your brief directly if
+          you prefer to start asynchronously.
         </p>
       </div>
       <div class="booking-grid">
@@ -245,8 +243,8 @@ const deliveryPhases = [
         }
       </div>
       <div class="surface-card booking-inline">
-        <h3>Direct Booking Form</h3>
-        <p>Complete your 30-minute strategy booking directly on this page.</p>
+        <h3>Book a 30-minute strategy session</h3>
+        <p>Use the embedded calendar below if you already know you need a deeper planning discussion.</p>
         <iframe
           src={CONSULT_BOOKING_LINKS.strategy30}
           title="Cal.com booking for 30 minute strategy session"
@@ -261,7 +259,7 @@ const deliveryPhases = [
       <div class="surface-card booking-request">
         <h3>Booking Request Form</h3>
         <p>
-          Prefer us to contact you directly? Submit this form and the details
+          Prefer us to contact you directly? Submit the brief and the details
           will be emailed straight to our consultancy inbox.
         </p>
         <form
@@ -304,9 +302,9 @@ const deliveryPhases = [
               <span>Engagement Type *</span>
               <select name="engagementType" required>
                 <option value="" selected disabled>Select engagement</option>
-                <option value="Strategy and Advisory">Strategy and Advisory</option>
-                <option value="Architecture and Implementation">Architecture and Implementation</option>
-                <option value="Team Enablement and Training">Team Enablement and Training</option>
+                <option value="Advisory Sprint">Advisory Sprint</option>
+                <option value="Build Partnership">Build Partnership</option>
+                <option value="Embedded Engineering Support">Embedded Engineering Support</option>
               </select>
             </label>
             <label class="consult-field">

@@ -8,6 +8,7 @@ import Pagination from "@components/Pagination.astro";
 import Datetime from "@components/Datetime";
 import LinkButton from "@components/LinkButton.astro";
 import getUniqueTags from "@utils/getUniqueTags";
+import getPostSlug from "@utils/getPostSlug";
 import { CONSULT_BOOKING_LINKS, SITE } from "@config";
 
 export interface Props {
@@ -17,20 +18,26 @@ export interface Props {
   allPosts?: CollectionEntry<"blog">[];
 }
 
-const { currentPage, totalPages, paginatedPosts, allPosts = paginatedPosts } = Astro.props;
+const {
+  currentPage,
+  totalPages,
+  paginatedPosts,
+  allPosts = paginatedPosts,
+} = Astro.props;
 const [leadPost, ...otherPosts] = paginatedPosts;
+const leadPostSlug = leadPost ? getPostSlug(leadPost) : undefined;
 const topicTags = getUniqueTags(allPosts).slice(0, 10);
 const postsCanonical =
   currentPage > 1
     ? new URL(`posts/${currentPage}`, SITE.website).href
     : new URL("posts", SITE.website).href;
 
-const insightsSchema = {
+const newsroomSchema = {
   "@context": "https://schema.org",
   "@type": "CollectionPage",
-  name: `Insights | ${SITE.title}`,
+  name: `News Room | ${SITE.title}`,
   description:
-    "Practical AI engineering insights from Shak Technologies Ltd on systems, tooling, and delivery.",
+    "News Room updates, technical commentary, and practical engineering guidance from Shak Technologies Ltd.",
   url: postsCanonical,
   isPartOf: {
     "@type": "WebSite",
@@ -40,7 +47,7 @@ const insightsSchema = {
 };
 
 const streamStats = [
-  { label: "Published Insights", value: `${allPosts.length}+` },
+  { label: "Published Stories", value: `${allPosts.length}+` },
   { label: "Focus", value: "AI Delivery and Architecture" },
   { label: "Audience", value: "Leaders, Builders, Teams" },
 ];
@@ -50,19 +57,30 @@ const editorialFocus = [
   "Architecture trade-offs from real consulting and training work",
   "Practical guidance for shipping reliable AI systems",
 ];
+
+const conversionSignals = [
+  "Architecture review before build starts",
+  "Sharper implementation scope in one call",
+  "Clear delivery next steps for your team",
+];
+
+const conversionStats = [
+  { label: "Best fit", value: "Teams moving from ideas to execution" },
+  { label: "Format", value: "Short advisory call with practical next steps" },
+];
 ---
 
 <Layout
-  title={`Insights | ${SITE.title}`}
-  description="Practical AI engineering insights, implementation patterns, and delivery lessons from Shak Technologies Ltd."
+  title={`News Room | ${SITE.title}`}
+  description="News Room updates, technical commentary, implementation patterns, and delivery lessons from Shak Technologies Ltd."
   canonicalURL={postsCanonical}
   keywords={[
-    "ai insights",
-    "machine learning engineering articles",
-    "genai architecture blog",
-    "data science implementation guides",
+    "news room",
+    "engineering newsroom",
+    "technical commentary",
+    "implementation articles",
   ]}
-  schema={insightsSchema}
+  schema={newsroomSchema}
 >
   <Header activeNav="posts" />
   <Breadcrumbs />
@@ -71,11 +89,15 @@ const editorialFocus = [
     <section id="insights-hero">
       <div class="hero-grid">
         <div class="hero-copy">
-          <span class="chip">Insights Hub</span>
-          <h1>Practical insights for teams shipping real AI systems.</h1>
+          <span class="chip">News Room</span>
+          <h1>
+            Technical news, sharp commentary, and delivery notes for teams
+            building in production.
+          </h1>
           <p>
-            Learn from implementation patterns, architecture trade-offs, and
-            delivery lessons drawn from consultancy engagements and training programs.
+            Follow product engineering updates, architecture lessons, and
+            practical implementation commentary shaped by real client work,
+            experiments, and production delivery.
           </p>
 
           <div class="hero-actions">
@@ -87,7 +109,9 @@ const editorialFocus = [
             >
               Book Strategy Call
             </LinkButton>
-            <LinkButton href="/consultancy" className="btn-secondary">Explore Consultancy</LinkButton>
+            <LinkButton href="/consultancy" className="btn-secondary">
+              Explore Consultancy
+            </LinkButton>
             <a href="/courses" class="hero-text-link">View Courses</a>
           </div>
 
@@ -104,19 +128,22 @@ const editorialFocus = [
         </div>
 
         <aside class="hero-rail">
-          <p class="rail-kicker">Editorial Focus</p>
-          <h2>Built for decision-makers and implementation teams.</h2>
+          <p class="rail-kicker">Coverage Focus</p>
+          <h2>
+            Built for operators, engineering leaders, and teams making technical
+            decisions.
+          </h2>
           <ul>
             {editorialFocus.map(item => <li>{item}</li>)}
           </ul>
-          <a href="/search" class="rail-link">Search all insights</a>
+          <a href="/search" class="rail-link">Search the News Room</a>
         </aside>
       </div>
     </section>
 
     {
       topicTags.length > 0 && (
-        <section id="topics" aria-label="Popular insight topics">
+        <section id="topics" aria-label="Popular newsroom topics">
           <p class="topics-kicker">Browse by topic</p>
           <div class="topic-strip">
             {topicTags.map(topic => (
@@ -130,68 +157,146 @@ const editorialFocus = [
     }
 
     <section id="insights-feed" class="section-block">
-      {
-        leadPost && (
-          <article class="featured-insight">
-            <p class="feature-kicker">Featured Insight</p>
-            <h2>
-              <a href={`/posts/${leadPost.slug}`}>{leadPost.data.title}</a>
-            </h2>
-            <Datetime
-              pubDatetime={leadPost.data.pubDatetime}
-              modDatetime={leadPost.data.modDatetime}
-              className="mt-3 text-sm"
-            />
-            <p class="feature-summary">{leadPost.data.description}</p>
+      <div class="feed-shell">
+        {
+          leadPost && (
+            <article class="featured-insight">
+              <div class="feature-copy">
+                <p class="feature-kicker">Featured Story</p>
+                <h2>
+                  <a href={`/posts/${leadPostSlug}`}>{leadPost.data.title}</a>
+                </h2>
+                <Datetime
+                  pubDatetime={leadPost.data.pubDatetime}
+                  modDatetime={leadPost.data.modDatetime}
+                  className="mt-4 text-sm"
+                />
+                <p class="feature-summary">{leadPost.data.description}</p>
 
+                {(leadPost.data.tags ?? []).length > 0 && (
+                  <div class="feature-tags">
+                    {(leadPost.data.tags ?? []).slice(0, 3).map(tag => (
+                      <span class="feature-tag">{tag}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div class="feature-footer">
+                <div class="feature-note">
+                  <span>Featured for implementation value</span>
+                  <p>
+                    Start here if you want the highest-signal story in the
+                    current News Room cycle and a practical lens on what strong
+                    delivery looks like.
+                  </p>
+                </div>
+
+                <div class="feature-actions">
+                  <LinkButton
+                    href={`/posts/${leadPostSlug}`}
+                    className="btn-primary"
+                  >
+                    Read Story
+                  </LinkButton>
+                  <LinkButton
+                    href={CONSULT_BOOKING_LINKS.quick15}
+                    className="btn-secondary"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Discuss With Our Team
+                  </LinkButton>
+                </div>
+              </div>
+            </article>
+          )
+        }
+
+        <aside class="conversion-panel">
+          <p class="conversion-kicker">Need senior delivery input?</p>
+          <h3>Turn these News Room signals into a scoped execution plan.</h3>
+          <p class="conversion-copy">
+            Use a short advisory session to pressure-test architecture, sequence
+            delivery, and decide what to build next without wasting engineering
+            cycles.
+          </p>
+
+          <ul class="conversion-list">
+            {conversionSignals.map(signal => <li>{signal}</li>)}
+          </ul>
+
+          <div class="conversion-stats">
             {
-              (leadPost.data.tags ?? []).length > 0 && (
-                <p class="feature-tags">{(leadPost.data.tags ?? []).slice(0, 3).join(" • ")}</p>
-              )
+              conversionStats.map(stat => (
+                <div>
+                  <span>{stat.label}</span>
+                  <strong>{stat.value}</strong>
+                </div>
+              ))
             }
+          </div>
 
-            <div class="feature-actions">
-              <LinkButton href={`/posts/${leadPost.slug}`} className="btn-primary">
-                Read Full Insight
-              </LinkButton>
-              <LinkButton
-                href={CONSULT_BOOKING_LINKS.quick15}
-                className="btn-secondary"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Discuss With Our Team
-              </LinkButton>
-            </div>
-          </article>
-        )
-      }
+          <div class="conversion-actions">
+            <LinkButton
+              href={CONSULT_BOOKING_LINKS.strategy30}
+              className="btn-primary"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Book Strategy Call
+            </LinkButton>
+            <a href="/consultancy" class="conversion-link"
+              >See consulting offer</a
+            >
+          </div>
+        </aside>
+      </div>
 
       {
         otherPosts.length > 0 && (
           <div class="feed-list-wrap">
-            <h3>More Insights</h3>
+            <div class="feed-head">
+              <div>
+                <p class="feed-kicker">Latest Stream</p>
+                <h3>
+                  More newsroom coverage on architecture, AI delivery, and
+                  implementation.
+                </h3>
+              </div>
+              <a href="/search" class="feed-head-link">
+                Search the News Room
+              </a>
+            </div>
             <ul class="feed-list">
-              {otherPosts.map(({ data, slug }) => (
+              {otherPosts.map((post, index) => (
                 <li class="feed-row">
+                  <div class="feed-row-top">
+                    <span class="feed-index">
+                      {String(index + 2).padStart(2, "0")}
+                    </span>
+                    <p class="feed-label">Story</p>
+                  </div>
                   <div class="feed-main">
-                    <a href={`/posts/${slug}`} class="feed-title">
-                      {data.title}
+                    <a href={`/posts/${getPostSlug(post)}`} class="feed-title">
+                      {post.data.title}
                     </a>
                     <Datetime
-                      pubDatetime={data.pubDatetime}
-                      modDatetime={data.modDatetime}
-                      className="mt-2 text-sm"
+                      pubDatetime={post.data.pubDatetime}
+                      modDatetime={post.data.modDatetime}
+                      className="mt-3 text-sm"
                     />
-                    <p class="feed-summary">{data.description}</p>
-                    {
-                      (data.tags ?? []).length > 0 && (
-                        <p class="feed-tags">{(data.tags ?? []).slice(0, 3).join(" • ")}</p>
-                      )
-                    }
+                    <p class="feed-summary">{post.data.description}</p>
+                    {(post.data.tags ?? []).length > 0 && (
+                      <div class="feed-tags">
+                        {(post.data.tags ?? []).slice(0, 3).map(tag => (
+                          <span>{tag}</span>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <a href={`/posts/${slug}`} class="feed-arrow" aria-label={`Read ${data.title}`}>
-                    &#8594;
+                  <a href={`/posts/${getPostSlug(post)}`} class="feed-arrow">
+                    Read story
                   </a>
                 </li>
               ))}
@@ -214,22 +319,39 @@ const editorialFocus = [
 
 <style>
   #insights-main {
-    @apply mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 pb-10 sm:px-6;
+    @apply mx-auto flex w-full max-w-[90rem] flex-col gap-14 px-4 pb-14 sm:px-6;
+  }
+  @media (min-width: 1200px) {
+    #insights-main {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
   }
 
   #insights-hero {
-    @apply pt-4;
+    @apply pt-5;
   }
   .hero-grid {
-    @apply grid gap-10 py-9;
+    @apply grid gap-10 px-1 py-10 sm:px-0;
     border-top: 1px solid rgba(var(--color-border), 0.84);
     border-bottom: 1px solid rgba(var(--color-border), 0.84);
+    background: radial-gradient(
+      circle at top left,
+      rgba(var(--color-accent), 0.08),
+      transparent 32%
+    );
+  }
+  @media (min-width: 1200px) {
+    .hero-grid {
+      padding-left: 0;
+      padding-right: 0;
+    }
   }
   @media (min-width: 1080px) {
     .hero-grid {
-      grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+      grid-template-columns: minmax(0, 1.16fr) minmax(20rem, 0.84fr);
       align-items: start;
-      column-gap: 2.4rem;
+      column-gap: 3rem;
     }
   }
 
@@ -238,7 +360,14 @@ const editorialFocus = [
     text-wrap: balance;
   }
   .hero-copy > p {
-    @apply mt-4 max-w-3xl text-lg opacity-85;
+    @apply mt-4 max-w-3xl text-lg;
+    opacity: 0.85;
+  }
+  @media (max-width: 639px) {
+    .hero-copy > p {
+      font-size: 1rem;
+      line-height: 1.75;
+    }
   }
   .hero-actions {
     @apply mt-7 flex flex-wrap gap-3;
@@ -252,7 +381,7 @@ const editorialFocus = [
 
   .hero-stats {
     @apply mt-7 grid gap-2;
-    border-top: 1px solid rgba(var(--color-border), 0.84);
+    border-top: 1px solid rgba(var(--color-border), 0.78);
     padding-top: 1rem;
   }
   .hero-stats li {
@@ -289,10 +418,33 @@ const editorialFocus = [
     @apply relative pl-7;
     border-left: 1px solid rgba(var(--color-border), 0.82);
   }
+  @media (max-width: 1079px) {
+    .hero-rail {
+      padding-left: 0;
+      padding-top: 1.5rem;
+      border-left: 0;
+      border-top: 1px solid rgba(var(--color-border), 0.82);
+    }
+    .hero-rail::before {
+      left: 0;
+      top: 0;
+      height: 1px;
+      width: 5.5rem;
+      background: linear-gradient(
+        90deg,
+        rgba(var(--color-accent), 0.88),
+        rgba(var(--color-accent), 0.08)
+      );
+    }
+  }
   .hero-rail::before {
     content: "";
     @apply absolute left-0 top-0 h-20 w-px;
-    background: linear-gradient(180deg, rgba(var(--color-accent), 0.88), rgba(var(--color-accent), 0.08));
+    background: linear-gradient(
+      180deg,
+      rgba(var(--color-accent), 0.88),
+      rgba(var(--color-accent), 0.08)
+    );
   }
   .rail-kicker {
     @apply text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-skin-accent;
@@ -305,7 +457,8 @@ const editorialFocus = [
     @apply mt-4 grid gap-2;
   }
   .hero-rail li {
-    @apply relative border-b border-dashed border-skin-line pb-2 pl-5 text-sm opacity-85;
+    @apply relative border-b border-dashed border-skin-line pb-2 pl-5 text-sm;
+    opacity: 0.85;
   }
   .hero-rail li::before {
     content: "";
@@ -323,85 +476,236 @@ const editorialFocus = [
   }
 
   #topics {
-    @apply mt-2;
+    @apply mt-1;
   }
   .topics-kicker {
     @apply text-xs font-semibold uppercase tracking-widest opacity-75;
   }
   .topic-strip {
-    @apply mt-3 flex flex-wrap gap-2;
+    @apply mt-4 flex flex-wrap gap-2.5;
   }
   .topic-pill {
-    @apply rounded-full border border-skin-line px-3 py-1.5 text-sm font-medium no-underline hover:border-skin-accent hover:text-skin-accent;
+    @apply rounded-full border border-skin-line px-4 py-2 text-sm font-medium no-underline transition hover:border-skin-accent hover:text-skin-accent;
+    background: rgba(var(--color-card), 0.52);
   }
 
   .section-block {
-    @apply border-t border-skin-line pt-12;
+    @apply border-t border-skin-line pt-14;
+  }
+  .feed-shell {
+    @apply grid gap-6;
+  }
+  @media (min-width: 1100px) {
+    .feed-shell {
+      grid-template-columns: minmax(0, 1.45fr) minmax(21rem, 0.75fr);
+      align-items: start;
+    }
   }
   .featured-insight {
-    @apply border-b border-skin-line pb-8;
+    @apply py-2 sm:py-4;
+    border-bottom: 1px solid rgba(var(--color-border), 0.84);
   }
   .feature-kicker {
     @apply text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-skin-accent;
   }
   .featured-insight h2 {
-    @apply mt-3 max-w-4xl text-3xl font-semibold leading-tight sm:text-4xl;
+    @apply mt-4 max-w-4xl text-3xl font-semibold leading-[1.02] sm:text-5xl;
     text-wrap: balance;
   }
   .featured-insight h2 a {
     @apply no-underline hover:text-skin-accent;
   }
   .feature-summary {
-    @apply mt-4 max-w-3xl opacity-85;
+    @apply mt-5 max-w-3xl text-lg leading-8;
+    opacity: 0.85;
   }
   .feature-tags {
-    @apply mt-3 text-xs font-semibold uppercase tracking-[0.14em] text-skin-accent;
+    @apply mt-5 flex flex-wrap gap-2;
+  }
+  .feature-tag {
+    @apply border-b border-dashed border-skin-line px-0 pb-1 text-xs font-semibold uppercase tracking-[0.14em] text-skin-accent;
+  }
+  .feature-footer {
+    @apply mt-8 flex flex-col gap-6 border-t border-skin-line pt-6;
+  }
+  @media (min-width: 1200px) {
+    .feature-footer {
+      flex-direction: row;
+      align-items: end;
+      justify-content: space-between;
+    }
+  }
+  .feature-note span {
+    @apply text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-skin-accent;
+  }
+  .feature-note p {
+    @apply mt-2 max-w-xl text-sm leading-7;
+    opacity: 0.78;
   }
   .feature-actions {
-    @apply mt-6 flex flex-wrap gap-3;
+    @apply flex flex-wrap gap-3;
   }
 
-  .feed-list-wrap {
-    @apply mt-8;
+  .conversion-panel {
+    @apply pl-6 sm:pl-8;
+    border-left: 1px solid rgba(var(--color-border), 0.84);
+    background: none;
   }
-  .feed-list-wrap h3 {
-    @apply text-2xl font-semibold;
+  @media (max-width: 1099px) {
+    .conversion-panel {
+      padding-left: 0;
+      padding-top: 1.5rem;
+      border-left: 0;
+      border-top: 1px solid rgba(var(--color-border), 0.84);
+    }
   }
-  .feed-list {
-    @apply mt-3 grid gap-1;
+  @media (min-width: 1100px) {
+    .conversion-panel {
+      position: sticky;
+      top: 7rem;
+    }
   }
-  .feed-row {
-    @apply grid gap-3 border-b border-skin-line py-4;
-    align-items: start;
+  .conversion-kicker {
+    @apply text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-skin-accent;
   }
-  .feed-row:last-child {
+  .conversion-panel h3 {
+    @apply mt-3 text-2xl font-semibold leading-tight;
+    text-wrap: balance;
+  }
+  .conversion-copy {
+    @apply mt-4 text-sm leading-7;
+    opacity: 0.82;
+  }
+  .conversion-list {
+    @apply mt-5 grid gap-3;
+  }
+  .conversion-list li {
+    @apply border-b border-dashed border-skin-line py-3 text-sm leading-6;
+  }
+  .conversion-list li:last-child {
     border-bottom: 0;
     padding-bottom: 0;
   }
-  @media (min-width: 860px) {
-    .feed-row {
-      grid-template-columns: minmax(0, 1fr) auto;
-      column-gap: 0.9rem;
+  .conversion-stats {
+    @apply mt-5 grid gap-3 border-t border-skin-line pt-5;
+  }
+  .conversion-stats span {
+    @apply block text-[0.68rem] font-semibold uppercase tracking-[0.16em] opacity-65;
+  }
+  .conversion-stats strong {
+    @apply mt-1 block text-sm font-semibold leading-6;
+  }
+  .conversion-actions {
+    @apply mt-6 grid gap-3;
+  }
+  .conversion-link {
+    @apply inline-flex items-center gap-2 text-sm font-semibold text-skin-accent no-underline;
+  }
+  .conversion-link::after {
+    content: "\2192";
+  }
+
+  .feed-list-wrap {
+    @apply mt-10;
+  }
+  .feed-head {
+    @apply flex flex-col gap-4 border-b border-skin-line pb-6;
+  }
+  @media (min-width: 900px) {
+    .feed-head {
+      flex-direction: row;
+      align-items: end;
+      justify-content: space-between;
     }
   }
+  .feed-kicker {
+    @apply text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-skin-accent;
+  }
+  .feed-list-wrap h3 {
+    @apply mt-2 max-w-4xl text-3xl font-semibold leading-tight;
+    text-wrap: balance;
+  }
+  .feed-head-link {
+    @apply inline-flex items-center gap-2 text-sm font-semibold text-skin-accent no-underline;
+  }
+  .feed-head-link::after {
+    content: "\2192";
+  }
+  .feed-list {
+    @apply mt-6;
+    border-top: 1px solid rgba(var(--color-border), 0.84);
+  }
+  .feed-row {
+    @apply grid gap-4 py-5 sm:py-6;
+    border-bottom: 1px solid rgba(var(--color-border), 0.78);
+  }
+  @media (max-width: 639px) {
+    .feed-title {
+      font-size: 1.35rem;
+      line-height: 1.15;
+    }
+    .featured-insight h2 {
+      font-size: 2rem;
+      line-height: 1.04;
+    }
+    .feature-summary {
+      font-size: 1rem;
+      line-height: 1.75;
+    }
+  }
+  @media (min-width: 980px) {
+    .feed-row {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: start;
+      column-gap: 1.5rem;
+    }
+  }
+  .feed-row-top {
+    @apply flex items-start justify-between gap-3;
+  }
+  @media (min-width: 980px) {
+    .feed-row-top {
+      flex-direction: column;
+      justify-content: flex-start;
+      min-width: 3rem;
+      padding-top: 0.2rem;
+    }
+  }
+  .feed-index {
+    @apply text-xs font-semibold uppercase tracking-[0.18em] text-skin-accent;
+  }
+  .feed-label {
+    @apply text-xs font-semibold uppercase tracking-[0.18em] opacity-55;
+  }
+  .feed-main {
+    @apply min-w-0;
+  }
   .feed-title {
-    @apply text-xl font-semibold no-underline;
+    @apply text-2xl font-semibold leading-tight no-underline;
+    text-wrap: balance;
   }
   .feed-title:hover {
     color: hsl(var(--accent));
   }
   .feed-summary {
-    @apply mt-2 opacity-80;
+    @apply mt-3 text-sm leading-7 opacity-80;
   }
   .feed-tags {
-    @apply mt-2 text-xs font-semibold uppercase tracking-[0.14em] text-skin-accent;
+    @apply mt-4 flex flex-wrap gap-2;
+  }
+  .feed-tags span {
+    @apply border-b border-dashed border-skin-line pb-1 text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-skin-accent;
   }
   .feed-arrow {
-    @apply inline-flex h-10 w-10 items-center justify-center rounded-full border border-skin-line text-xl no-underline transition;
+    @apply inline-flex items-center gap-2 text-sm font-semibold text-skin-accent no-underline;
+    white-space: nowrap;
   }
-  .feed-arrow:hover {
-    border-color: hsl(var(--accent));
-    color: hsl(var(--accent));
-    transform: translateX(2px);
+  .feed-arrow::after {
+    content: "\2192";
+  }
+  @media (max-width: 979px) {
+    .feed-arrow {
+      margin-top: 0.2rem;
+    }
   }
 </style>

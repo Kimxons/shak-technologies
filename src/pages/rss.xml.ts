@@ -1,6 +1,7 @@
 import rss from "@astrojs/rss";
 import { getCollection } from "astro:content";
 import getSortedPosts from "@utils/getSortedPosts";
+import getPostSlug from "@utils/getPostSlug";
 import { SITE } from "@config";
 
 export async function GET() {
@@ -10,11 +11,11 @@ export async function GET() {
     title: SITE.title,
     description: SITE.desc,
     site: SITE.website,
-    items: sortedPosts.map(({ data, slug }) => ({
-      link: `posts/${slug}`,
-      title: data.title,
-      description: data.description,
-      pubDate: new Date(data.modDatetime ?? data.pubDatetime),
+    items: sortedPosts.map(post => ({
+      link: `posts/${getPostSlug(post)}`,
+      title: post.data.title,
+      description: post.data.description,
+      pubDate: new Date(post.data.modDatetime ?? post.data.pubDatetime),
     })),
   });
 }

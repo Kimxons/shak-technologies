@@ -10,7 +10,7 @@ export interface Props {
 const { centered = false } = Astro.props;
 ---
 
-<div class:list={["social-icons", { "flex": centered }]}>
+<div class:list={["social-icons", { flex: centered }]}>
   {
     SOCIALS.filter(social => social.active).map(social => (
       <LinkButton
@@ -33,5 +33,15 @@ const { centered = false } = Astro.props;
   }
   .link-button {
     @apply rounded-full border border-skin-line bg-skin-fill p-2 hover:-translate-y-0.5 hover:border-skin-accent;
+  }
+  @media (max-width: 639px) {
+    .social-icons {
+      gap: 0.6rem;
+    }
+    .link-button {
+      padding: 0.72rem;
+      min-width: 2.9rem;
+      min-height: 2.9rem;
+    }
   }
 </style>
