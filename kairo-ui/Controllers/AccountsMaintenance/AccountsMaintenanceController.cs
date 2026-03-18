@@ -158,7 +158,7 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                 });
 
                 dropdownOptions.TryGetValue("SignatoryTypeID", out var signatoryTypeOptions);
-                    dropdownOptions.TryGetValue("AgentMandateID", out var mandatesOptions);
+                dropdownOptions.TryGetValue("AgentMandateID", out var mandatesOptions);
 
                 ViewData["SignatoryTypeOptions"] = signatoryTypeOptions ?? Enumerable.Empty<SelectListItem>();
                 ViewData["MandatesOptions"] = mandatesOptions ?? Enumerable.Empty<SelectListItem>();
@@ -311,21 +311,14 @@ namespace kairo_ui.Controllers.AccountsMaintenance
 
             try
             {
-                var dropdownOptions = await _apiCachedService.GetMultipleDropdownCodeOptionsAsync(new[]
-                {
-                    "AssetClassificationID",
-                    "AssetSubClassificationID"
-                });
-
-                dropdownOptions.TryGetValue("AssetClassificationID", out var classificationCodeOptions);
-                dropdownOptions.TryGetValue("AssetSubClassificationID", out var classificationSubCodeOptions);
-
-                ViewData["ClassificationCodeOptions"] = classificationCodeOptions ?? Enumerable.Empty<SelectListItem>();
-                ViewData["ClassificationSubCodeOptions"] = classificationSubCodeOptions ?? Enumerable.Empty<SelectListItem>();
+                ViewData["ClassificationCodeOptions"] = await LoadAccountClassificationCodeOptionsAsync();
+                ViewData["ClassificationSubCodeOptions"] = Enumerable.Empty<SelectListItem>();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error loading AccountClassification dropdown options");
+                ViewData["ClassificationCodeOptions"] = Enumerable.Empty<SelectListItem>();
+                ViewData["ClassificationSubCodeOptions"] = Enumerable.Empty<SelectListItem>();
             }
 
             return PartialView("AccountClassification");
@@ -1990,31 +1983,65 @@ namespace kairo_ui.Controllers.AccountsMaintenance
             return false;
         }
 
+        private static IEnumerable<JsonElement> EnumerateDetailSets(JsonElement response, params string[] preferredPropertyNames)
+        {
+            var yielded = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var propertyName in preferredPropertyNames ?? Array.Empty<string>())
+            {
+                foreach (var detailSet in EnumerateDetailSetsByName(response, propertyName))
+                {
+                    if (yielded.Add(detailSet.GetRawText()))
+                    {
+                        yield return detailSet;
+                    }
+                }
+            }
+
+            foreach (var detailSet in EnumerateDetailSets(response))
+            {
+                if (yielded.Add(detailSet.GetRawText()))
+                {
+                    yield return detailSet;
+                }
+            }
+        }
+
         private static IEnumerable<JsonElement> EnumerateDetailSets(JsonElement response)
         {
             foreach (var propertyName in new[] { "Details", "Details01", "Details1", "Details02", "details", "details01", "details1", "details02" })
             {
-                if (!TryGetPropertyIgnoreCase(response, propertyName, out var propertyValue))
+                foreach (var detailSet in EnumerateDetailSetsByName(response, propertyName))
                 {
-                    continue;
+                    yield return detailSet;
                 }
+            }
+        }
 
-                if (propertyValue.ValueKind == JsonValueKind.Array)
-                {
-                    yield return propertyValue;
-                    continue;
-                }
+        private static IEnumerable<JsonElement> EnumerateDetailSetsByName(JsonElement response, string propertyName)
+        {
+            if (!TryGetPropertyIgnoreCase(response, propertyName, out var propertyValue))
+            {
+                yield break;
+            }
 
-                if (propertyValue.ValueKind == JsonValueKind.Object)
+            if (propertyValue.ValueKind == JsonValueKind.Array)
+            {
+                yield return propertyValue;
+                yield break;
+            }
+
+            if (propertyValue.ValueKind != JsonValueKind.Object)
+            {
+                yield break;
+            }
+
+            foreach (var nestedPropertyName in new[] { propertyName, "Details", "Details01", "Details1", "Details02", "details", "details01", "details1", "details02" })
+            {
+                if (TryGetPropertyIgnoreCase(propertyValue, nestedPropertyName, out var nestedValue)
+                    && nestedValue.ValueKind == JsonValueKind.Array)
                 {
-                    foreach (var nestedPropertyName in new[] { "Details", "Details01", "Details1", "Details02", "details", "details01", "details1", "details02" })
-                    {
-                        if (TryGetPropertyIgnoreCase(propertyValue, nestedPropertyName, out var nestedValue)
-                            && nestedValue.ValueKind == JsonValueKind.Array)
-                        {
-                            yield return nestedValue;
-                        }
-                    }
+                    yield return nestedValue;
                 }
             }
         }
@@ -2100,6 +2127,125 @@ namespace kairo_ui.Controllers.AccountsMaintenance
 
             propertyValue = default;
             return false;
+        }
+
+        private sealed class AccountClassificationLookupOption
+        {
+            public string Value { get; init; } = string.Empty;
+            public string Text { get; init; } = string.Empty;
+            public string CodeID { get; init; } = string.Empty;
+            public string SubCodeID { get; init; } = string.Empty;
+            public string CodeDescription { get; init; } = string.Empty;
+        }
+
+        private async Task<IEnumerable<SelectListItem>> LoadAccountClassificationCodeOptionsAsync()
+        {
+            var requestData = BuildAccountClassificationCodeLookupRequest("02");
+
+            var rows = await GetLegacyUserCodesAsync(OldApiDBConstants.GET_ALL_USER_CODES, requestData, "Details", "Details01");
+            if (rows.Count == 0)
+            {
+                rows = GetDefaultAccountClassificationCodeRows();
+            }
+
+            return rows.Select(row => new SelectListItem
+            {
+                Value = row.Value,
+                Text = row.Text
+            }).ToList();
+        }
+
+        private async Task<List<AccountClassificationLookupOption>> GetLegacyUserCodesAsync(string formId, Dictionary<string, object> requestData, params string[] preferredDetailSetNames)
+        {
+            var response = await _oldApiService.CreateAsync<JsonElement>(
+                "OldApi",
+                formId,
+                requestData);
+
+            var results = new List<AccountClassificationLookupOption>();
+            var seenValues = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var detailSet in EnumerateDetailSets(response, preferredDetailSetNames))
+            {
+                foreach (var row in detailSet.EnumerateArray())
+                {
+                    var value = GetString(row, "SubCodeID", "CodeID", "ID", "Value");
+                    if (string.IsNullOrWhiteSpace(value) || !seenValues.Add(value))
+                    {
+                        continue;
+                    }
+
+                    var text = GetString(row, "CodeDescription", "Description", "Name", "Text") ?? value;
+                    results.Add(new AccountClassificationLookupOption
+                    {
+                        Value = value,
+                        Text = text,
+                        CodeID = GetString(row, "CodeID", "SubCodeID", "ID", "Value") ?? value,
+                        SubCodeID = GetString(row, "SubCodeID", "CodeID", "ID", "Value") ?? value,
+                        CodeDescription = text
+                    });
+                }
+
+            }
+
+            return results;
+        }
+
+        private static List<AccountClassificationLookupOption> GetDefaultAccountClassificationCodeRows()
+        {
+            return new List<AccountClassificationLookupOption>
+            {
+                new() { Value = "01", Text = "DEPOSIT ECONOMIC SECTOR", CodeID = "01", SubCodeID = "01", CodeDescription = "DEPOSIT ECONOMIC SECTOR" },
+                new() { Value = "02", Text = "GEOGRAPHICAL REGION", CodeID = "02", SubCodeID = "02", CodeDescription = "GEOGRAPHICAL REGION" },
+                new() { Value = "03", Text = "ADVANCES ECONOMIC SECTOR", CodeID = "03", SubCodeID = "03", CodeDescription = "ADVANCES ECONOMIC SECTOR" },
+                new() { Value = "04", Text = "RISK CLASSIFICATION OF ADVANES", CodeID = "04", SubCodeID = "04", CodeDescription = "RISK CLASSIFICATION OF ADVANES" },
+                new() { Value = "05", Text = "CATEGORY", CodeID = "05", SubCodeID = "05", CodeDescription = "CATEGORY" },
+                new() { Value = "06", Text = "RESIDENT FOREIGN CURRENCY", CodeID = "06", SubCodeID = "06", CodeDescription = "RESIDENT FOREIGN CURRENCY" },
+                new() { Value = "07", Text = "TYPE OF INDUSTRY", CodeID = "07", SubCodeID = "07", CodeDescription = "TYPE OF INDUSTRY" },
+                new() { Value = "08", Text = "TYPE OF BUSINESS", CodeID = "08", SubCodeID = "08", CodeDescription = "TYPE OF BUSINESS" },
+                new() { Value = "09", Text = "ACCOUNT TYPE", CodeID = "09", SubCodeID = "09", CodeDescription = "ACCOUNT TYPE" }
+            };
+        }
+
+        private static string? GetRequestValue(IDictionary<string, object> requestData, params string[] keys)
+        {
+            foreach (var key in keys)
+            {
+                if (!requestData.TryGetValue(key, out var rawValue) || rawValue == null)
+                {
+                    continue;
+                }
+
+                var value = rawValue.ToString();
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    return value;
+                }
+            }
+
+            return null;
+        }
+
+        private Dictionary<string, object> BuildAccountClassificationCodeLookupRequest(string moduleId)
+        {
+            return new Dictionary<string, object>
+            {
+                ["ModuleID"] = string.IsNullOrWhiteSpace(moduleId) ? "02" : moduleId
+            };
+        }
+
+        private Dictionary<string, object> BuildAccountClassificationSubCodeLookupRequest(string classificationCode, IDictionary<string, object> requestData)
+        {
+            return new Dictionary<string, object>
+            {
+                ["ID"] = classificationCode,
+                ["OperatorID"] = GetRequestValue(requestData, "OperatorID")
+                    ?? _commonUtilities.ResolveSessionValue("user_name", "user_id")
+                    ?? "web_portal",
+                ["OurBranchID"] = GetRequestValue(requestData, "OurBranchID")
+                    ?? _commonUtilities.ResolveSessionValue("branch_code", "branch_id")
+                    ?? string.Empty
+            };
         }
 
         // ============================================================================
@@ -2465,6 +2611,71 @@ namespace kairo_ui.Controllers.AccountsMaintenance
         }
 
         [HttpPost]
+        [Route("api/get-account-classification-codes")]
+        public async Task<IActionResult> GetAccountClassificationCodes([FromBody] JsonElement request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                var requestData = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                var moduleId = GetRequestValue(requestData, "ModuleID") ?? "02";
+                var procedureRequest = BuildAccountClassificationCodeLookupRequest(moduleId);
+
+                var response = await GetLegacyUserCodesAsync(OldApiDBConstants.GET_ALL_USER_CODES, procedureRequest, "Details", "Details01");
+
+                return Ok(new
+                {
+                    Success = true,
+                    Details = response.Count > 0 ? response : GetDefaultAccountClassificationCodeRows()
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting account classification codes");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [Route("api/get-account-classification-subcodes")]
+        public async Task<IActionResult> GetAccountClassificationSubCodes([FromBody] JsonElement request)
+        {
+            try
+            {
+                if (!_authService.IsAuthenticated())
+                    return Unauthorized(new { Success = false, ErrorMessage = "Not authenticated" });
+
+                var requestData = JsonSerializer.Deserialize<Dictionary<string, object>>(request.GetRawText()) ?? new Dictionary<string, object>();
+                var classificationCode = GetRequestValue(requestData, "ID", "ClassificationCode", "ClassificationCodeID", "ClassReq");
+                if (string.IsNullOrWhiteSpace(classificationCode))
+                {
+                    return Ok(new
+                    {
+                        Success = true,
+                        Details = Array.Empty<AccountClassificationLookupOption>()
+                    });
+                }
+
+                var procedureRequest = BuildAccountClassificationSubCodeLookupRequest(classificationCode, requestData);
+
+                var response = await GetLegacyUserCodesAsync(OldApiDBConstants.GET_USER_CODES, procedureRequest, "Details02", "details02");
+
+                return Ok(new
+                {
+                    Success = true,
+                    Details = response
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting account classification sub codes");
+                return StatusCode(500, new { Success = false, ErrorMessage = ex.Message });
+            }
+        }
+
+        [HttpPost]
         [Route("api/add-account-classification")]
         public async Task<IActionResult> AddAccountClassification([FromBody] JsonElement request)
         {
@@ -2777,9 +2988,9 @@ namespace kairo_ui.Controllers.AccountsMaintenance
                     OldApiDBConstants.GET_NEXT_TRACKING_CARD_ID,
                     new
                     {
-                        BankID      = HttpContext.Session.GetString("bank_id") ?? "00",
+                        BankID = HttpContext.Session.GetString("bank_id") ?? "00",
                         OurBranchID = request.OurBranchID,
-                        AccountID   = request.AccountID
+                        AccountID = request.AccountID
                     }
                 );
 
@@ -3295,7 +3506,7 @@ namespace kairo_ui.Controllers.AccountsMaintenance
 
                 // Set OperatorID
                 requestData["OperatorID"] = operatorId;
-                
+
                 // Use client-provided ModifiedBy if valid, otherwise use OperatorID
                 if (string.IsNullOrEmpty(requestData["ModifiedBy"]?.ToString()))
                 {
@@ -3316,7 +3527,7 @@ namespace kairo_ui.Controllers.AccountsMaintenance
 
                 _commonUtilities.EnsureDefaults(requestData, requestData["ModuleID"]?.ToString() ?? "AM");
                 _logger.LogInformation("account-maintenance.update request: {Request}", JsonSerializer.Serialize(requestData));
-                
+
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.EDIT_ACCOUNT,
@@ -3352,13 +3563,13 @@ namespace kairo_ui.Controllers.AccountsMaintenance
 
                 // Set OperatorID, CreatedBy, and OpenedBy to OperatorID value
                 requestData["OperatorID"] = operatorId;
-                
+
                 // Use client-provided CreatedBy if valid, otherwise use OperatorID
                 if (string.IsNullOrEmpty(requestData["CreatedBy"]?.ToString()))
                 {
                     requestData["CreatedBy"] = operatorId;
                 }
-                
+
                 // Use client-provided OpenedBy if valid, otherwise use OperatorID
                 if (string.IsNullOrEmpty(requestData["OpenedBy"]?.ToString()))
                 {
@@ -3385,7 +3596,7 @@ namespace kairo_ui.Controllers.AccountsMaintenance
 
                 _commonUtilities.EnsureDefaults(requestData, requestData["ModuleID"]?.ToString() ?? "AM");
                 _logger.LogInformation("account-maintenance.create request: {Request}", JsonSerializer.Serialize(requestData));
-                
+
                 var response = await _apiService.CreateAsync<JsonElement>(
                     "AccountManagementApi",
                     ApiEndpoints.CREATE_ACCOUNT,

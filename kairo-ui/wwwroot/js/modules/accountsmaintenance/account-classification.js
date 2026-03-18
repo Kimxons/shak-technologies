@@ -9,12 +9,19 @@
 window.AccountClassificationModule = (function () {
     'use strict';
 
+    const CATEGORY = 'A';
+
     /* ── State ─────────────────────────────────────────────── */
     const state = {
         editMode: 'NONE',   // NONE | ADD | EDIT | DELETE
         classifications: [],
         selectedIndex: -1,
+        initialized: false,
         operatorID: null,
+        isLoading: false,
+        isSaving: false,
+        isDeleting: false,
+        loadingSubCodes: false,
         filters: {
             search: '',
             classCode: ''
@@ -27,7 +34,9 @@ window.AccountClassificationModule = (function () {
         GET: 'AccountsMaintenance/api/get-account-classification',
         ADD: 'AccountsMaintenance/api/add-account-classification',
         UPDATE: 'AccountsMaintenance/api/update-account-classification',
-        DELETE: 'AccountsMaintenance/api/delete-account-classification'
+        DELETE: 'AccountsMaintenance/api/delete-account-classification',
+        GET_CODES: 'AccountsMaintenance/api/get-account-classification-codes',
+        GET_SUBCODES: 'AccountsMaintenance/api/get-account-classification-subcodes'
     };
 
     /* ── Context ────────────────────────────────────────────── */
@@ -93,8 +102,30 @@ window.AccountClassificationModule = (function () {
         if (o) o.hidden = !show;
     }
 
+    function escapeHtml(value) {
+        return String(value || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    async function showAlertDialog(title, message) {
+        if (window.AppCore?.showAlert) {
+            await window.AppCore.showAlert(title || 'Alert', message || '');
+            return;
+        }
+
+        window.alert(message || '');
+    }
+
     function showMsg(msg, type) {
-        if (typeof window.showSystemToast === 'function') {
+        if ((type === 'error' || type === 'warning') && window.AppCore?.showAlert) {
+            showAlertDialog(type === 'error' ? 'Error' : 'Warning', msg);
+        } else if (window.AppCore?.showNotification) {
+            window.AppCore.showNotification(msg, type === 'error' ? 'danger' : type);
+        } else if (typeof window.showSystemToast === 'function') {
             window.showSystemToast(msg, { variant: type === 'error' ? 'danger' : type });
         }
         console.log('[AccountClassification] ' + type + ': ' + msg);
@@ -195,6 +226,10 @@ window.AccountClassificationModule = (function () {
         try { const d = new Date(ds); return isNaN(d.getTime()) ? ds : d.toLocaleString(); } catch (e) { return ds; }
     }
 
+    function getCurrentTimestamp() {
+        return new Date().toISOString();
+    }
+
     /* ── Editable fields ─────────────────────────────────────── */
     const EDITABLE = ['classificationCode', 'classificationSubCode'];
     const AUDIT = ['MakerID', 'MakerDT', 'ModifierID', 'ModifierDT', 'CheckerID', 'CheckerDT'];
@@ -208,6 +243,11 @@ window.AccountClassificationModule = (function () {
 
     /* ── Mode Management (button states via parent IDs) ──────── */
     function setMode(mode) {
+        if (mode === 'VIEW') {
+            navigate();
+            return;
+        }
+
         state.editMode = mode;
         var editing = (mode === 'ADD' || mode === 'EDIT' || mode === 'DELETE');
         setFieldsEditable(editing);
@@ -229,6 +269,7 @@ window.AccountClassificationModule = (function () {
 
         if (mode === 'ADD') {
             clearForm();
+            loadClassificationCodes();
             el('classificationCode')?.focus();
         } else if (mode === 'NONE' && state.selectedIndex >= 0 && state.classifications[state.selectedIndex]) {
             bindForm(state.classifications[state.selectedIndex]);
@@ -266,7 +307,7 @@ window.AccountClassificationModule = (function () {
         var subClassCode = doc.ClassificationSubCode || doc.ClassificationSubCodeID || doc.SubClassReq || doc.SubCode || '';
 
         setSelectValueEnsureOption('classificationCode', classCode, doc.ClassDescription || '');
-        setSelectValueEnsureOption('classificationSubCode', subClassCode, doc.SubClassDescription || '');
+        loadClassificationSubCodes(classCode, subClassCode, doc.SubClassDescription || '');
 
         // Audit
         setVal('MakerID', doc.CreatedBy || doc.MakerId || doc.MakerID || '');
@@ -464,11 +505,164 @@ window.AccountClassificationModule = (function () {
         };
     }
 
+    function normalizeLookupRows(result) {
+        const envelope = getEnvelope(result) || {};
+        const details = envelope.Details ?? envelope.details ?? envelope.Data ?? envelope.data ?? envelope;
+
+        if (Array.isArray(details)) return details;
+
+        if (details && typeof details === 'object') {
+            const arrays = Object.keys(details)
+                .map(function (key) { return details[key]; })
+                .filter(Array.isArray);
+
+            if (arrays.length > 0) {
+                return arrays[0];
+            }
+        }
+
+        if (Array.isArray(envelope?.Details01)) return envelope.Details01;
+        if (Array.isArray(envelope?.details01)) return envelope.details01;
+        return [];
+    }
+
+    function mapLookupOption(item) {
+        if (!item || typeof item !== 'object') return null;
+
+        var value = String(
+            item.SubCodeID || item.subCodeID ||
+            item.CodeID || item.codeID ||
+            item.ID || item.id ||
+            item.Value || item.value ||
+            ''
+        ).trim();
+        if (!value) return null;
+
+        var description = String(
+            item.CodeDescription || item.codeDescription ||
+            item.Description || item.description ||
+            item.Name || item.name ||
+            item.Text || item.text ||
+            ''
+        ).trim();
+        return {
+            value: value,
+            text: description ? (value + ' - ' + description) : value,
+            description: description
+        };
+    }
+
+    function populateSelectOptions(id, options, selectedValue, placeholder) {
+        var select = el(id);
+        if (!select) return;
+
+        var safePlaceholder = escapeHtml(placeholder || '-- Select --');
+        var selected = String(selectedValue || '').trim();
+        var html = ['<option value="">' + safePlaceholder + '</option>'];
+
+        (options || []).forEach(function (option) {
+            if (!option || !option.value) return;
+
+            html.push(
+                '<option value="' + escapeHtml(option.value) + '">' + escapeHtml(option.text || option.value) + '</option>'
+            );
+        });
+
+        select.innerHTML = html.join('');
+        select.value = selected;
+
+        if (selected && select.value !== selected) {
+            setSelectValueEnsureOption(id, selected);
+        }
+    }
+
+    function setSubCodeState(enabled, placeholder) {
+        var subCode = el('classificationSubCode');
+        if (!subCode) return;
+
+        populateSelectOptions('classificationSubCode', [], '', placeholder || '-- Select Classification Sub Code --');
+        subCode.disabled = !enabled || !(state.editMode === 'ADD' || state.editMode === 'EDIT' || state.editMode === 'DELETE');
+    }
+
+    async function loadClassificationCodes(selectedValue) {
+        try {
+            const result = await window.AppCore.invokeControllerAsync(API.GET_CODES, {});
+            const options = normalizeLookupRows(result)
+                .map(mapLookupOption)
+                .filter(Boolean);
+
+            populateSelectOptions('classificationCode', options, selectedValue, '-- Select Classification Code --');
+
+            if (selectedValue) {
+                await loadClassificationSubCodes(selectedValue, val('classificationSubCode'));
+            } else {
+                setSubCodeState(false, '-- Select Classification Code First --');
+            }
+        } catch (err) {
+            console.error('[AccountClassification] Failed to load classification codes', err);
+            showMsg('Unable to load classification codes.', 'error');
+        }
+    }
+
+    async function loadClassificationSubCodes(classificationCode, selectedValue, selectedLabel) {
+        var code = String(classificationCode || '').trim();
+        if (!code) {
+            setSubCodeState(false, '-- Select Classification Code First --');
+            return;
+        }
+
+        var ctx = getContext();
+        state.loadingSubCodes = true;
+        setSubCodeState(false, 'Loading classification sub codes...');
+
+        try {
+            const result = await window.AppCore.invokeControllerAsync(API.GET_SUBCODES, {
+                ID: code,
+                OperatorID: ctx.OperatorID,
+                OurBranchID: ctx.OurBranchID
+            });
+
+            const options = normalizeLookupRows(result)
+                .map(mapLookupOption)
+                .filter(Boolean);
+
+            populateSelectOptions('classificationSubCode', options, selectedValue, '-- Select Classification Sub Code --');
+            var subCodeSelect = el('classificationSubCode');
+            if (subCodeSelect) subCodeSelect.disabled = false;
+
+            if (selectedValue) {
+                setSelectValueEnsureOption('classificationSubCode', selectedValue, selectedLabel || '');
+            }
+        } catch (err) {
+            console.error('[AccountClassification] Failed to load classification sub codes', err);
+            setSubCodeState(false, '-- No Classification Sub Codes Found --');
+            if (selectedValue) {
+                setSelectValueEnsureOption('classificationSubCode', selectedValue, selectedLabel || '');
+            }
+        } finally {
+            state.loadingSubCodes = false;
+        }
+    }
+
+    function wireClassificationDropdowns() {
+        var classificationCode = el('classificationCode');
+        if (!classificationCode || classificationCode.dataset.wired) return;
+
+        classificationCode.addEventListener('change', function () {
+            if (state.loadingSubCodes) return;
+            loadClassificationSubCodes(classificationCode.value || '', '');
+        });
+
+        classificationCode.dataset.wired = 'true';
+    }
+
     /* ── Load / Navigate ─────────────────────────────────────── */
     async function navigate() {
         const ctx = getContext();
         if (!ctx.AccountID) { showMsg('No Account selected.', 'warning'); return; }
+        if (state.isLoading) return;
 
+        state.isLoading = true;
         showLoading(true);
         try {
             const result = await window.AppCore.invokeControllerAsync(API.GET, {
@@ -503,14 +697,33 @@ window.AccountClassificationModule = (function () {
         } catch (err) {
             showLoading(false);
             showMsg('Error loading Account Classification: ' + err.message, 'error');
+        } finally {
+            state.isLoading = false;
         }
     }
 
     /* ── Save ────────────────────────────────────────────────── */
     async function saveData() {
+        if (state.isSaving) return;
+        if (state.editMode !== 'ADD' && state.editMode !== 'EDIT') {
+            showMsg('Choose Add or Edit before saving.', 'warning');
+            return;
+        }
+
         const isAdd = state.editMode === 'ADD';
-        const classCode = val('classificationCode');
-        if (!classCode) { showMsg('Classification code is required', 'warning'); return; }
+        const classCode = val('classificationCode').trim();
+        const subClassCode = val('classificationSubCode').trim();
+        if (!classCode) {
+            showMsg('Please select a Classification Code.', 'warning');
+            el('classificationCode')?.focus();
+            return;
+        }
+
+        if (!subClassCode) {
+            showMsg('Please select a Classification Sub Code.', 'warning');
+            el('classificationSubCode')?.focus();
+            return;
+        }
 
         const confirmed = await showConfirm(
             `Are you sure you want to ${isAdd ? 'create' : 'update'} this classification?`,
@@ -520,24 +733,34 @@ window.AccountClassificationModule = (function () {
 
         const ctx = getContext();
         const selected = state.selectedIndex > -1 ? state.classifications[state.selectedIndex] : null;
+        const now = getCurrentTimestamp();
+        const createdBy = selected?.CreatedBy || selected?.MakerID || ctx.OperatorID;
+        const createdOn = selected?.CreatedOn || selected?.MakerDT || now;
         const payload = {
             OurBranchID: ctx.OurBranchID,
             AccountID: ctx.AccountID,
             AccountNumber: ctx.AccountID,
-            CreatedBy: ctx.OperatorID,
+            Category: selected?.Category || CATEGORY,
+            CreatedBy: createdBy,
+            CreatedOn: createdOn,
             OperatorID: ctx.OperatorID,
             SearchKey: `[${ctx.OurBranchID}:${ctx.AccountID}]`,
-            ClassificationCode: val('classificationCode').trim(),
-            ClassificationSubCode: val('classificationSubCode').trim(),
-            ClassificationCodeID: val('classificationCode').trim(),
-            ClassificationSubCodeID: val('classificationSubCode').trim(),
-            ClassReq: val('classificationCode').trim(),
-            SubClassReq: val('classificationSubCode').trim(),
+            ClassificationCode: classCode,
+            ClassificationSubCode: subClassCode,
+            ClassificationCodeID: classCode,
+            ClassificationSubCodeID: subClassCode,
+            ClassReq: classCode,
+            SubClassReq: subClassCode,
             ModifiedBy: ctx.OperatorID,
+            ModifiedOn: now,
+            SupervisedBy: selected?.SupervisedBy || ctx.OperatorID,
+            SupervisedOn: selected?.SupervisedOn || now,
             UpdateCount: Number(selected?.UpdateCount || 0),
+            NewRecord: isAdd ? 1 : 0,
             ReferenceID: selected?.ReferenceID || selected?.ID || 0
         };
 
+        state.isSaving = true;
         showLoading(true);
         try {
             const result = await window.AppCore.invokeControllerAsync(isAdd ? API.ADD : API.UPDATE, payload);
@@ -552,11 +775,18 @@ window.AccountClassificationModule = (function () {
         } catch (err) {
             showLoading(false);
             showMsg('Save error: ' + err.message, 'error');
+        } finally {
+            state.isSaving = false;
         }
     }
 
     /* ── Delete ──────────────────────────────────────────────── */
     async function deleteData() {
+        if (state.isDeleting) return;
+        if (state.editMode === 'ADD') {
+            showMsg('Cancel Add mode before deleting an existing classification.', 'warning');
+            return;
+        }
         if (state.selectedIndex === -1 || !state.classifications[state.selectedIndex]) return;
 
         const confirmed = await showConfirm(
@@ -567,6 +797,7 @@ window.AccountClassificationModule = (function () {
 
         const ctx = getContext();
         const item = state.classifications[state.selectedIndex];
+        state.isDeleting = true;
         showLoading(true);
         try {
             const result = await window.AppCore.invokeControllerAsync(API.DELETE, {
@@ -597,13 +828,38 @@ window.AccountClassificationModule = (function () {
         } catch (err) {
             showLoading(false);
             showMsg('Delete error: ' + err.message, 'error');
+        } finally {
+            state.isDeleting = false;
         }
     }
 
     /* ── Public API ──────────────────────────────────────────── */
-    function confirmAdd() { setMode('ADD'); }
-    function confirmEdit() { if (state.selectedIndex !== -1) setMode('EDIT'); else showMsg('No record selected.', 'warning'); }
-    function confirmCancel() { cancelChanges(); }
+    function confirmView() { navigate(); }
+    function confirmAdd() {
+        if (state.isSaving || state.isDeleting) return;
+        setMode('ADD');
+    }
+    function confirmEdit() {
+        if (state.isSaving || state.isDeleting) return;
+        if (state.selectedIndex !== -1) setMode('EDIT');
+        else showMsg('No record selected.', 'warning');
+    }
+    async function confirmCancel() {
+        if (state.editMode !== 'ADD' && state.editMode !== 'EDIT' && state.editMode !== 'DELETE') {
+            cancelChanges();
+            return;
+        }
+
+        const confirmed = await showConfirm(
+            'Are you sure you want to cancel your changes?',
+            'Cancel'
+        );
+        if (!confirmed) return;
+
+        cancelChanges();
+        showMsg('Changes canceled.', 'info');
+    }
+
     function cancelChanges() {
         if (state.selectedIndex >= 0 && state.classifications[state.selectedIndex]) bindForm(state.classifications[state.selectedIndex]);
         else clearForm();
@@ -612,11 +868,20 @@ window.AccountClassificationModule = (function () {
     function clearForm() {
         EDITABLE.forEach(id => setVal(id, ''));
         AUDIT.forEach(id => setVal(id, '-'));
+        setSubCodeState(false, '-- Select Classification Code First --');
     }
 
     function init() {
+        if (state.initialized) {
+            const ctx = getContext();
+            if (ctx.AccountID) navigate();
+            return;
+        }
+
+        state.initialized = true;
         wireSectionToggles();
         wireGridFilters();
+        wireClassificationDropdowns();
         setMode('NONE');
         const ctx = getContext();
         if (ctx.AccountID) navigate();
@@ -625,9 +890,15 @@ window.AccountClassificationModule = (function () {
     return {
         init: init,
         setMode: setMode,
+        view: confirmView,
+        add: confirmAdd,
+        edit: confirmEdit,
         navigate: navigate,
         saveData: saveData,
+        save: saveData,
         deleteData: deleteData,
+        delete: deleteData,
+        confirmView: confirmView,
         confirmAdd: confirmAdd,
         confirmEdit: confirmEdit,
         confirmCancel: confirmCancel,

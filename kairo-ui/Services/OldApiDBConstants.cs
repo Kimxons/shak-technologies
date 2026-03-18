@@ -242,7 +242,7 @@ namespace kairo_ui.Services
         // ═══════════════════════════════════════════════════════════════════
         // ACCOUNT MAINTENANCE 
         // ═══════════════════════════════════════════════════════════════════
-        public const string GET_ACCOUNT_CUSTOMER="p_GetAccountCustomers";
+        public const string GET_ACCOUNT_CUSTOMER = "p_GetAccountCustomers";
 
         // ═══════════════════════════════════════════════════════════════════
 
@@ -263,6 +263,8 @@ namespace kairo_ui.Services
         public const string ADD_EDIT_BANK_USER_CODES = "dbo.p_AddEditBankUserCodes";
         public const string GET_BRANCH_USER_CODE = "dbo.p_GetBranchUserCode";
         public const string ADD_EDIT_BRANCH_USER_CODES = "dbo.p_AddEditBranchUserCodes";
+        public const string GET_ALL_USER_CODES = "dbo.p_GetAllUserCodes";
+        public const string GET_USER_CODES = "dbo.p_GetUserCodes";
         public const string GET_LOAN_REPAYMENT_DETAILS = "p_SILoanDetailView";
         public const string GET_DEBIT_INTEREST_WORKSHEET = "p_GetDebitInterestWorksheet";
         public const string GET_CREDIT_INTEREST_WORKSHEET = "p_GetCreditInterestWorksheet";

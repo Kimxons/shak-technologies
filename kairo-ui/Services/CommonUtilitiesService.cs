@@ -138,6 +138,56 @@ namespace kairo_ui.Services
             }
         }
 
+        public void EnsureDefaults(MultipartFormDataContent requestData, string? moduleId = null)
+        {
+            if (requestData == null)
+            {
+                return;
+            }
+
+            try
+            {
+                var userValue = ResolveSessionValue("user_name", "user_id") ?? "web_portal";
+                var branchValue = ResolveSessionValue("branch_code", "branch_id") ?? string.Empty;
+                var bankValue = ResolveSessionValue("bank_id", "bank_code") ?? "00";
+
+                AddMultipartStringIfMissing(requestData, "OperatorID", userValue);
+                AddMultipartStringIfMissing(requestData, "RequestData.OperatorID", userValue);
+                AddMultipartStringIfMissing(requestData, "CreatedBy", userValue);
+                AddMultipartStringIfMissing(requestData, "RequestData.CreatedBy", userValue);
+                AddMultipartStringIfMissing(requestData, "ModifiedBy", userValue);
+                AddMultipartStringIfMissing(requestData, "RequestData.ModifiedBy", userValue);
+                AddMultipartStringIfMissing(requestData, "OurBranchID", branchValue);
+                AddMultipartStringIfMissing(requestData, "RequestData.OurBranchID", branchValue);
+                AddMultipartStringIfMissing(requestData, "BankID", bankValue);
+                AddMultipartStringIfMissing(requestData, "RequestData.BankID", bankValue);
+                AddMultipartStringIfMissing(requestData, "ModuleTypeID", "A");
+                AddMultipartStringIfMissing(requestData, "RequestData.ModuleTypeID", "A");
+
+                if (!string.IsNullOrWhiteSpace(moduleId))
+                {
+                    AddMultipartStringIfMissing(requestData, "ModuleID", moduleId);
+                    AddMultipartStringIfMissing(requestData, "RequestData.ModuleID", moduleId);
+                }
+
+                if (!HasMultipartPart(requestData, "RelevantID") && !HasMultipartPart(requestData, "RequestData.RelevantID"))
+                {
+                    var accountId = GetMultipartPartValue(requestData, "AccountID")
+                        ?? GetMultipartPartValue(requestData, "RequestData.AccountID");
+
+                    if (!string.IsNullOrWhiteSpace(accountId))
+                    {
+                        AddMultipartStringIfMissing(requestData, "RelevantID", accountId);
+                        AddMultipartStringIfMissing(requestData, "RequestData.RelevantID", accountId);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error ensuring defaults for MultipartFormDataContent");
+            }
+        }
+
         /// <summary>
         /// Returns true if the value is empty or a JS-side placeholder that should be
         /// replaced by the real session user (e.g. "SYSTEM", "web_portal").
@@ -147,6 +197,51 @@ namespace kairo_ui.Services
             if (string.IsNullOrWhiteSpace(value)) return true;
             return value.Equals("SYSTEM", StringComparison.OrdinalIgnoreCase)
                 || value.Equals("web_portal", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static void AddMultipartStringIfMissing(MultipartFormDataContent requestData, string key, string value)
+        {
+            if (!HasMultipartPart(requestData, key))
+            {
+                requestData.Add(new StringContent(value), key);
+            }
+        }
+
+        private static bool HasMultipartPart(MultipartFormDataContent requestData, string key)
+        {
+            foreach (var part in requestData)
+            {
+                var name = part.Headers.ContentDisposition?.Name?.Trim('"');
+                if (string.Equals(name, key, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static string? GetMultipartPartValue(MultipartFormDataContent requestData, string key)
+        {
+            foreach (var part in requestData)
+            {
+                var name = part.Headers.ContentDisposition?.Name?.Trim('"');
+                if (!string.Equals(name, key, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    return part.ReadAsStringAsync().GetAwaiter().GetResult();
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+
+            return null;
         }
 
         public string? ResolveSessionValue(params string[] keys)
