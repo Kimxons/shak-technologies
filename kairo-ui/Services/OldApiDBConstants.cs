@@ -43,6 +43,10 @@ namespace kairo_ui.Services
         public const string APPROVE_CLIENT_SUPERVISION = "p_ClientApproveSupervision";
         public const string REJECT_CLIENT_SUPERVISION = "p_ClientRejectSupervision";
 
+        public const string GET_REJECT_CLIENTS = "P_getRejectClients";
+        public const string CLOSE_REJECT_CLIENT = "p_CloseClient";
+        public const string RESEND_REJECT_CLIENT = "P_ResendRejectedClient";
+
         // Client Maintenance Module Constants
         public const string GET_CLIENT_BANK_ACCOUNTS = "p_GetClientBankAccounts";
         public const string ADD_EDIT_CLIENT_BANK_ACCOUNT = "p_AddEditClientBankAccount";

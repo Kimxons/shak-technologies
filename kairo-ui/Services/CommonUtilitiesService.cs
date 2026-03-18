@@ -52,13 +52,14 @@ namespace kairo_ui.Services
                 var branchValue = ResolveSessionValue("branch_code", "branch_id") ?? string.Empty;
                 var bankValue = ResolveSessionValue("bank_id", "bank_code") ?? "00";
 
-                if (operatorIdProp != null && string.IsNullOrWhiteSpace(operatorIdProp.GetValue(requestData) as string))
+                // Override OperatorID/CreatedBy/ModifiedBy if empty or a JS placeholder fallback
+                if (operatorIdProp != null && IsPlaceholderUser(operatorIdProp.GetValue(requestData) as string))
                     operatorIdProp.SetValue(requestData, userValue);
 
-                if (createdByProp != null && string.IsNullOrWhiteSpace(createdByProp.GetValue(requestData) as string))
+                if (createdByProp != null && IsPlaceholderUser(createdByProp.GetValue(requestData) as string))
                     createdByProp.SetValue(requestData, userValue);
 
-                if (modifiedByProp != null && string.IsNullOrWhiteSpace(modifiedByProp.GetValue(requestData) as string))
+                if (modifiedByProp != null && IsPlaceholderUser(modifiedByProp.GetValue(requestData) as string))
                     modifiedByProp.SetValue(requestData, userValue);
 
                 if (branchIdProp != null && string.IsNullOrWhiteSpace(branchIdProp.GetValue(requestData) as string))
@@ -111,9 +112,16 @@ namespace kairo_ui.Services
                         requestData[key] = value;
                 }
 
-                SetIfEmpty("OperatorID", userValue);
-                SetIfEmpty("CreatedBy", userValue);
-                SetIfEmpty("ModifiedBy", userValue);
+                // Override OperatorID/CreatedBy/ModifiedBy if empty or a JS placeholder fallback
+                void SetUserIfPlaceholder(string key, object value)
+                {
+                    if (!requestData.ContainsKey(key) || requestData[key] == null || IsPlaceholderUser(requestData[key] as string ?? requestData[key]?.ToString()))
+                        requestData[key] = value;
+                }
+
+                SetUserIfPlaceholder("OperatorID", userValue);
+                SetUserIfPlaceholder("CreatedBy", userValue);
+                SetUserIfPlaceholder("ModifiedBy", userValue);
                 SetIfEmpty("OurBranchID", branchValue);
                 SetIfEmpty("BankID", bankValue);
                 SetIfEmpty("ModuleTypeID", "A");
@@ -130,41 +138,15 @@ namespace kairo_ui.Services
             }
         }
 
-        public void EnsureDefaults(MultipartFormDataContent requestData, string? moduleId = null)
+        /// <summary>
+        /// Returns true if the value is empty or a JS-side placeholder that should be
+        /// replaced by the real session user (e.g. "SYSTEM", "web_portal").
+        /// </summary>
+        private static bool IsPlaceholderUser(string? value)
         {
-            if (requestData == null) return;
-
-            try
-            {
-                var userValue = ResolveSessionValue("user_name", "user_id") ?? "web_portal";
-                var branchValue = ResolveSessionValue("branch_code", "branch_id") ?? string.Empty;
-                var bankValue = ResolveSessionValue("bank_id", "bank_code") ?? "00";
-                var createdonValue = DateTime.UtcNow.ToString("dd MMM yyyy HH:mm:ss.fff");
-
-                void SetIfEmpty(string key, object value)
-                {
-                    if (requestData.Any(c => c.Headers.ContentDisposition == null || !c.Headers.ContentDisposition.Name!.Trim('"').Equals(key)))
-                    {
-                        requestData.Add(new StringContent(Convert.ToString(value)!), key);
-                    }
-                }
-
-                SetIfEmpty("OperatorID", userValue);
-                SetIfEmpty("CreatedBy", userValue);
-                SetIfEmpty("CreatedOn", createdonValue);
-                SetIfEmpty("ModifiedBy", userValue);
-                SetIfEmpty("ModifiedOn", createdonValue);
-                SetIfEmpty("OurBranchID", branchValue);
-                SetIfEmpty("BankID", bankValue);
-
-
-                if (!string.IsNullOrWhiteSpace(moduleId))
-                    SetIfEmpty("ModuleID", moduleId);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error ensuring defaults for Dictionary");
-            }
+            if (string.IsNullOrWhiteSpace(value)) return true;
+            return value.Equals("SYSTEM", StringComparison.OrdinalIgnoreCase)
+                || value.Equals("web_portal", StringComparison.OrdinalIgnoreCase);
         }
 
         public string? ResolveSessionValue(params string[] keys)
