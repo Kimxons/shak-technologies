@@ -11,54 +11,22 @@
     const LOOKUP_CONFIG = {
         bank: {
             tableID: 'MastClrBankID',
-            title: 'Find Bank',
-            moduleID: '2015',
-            searchFields: [
-                { name: 'bankId', label: 'Bank ID', column: 'BankID' },
-                { name: 'bankName', label: 'Bank Name', column: 'BankName' }
-            ],
-            displayFields: [
-                { key: 'BankID', label: 'Bank ID' },
-                { key: 'BankName', label: 'Bank Name' }
-            ]
+            moduleID: '2015'
+        },
+        signatory: {
+            tableID: 'BankSignatoryID',
+            moduleID: '2016'
         },
         client: {
             tableID: 'ClientID',
-            title: 'Find Client',
-            moduleID: '0',
-            searchFields: [
-                { name: 'clientId', label: 'Client ID', column: 'ClientID' },
-                { name: 'clientName', label: 'Client Name', column: 'Name' }
-            ],
-            displayFields: [
-                { key: 'ClientID', label: 'Client ID' },
-                { key: 'Name', label: 'Client Name' }
-            ]
+            moduleID: '0'
         },
         currency: {
-            tableID: 'MastCurrencyID',
-            title: 'Find Currency',
-            searchFields: [
-                { name: 'currencyId', label: 'Currency ID', column: 'CurrencyID' },
-                { name: 'description', label: 'Description', column: 'Description' }
-            ],
-            displayFields: [
-                { key: 'CurrencyID', label: 'Currency ID' },
-                { key: 'Description', label: 'Description' }
-            ]
+            tableID: 'MastCurrencyID'
         },
         branch: {
             tableID: 'ClearingBranchID',
-            title: 'Find Clearing Branch',
-            moduleID: '2020',
-            searchFields: [
-                { name: 'branchId', label: 'Branch ID', column: 'ClearingBranchID' },
-                { name: 'branchName', label: 'Branch Name', column: 'ClearingBranchName' }
-            ],
-            displayFields: [
-                { key: 'ClearingBranchID', label: 'Branch ID' },
-                { key: 'ClearingBranchName', label: 'Branch Name' }
-            ]
+            moduleID: '2020'
         }
     };
 
@@ -82,6 +50,8 @@
 
     const service = window.OtherStaticDataService;
     let searchModal = null;
+    let signatorySearchModal = null;
+    let branchSearchModal = null;
 
     function qs(selector, root) {
         return (root || document).querySelector(selector);
@@ -91,19 +61,18 @@
         return Array.from((root || document).querySelectorAll(selector));
     }
 
+    function normalizeNotificationType(type) {
+        return type === 'danger' ? 'error' : (type || 'info');
+    }
+
     function showToast(message, type) {
         if (window.AppCore && typeof window.AppCore.showNotification === 'function') {
-            window.AppCore.showNotification(message, type === 'danger' ? 'error' : type || 'info');
-            return;
-        }
-
-        if (window.AppCore && typeof window.AppCore.showToastMessage === 'function') {
-            window.AppCore.showToastMessage(message, type === 'danger' ? 'error' : type || 'info');
+            window.AppCore.showNotification(message, normalizeNotificationType(type));
             return;
         }
 
         if (window.NotificationService && typeof window.NotificationService.showToast === 'function') {
-            window.NotificationService.showToast(message, type === 'danger' ? 'error' : type || 'info', type === 'danger' ? 5000 : 3000);
+            window.NotificationService.showToast(message, normalizeNotificationType(type), type === 'danger' ? 5000 : 3000);
             return;
         }
         console[type === 'danger' ? 'error' : 'log'](message);
@@ -167,33 +136,533 @@
         return Object.prototype.hasOwnProperty.call(SECTION_LABELS, configured) ? configured : 'banks';
     }
 
-    function setInlineAlert(sectionKey, message) {
-        const alert = qs('[data-inline-alert="' + sectionKey + '"]');
-        const text = qs('[data-inline-alert-text="' + sectionKey + '"]');
-        if (!alert || !text) {
-            return;
+    async function invokeControllerRequest(endpoint, requestData) {
+        if (window.AppCore && typeof window.AppCore.invokeControllerAsync === 'function') {
+            return window.AppCore.invokeControllerAsync(endpoint, requestData || {});
         }
 
-        if (!message) {
-            alert.classList.add('d-none');
-            alert.setAttribute('hidden', '');
-            return;
-        }
-
-        text.textContent = message;
-        alert.classList.remove('d-none');
-        alert.removeAttribute('hidden');
-    }
-
-    function clearAlerts() {
-        Object.keys(SECTION_LABELS).forEach(function (key) {
-            setInlineAlert(key, '');
+        const response = await fetch(endpoint.charAt(0) === '/' ? endpoint : ('/' + endpoint), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(requestData || {})
         });
+
+        if (!response.ok) {
+            throw new Error('Request failed.');
+        }
+
+        return response.json();
     }
 
     function initSearchModal() {
         if (!searchModal && typeof window.SearchModal === 'function' && window.AppCore) {
             searchModal = new window.SearchModal(window.AppCore);
+        }
+    }
+
+    function ensureSearchModalStyles() {
+        const existing = document.querySelector('link[href="/css/search-modal.css"]') ||
+            document.querySelector('link[href$="/css/search-modal.css"]');
+        if (existing) {
+            return;
+        }
+
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = '/css/search-modal.css';
+        link.setAttribute('data-bank-master-search-modal', '1');
+        document.head.appendChild(link);
+    }
+
+    function removeSearchModalArtifacts() {
+        const existingModal = document.getElementById('search-modal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        [
+            'search-table-id',
+            'search-where-stmt',
+            'search-adv-filter',
+            'search-module-id',
+            'search-key-for-nav',
+            'search-ref-id',
+            'search-prev-or-next'
+        ].forEach(function (fieldId) {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.remove();
+            }
+        });
+    }
+
+    function buildSignatorySearchModalHtml(options) {
+        const settings = options || {};
+        const pageSize = Number(settings.pageSize || 20);
+
+        return '<div id="search-modal" class="search-modal-themed" ' +
+            'style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:9999; justify-content:center; align-items:center;">' +
+            '<div class="search-modal-themed__panel">' +
+            '<div class="search-modal-themed__header">' +
+            '<h5 id="search-modal-title" class="search-modal-themed__title">Search Bank Signatory</h5>' +
+            '<button type="button" id="search-modal-close" class="search-modal-themed__close" aria-label="Close">&times;</button>' +
+            '</div>' +
+            '<div class="search-modal-themed__criteria-wrap">' +
+            '<form id="search-modal-form" class="search-modal-themed__criteria">' +
+            '<div class="search-modal-themed__field">' +
+            '<label class="search-modal-themed__label">Signatory ID</label>' +
+            '<div class="search-modal-themed__input-row">' +
+            '<select class="search-modal-themed__select" data-field="SignatoryID" aria-label="Signatory ID Filter Type">' +
+            '<option value="like" selected>Like</option>' +
+            '<option value="equals">Equals</option>' +
+            '<option value="startswith">Starts</option>' +
+            '<option value="endswith">Ends</option>' +
+            '</select>' +
+            '<input type="text" class="search-modal-themed__input" data-field="SignatoryID" placeholder="Signatory ID" autocomplete="off" />' +
+            '</div>' +
+            '</div>' +
+            '<div class="search-modal-themed__field">' +
+            '<label class="search-modal-themed__label">Signatory Name</label>' +
+            '<div class="search-modal-themed__input-row">' +
+            '<select class="search-modal-themed__select" data-field="SignatoryName" aria-label="Signatory Name Filter Type">' +
+            '<option value="like" selected>Like</option>' +
+            '<option value="equals">Equals</option>' +
+            '<option value="startswith">Starts</option>' +
+            '<option value="endswith">Ends</option>' +
+            '</select>' +
+            '<input type="text" class="search-modal-themed__input" data-field="SignatoryName" placeholder="Signatory Name" autocomplete="off" />' +
+            '</div>' +
+            '</div>' +
+            '</form>' +
+            '<div class="search-modal-themed__actions">' +
+            '<button type="button" id="search-modal-search-btn" class="search-modal-themed__btn search-modal-themed__btn--secondary">Search</button>' +
+            '</div>' +
+            '</div>' +
+            '<div class="search-modal-themed__body">' +
+            '<div id="search-modal-loading" class="search-modal-themed__loading" style="display:none;">Loading...</div>' +
+            '<div id="search-modal-results" class="search-modal-themed__results" style="display:none;"></div>' +
+            '<div id="search-modal-empty" class="search-modal-themed__empty" style="display:none;">No records found</div>' +
+            '</div>' +
+            '<div class="search-modal-themed__footer">' +
+            '<div class="search-modal-themed__footer-left">' +
+            '<button type="button" id="search-modal-nav-prev" class="search-modal-themed__btn search-modal-themed__btn--secondary" title="Previous record">' +
+            '<i class="bi bi-chevron-left"></i> Previous</button>' +
+            '</div>' +
+            '<div class="search-modal-themed__footer-center">' +
+            '<h5 class="search-modal-themed__footer-label">Page Size:</h5>' +
+            '<select id="search-page-size" class="search-modal-themed__select" aria-label="Page Size" style="flex:0 0 auto; padding:4px 8px;">' +
+            '<option value="10"' + (pageSize === 10 ? ' selected' : '') + '>10</option>' +
+            '<option value="20"' + (pageSize === 20 ? ' selected' : '') + '>20</option>' +
+            '<option value="50"' + (pageSize === 50 ? ' selected' : '') + '>50</option>' +
+            '<option value="100"' + (pageSize === 100 ? ' selected' : '') + '>100</option>' +
+            '<option value="1000"' + (pageSize === 1000 ? ' selected' : '') + '>1000</option>' +
+            '</select>' +
+            '<button type="button" id="search-modal-ok" class="search-modal-themed__btn search-modal-themed__btn--secondary">OK</button>' +
+            '</div>' +
+            '<div class="search-modal-themed__footer-right">' +
+            '<button type="button" id="search-modal-nav-next" class="search-modal-themed__btn search-modal-themed__btn--secondary" title="Next record">Next <i class="bi bi-chevron-right"></i></button>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '<input type="hidden" id="search-table-id" value="BankSignatoryID" />' +
+            '<input type="hidden" id="search-where-stmt" value="' + escapeHtml(settings.whereStmt || '') + '" />' +
+            '<input type="hidden" id="search-adv-filter" value="' + escapeHtml(settings.advFilterString || '') + '" />' +
+            '<input type="hidden" id="search-module-id" value="' + escapeHtml(settings.moduleID || '2016') + '" />' +
+            '<input type="hidden" id="search-key-for-nav" value="SignatoryID" />' +
+            '<input type="hidden" id="search-ref-id" value="" />' +
+            '<input type="hidden" id="search-prev-or-next" value="0" />';
+    }
+
+    function getSignatoryFilterValue(row, fieldName) {
+        if (String(fieldName || '').toLowerCase() === 'signatoryname') {
+            return String(row.SignatoryName || '');
+        }
+
+        return String(row.SignatoryID || '');
+    }
+
+    function matchesSignatorySearchFilter(value, filter) {
+        const source = String(value || '').toLowerCase();
+        const query = String((filter && filter.value) || '').trim().toLowerCase();
+        const mode = String((filter && filter.mode) || 'like').toLowerCase();
+
+        if (!query) {
+            return true;
+        }
+
+        if (mode === 'equals') {
+            return source === query;
+        }
+
+        if (mode === 'startswith') {
+            return source.indexOf(query) === 0;
+        }
+
+        if (mode === 'endswith') {
+            return source.endsWith(query);
+        }
+
+        return source.indexOf(query) >= 0;
+    }
+
+    function filterSignatorySearchRows(rows, filters) {
+        const entries = Object.entries(filters || {}).filter(function (entry) {
+            return entry[1] && String(entry[1].value || '').trim();
+        });
+
+        if (!entries.length) {
+            return rows.slice();
+        }
+
+        return rows.filter(function (row) {
+            return entries.every(function (entry) {
+                return matchesSignatorySearchFilter(getSignatoryFilterValue(row, entry[0]), entry[1]);
+            });
+        });
+    }
+
+    function paginateSignatorySearchRows(rows, referenceId, direction, pageSize) {
+        const sortedRows = rows.slice().sort(function (left, right) {
+            return String(left.SignatoryID || '').localeCompare(String(right.SignatoryID || ''));
+        });
+
+        if (!referenceId) {
+            return sortedRows.slice(0, pageSize);
+        }
+
+        if (direction < 0) {
+            const previousRows = sortedRows.filter(function (row) {
+                return String(row.SignatoryID || '').localeCompare(String(referenceId || '')) < 0;
+            });
+            return previousRows.slice(Math.max(previousRows.length - pageSize, 0));
+        }
+
+        return sortedRows.filter(function (row) {
+            return String(row.SignatoryID || '').localeCompare(String(referenceId || '')) > 0;
+        }).slice(0, pageSize);
+    }
+
+    function createSignatorySearchModal() {
+        const modal = new window.SearchModal(window.AppCore);
+
+        modal.loadModal = async function (tableID, options) {
+            ensureSearchModalStyles();
+            removeSearchModalArtifacts();
+
+            document.body.insertAdjacentHTML('beforeend', buildSignatorySearchModalHtml({
+                tableID: tableID,
+                whereStmt: options && options.whereStmt,
+                advFilterString: options && options.advFilterString,
+                moduleID: options && options.moduleID,
+                pageSize: options && options.pageSize
+            }));
+
+            this.modalElement = document.getElementById('search-modal');
+            this.keyForNavigation = 'SignatoryID';
+            this.attachEventListeners();
+            this.isInitialized = true;
+            return true;
+        };
+
+        modal.executeSearch = async function () {
+            try {
+                this.showState('loading');
+
+                const bankId = getCurrentBankId();
+                if (!bankId) {
+                    this.showState('empty');
+                    showToast('Enter or select a Bank ID first.', 'warning');
+                    return;
+                }
+
+                const env = getEnv();
+                const filters = this.buildFilters();
+                const pageSizeDropdown = document.getElementById('search-page-size');
+                this.pageSize = pageSizeDropdown ? parseInt(pageSizeDropdown.value, 10) : 20;
+
+                const response = await requestBankSignatories({
+                    BankID: bankId,
+                    SignatoryID: '',
+                    OurBranchID: env.ourBranchId,
+                    OperatorID: env.operatorId,
+                    Direction: 0,
+                    GetAll: 1
+                });
+
+                if (!responseSucceeded(response)) {
+                    this.currentResults = [];
+                    this.showState('empty');
+                    showToast(extractResponseMessage(response) || 'Unable to load signatories.', 'danger');
+                    return;
+                }
+
+                const allRows = extractRows(getResponseDetailsPayload(response)).map(function (row) {
+                    return normalizeLookupSignatoryRow(row);
+                }).filter(function (row) {
+                    return row.SignatoryID || row.SignatoryName;
+                });
+
+                const filteredRows = filterSignatorySearchRows(allRows, filters);
+                const pagedRows = paginateSignatorySearchRows(filteredRows, this.refID, this.prevOrNext, this.pageSize);
+
+                this.currentResults = pagedRows;
+                this.selectedRow = null;
+                this.currentPage = 0;
+                this.refID = pagedRows.length ? String(pagedRows[pagedRows.length - 1].SignatoryID || '') : '';
+
+                if (!pagedRows.length) {
+                    this.showState('empty');
+                    return;
+                }
+
+                this.renderResults(pagedRows);
+                this.showState('results');
+            } catch (error) {
+                console.error('[BankMaster] Signatory search modal error:', error);
+                this.currentResults = [];
+                this.showState('empty');
+                showToast((error && error.message) ? error.message : 'Unable to search signatories.', 'danger');
+            }
+        };
+
+        return modal;
+    }
+
+    function initSignatorySearchModal() {
+        if (!signatorySearchModal && typeof window.SearchModal === 'function' && window.AppCore) {
+            signatorySearchModal = createSignatorySearchModal();
+        }
+    }
+
+    function buildBranchSearchModalHtml(options) {
+        const settings = options || {};
+        const pageSize = Number(settings.pageSize || 20);
+
+        return '<div id="search-modal" class="search-modal-themed" ' +
+            'style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:9999; justify-content:center; align-items:center;">' +
+            '<div class="search-modal-themed__panel">' +
+            '<div class="search-modal-themed__header">' +
+            '<h5 id="search-modal-title" class="search-modal-themed__title">Search Clearing Branch</h5>' +
+            '<button type="button" id="search-modal-close" class="search-modal-themed__close" aria-label="Close">&times;</button>' +
+            '</div>' +
+            '<div class="search-modal-themed__criteria-wrap">' +
+            '<form id="search-modal-form" class="search-modal-themed__criteria">' +
+            '<div class="search-modal-themed__field">' +
+            '<label class="search-modal-themed__label">Branch ID</label>' +
+            '<div class="search-modal-themed__input-row">' +
+            '<select class="search-modal-themed__select" data-field="BranchID" aria-label="Branch ID Filter Type">' +
+            '<option value="like" selected>Like</option>' +
+            '<option value="equals">Equals</option>' +
+            '<option value="startswith">Starts</option>' +
+            '<option value="endswith">Ends</option>' +
+            '</select>' +
+            '<input type="text" class="search-modal-themed__input" data-field="BranchID" placeholder="Branch ID" autocomplete="off" />' +
+            '</div>' +
+            '</div>' +
+            '<div class="search-modal-themed__field">' +
+            '<label class="search-modal-themed__label">Branch Name</label>' +
+            '<div class="search-modal-themed__input-row">' +
+            '<select class="search-modal-themed__select" data-field="BranchName" aria-label="Branch Name Filter Type">' +
+            '<option value="like" selected>Like</option>' +
+            '<option value="equals">Equals</option>' +
+            '<option value="startswith">Starts</option>' +
+            '<option value="endswith">Ends</option>' +
+            '</select>' +
+            '<input type="text" class="search-modal-themed__input" data-field="BranchName" placeholder="Branch Name" autocomplete="off" />' +
+            '</div>' +
+            '</div>' +
+            '</form>' +
+            '<div class="search-modal-themed__actions">' +
+            '<button type="button" id="search-modal-search-btn" class="search-modal-themed__btn search-modal-themed__btn--secondary">Search</button>' +
+            '</div>' +
+            '</div>' +
+            '<div class="search-modal-themed__body">' +
+            '<div id="search-modal-loading" class="search-modal-themed__loading" style="display:none;">Loading...</div>' +
+            '<div id="search-modal-results" class="search-modal-themed__results" style="display:none;"></div>' +
+            '<div id="search-modal-empty" class="search-modal-themed__empty" style="display:none;">No records found</div>' +
+            '</div>' +
+            '<div class="search-modal-themed__footer">' +
+            '<div class="search-modal-themed__footer-left">' +
+            '<button type="button" id="search-modal-nav-prev" class="search-modal-themed__btn search-modal-themed__btn--secondary" title="Previous record">' +
+            '<i class="bi bi-chevron-left"></i> Previous</button>' +
+            '</div>' +
+            '<div class="search-modal-themed__footer-center">' +
+            '<h5 class="search-modal-themed__footer-label">Page Size:</h5>' +
+            '<select id="search-page-size" class="search-modal-themed__select" aria-label="Page Size" style="flex:0 0 auto; padding:4px 8px;">' +
+            '<option value="10"' + (pageSize === 10 ? ' selected' : '') + '>10</option>' +
+            '<option value="20"' + (pageSize === 20 ? ' selected' : '') + '>20</option>' +
+            '<option value="50"' + (pageSize === 50 ? ' selected' : '') + '>50</option>' +
+            '<option value="100"' + (pageSize === 100 ? ' selected' : '') + '>100</option>' +
+            '<option value="1000"' + (pageSize === 1000 ? ' selected' : '') + '>1000</option>' +
+            '</select>' +
+            '<button type="button" id="search-modal-ok" class="search-modal-themed__btn search-modal-themed__btn--secondary">OK</button>' +
+            '</div>' +
+            '<div class="search-modal-themed__footer-right">' +
+            '<button type="button" id="search-modal-nav-next" class="search-modal-themed__btn search-modal-themed__btn--secondary" title="Next record">Next <i class="bi bi-chevron-right"></i></button>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '<input type="hidden" id="search-table-id" value="ClearingBranchID" />' +
+            '<input type="hidden" id="search-where-stmt" value="' + escapeHtml(settings.whereStmt || '') + '" />' +
+            '<input type="hidden" id="search-adv-filter" value="' + escapeHtml(settings.advFilterString || '') + '" />' +
+            '<input type="hidden" id="search-module-id" value="' + escapeHtml(settings.moduleID || '2020') + '" />' +
+            '<input type="hidden" id="search-key-for-nav" value="BranchID" />' +
+            '<input type="hidden" id="search-ref-id" value="" />' +
+            '<input type="hidden" id="search-prev-or-next" value="0" />';
+    }
+
+    function getBranchFilterValue(row, fieldName) {
+        if (String(fieldName || '').toLowerCase() === 'branchname') {
+            return String(getBranchRowName(row) || '');
+        }
+
+        return String(getBranchRowId(row) || '');
+    }
+
+    function matchesBranchSearchFilter(value, filter) {
+        const source = String(value || '').toLowerCase();
+        const query = String((filter && filter.value) || '').trim().toLowerCase();
+        const mode = String((filter && filter.mode) || 'like').toLowerCase();
+
+        if (!query) {
+            return true;
+        }
+
+        if (mode === 'equals') {
+            return source === query;
+        }
+
+        if (mode === 'startswith') {
+            return source.indexOf(query) === 0;
+        }
+
+        if (mode === 'endswith') {
+            return source.endsWith(query);
+        }
+
+        return source.indexOf(query) >= 0;
+    }
+
+    function filterBranchSearchRows(rows, filters) {
+        const entries = Object.entries(filters || {}).filter(function (entry) {
+            return entry[1] && String(entry[1].value || '').trim();
+        });
+
+        if (!entries.length) {
+            return rows.slice();
+        }
+
+        return rows.filter(function (row) {
+            return entries.every(function (entry) {
+                return matchesBranchSearchFilter(getBranchFilterValue(row, entry[0]), entry[1]);
+            });
+        });
+    }
+
+    function paginateBranchSearchRows(rows, referenceId, direction, pageSize) {
+        const sortedRows = rows.slice().sort(function (left, right) {
+            return String(getBranchRowId(left) || '').localeCompare(String(getBranchRowId(right) || ''));
+        });
+
+        if (!referenceId) {
+            return sortedRows.slice(0, pageSize);
+        }
+
+        if (direction < 0) {
+            const previousRows = sortedRows.filter(function (row) {
+                return String(getBranchRowId(row) || '').localeCompare(String(referenceId || '')) < 0;
+            });
+            return previousRows.slice(Math.max(previousRows.length - pageSize, 0));
+        }
+
+        return sortedRows.filter(function (row) {
+            return String(getBranchRowId(row) || '').localeCompare(String(referenceId || '')) > 0;
+        }).slice(0, pageSize);
+    }
+
+    function createBranchSearchModal() {
+        const modal = new window.SearchModal(window.AppCore);
+
+        modal.loadModal = async function (tableID, options) {
+            ensureSearchModalStyles();
+            removeSearchModalArtifacts();
+
+            document.body.insertAdjacentHTML('beforeend', buildBranchSearchModalHtml({
+                tableID: tableID,
+                whereStmt: options && options.whereStmt,
+                advFilterString: options && options.advFilterString,
+                moduleID: options && options.moduleID,
+                pageSize: options && options.pageSize
+            }));
+
+            this.modalElement = document.getElementById('search-modal');
+            this.keyForNavigation = 'BranchID';
+            this.attachEventListeners();
+            this.isInitialized = true;
+            return true;
+        };
+
+        modal.executeSearch = async function () {
+            try {
+                this.showState('loading');
+
+                const bankId = getCurrentBankId();
+                if (!bankId) {
+                    this.currentResults = [];
+                    this.showState('empty');
+                    showToast('Enter or select a Bank ID first.', 'warning');
+                    return;
+                }
+
+                const filters = this.buildFilters();
+                const pageSizeDropdown = document.getElementById('search-page-size');
+                this.pageSize = pageSizeDropdown ? parseInt(pageSizeDropdown.value, 10) : 20;
+
+                const response = await requestBranchSearch(bankId);
+
+                if (!responseSucceeded(response)) {
+                    this.currentResults = [];
+                    this.showState('empty');
+                    showToast(extractResponseMessage(response) || 'Unable to load branches.', 'danger');
+                    return;
+                }
+
+                const allRows = extractRows(getResponseDetailsPayload(response)).filter(function (row) {
+                    return getBranchRowId(row) || getBranchRowName(row);
+                });
+
+                const filteredRows = filterBranchSearchRows(allRows, filters);
+                const pagedRows = paginateBranchSearchRows(filteredRows, this.refID, this.prevOrNext, this.pageSize);
+
+                this.currentResults = pagedRows;
+                this.selectedRow = null;
+                this.currentPage = 0;
+                this.refID = pagedRows.length ? String(getBranchRowId(pagedRows[pagedRows.length - 1]) || '') : '';
+
+                if (!pagedRows.length) {
+                    this.showState('empty');
+                    return;
+                }
+
+                this.renderResults(pagedRows);
+                this.showState('results');
+            } catch (error) {
+                console.error('[BankMaster] Branch search modal error:', error);
+                this.currentResults = [];
+                this.showState('empty');
+                showToast((error && error.message) ? error.message : 'Unable to search branches.', 'danger');
+            }
+        };
+
+        return modal;
+    }
+
+    function initBranchSearchModal() {
+        if (!branchSearchModal && typeof window.SearchModal === 'function' && window.AppCore) {
+            branchSearchModal = createBranchSearchModal();
         }
     }
 
@@ -208,40 +677,305 @@
         const env = getEnv();
 
         searchModal.open({
-            title: config.title,
             tableID: config.tableID,
-            searchFields: config.searchFields,
-            displayFields: config.displayFields,
             moduleID: config.moduleID,
             ourbranchId: env.ourBranchId,
             onSelect: onSelect
         });
     }
 
-    function openBranchLookup(onSelect) {
-        initSearchModal();
-        if (!searchModal) {
+    async function ensureBankLoadedForBranchLookup() {
+        if (state.bankLoaded) {
+            return true;
+        }
+
+        const bankId = getCurrentBankId();
+        if (!bankId) {
+            showToast('Enter or select a Bank ID first.', 'warning');
+            return false;
+        }
+
+        await loadBank(bankId, true, false);
+        return state.bankLoaded;
+    }
+
+    function normalizeLookupBranchRow(record) {
+        return {
+            BranchID: String(getBranchRowId(record) || '').trim(),
+            BranchName: String(getBranchRowName(record) || '').trim(),
+            BranchTypeID: String(pickFirstValue(record, ['BranchTypeID']) || '').trim(),
+            BranchTypeName: String(getBranchTypeName(record) || '').trim(),
+            CityID: String(pickFirstValue(record, ['CityID']) || '').trim(),
+            CityName: String(getBranchCityName(record) || '').trim(),
+            CountryID: String(pickFirstValue(record, ['CountryID']) || '').trim(),
+            CountryName: String(getBranchCountryName(record) || '').trim(),
+            SWIFTCode: String(pickFirstValue(record, ['SWIFTCode']) || '').trim(),
+            Address1: String(pickFirstValue(record, ['Address1']) || '').trim(),
+            Address2: String(pickFirstValue(record, ['Address2']) || '').trim(),
+            ZipCode: String(pickFirstValue(record, ['ZipCode']) || '').trim(),
+            Phone1: String(pickFirstValue(record, ['Phone1']) || '').trim(),
+            Phone2: String(pickFirstValue(record, ['Phone2']) || '').trim(),
+            Mobile: String(pickFirstValue(record, ['Mobile']) || '').trim(),
+            EMail: String(pickFirstValue(record, ['Email', 'EMail', 'EMailID', 'EmailID']) || '').trim(),
+            Fax: String(pickFirstValue(record, ['Fax']) || '').trim(),
+            Remarks: String(pickFirstValue(record, ['Remarks']) || '').trim(),
+            IsUpcountry: pickFirstValue(record, ['IsUpCountry', 'IsUpcountry']),
+            ClearingCenter: String(pickFirstValue(record, ['ClearingCenter', 'ClearingDays']) || '').trim(),
+            UpdateCount: Number(pickFirstValue(record, ['UpdateCount']) || 0)
+        };
+    }
+
+    function normalizeBranchRow(record) {
+        if (!record) {
+            return null;
+        }
+
+        return {
+            BranchID: String(getBranchRowId(record) || '').trim(),
+            BranchName: String(getBranchRowName(record) || '').trim(),
+            BranchTypeID: String(pickFirstValue(record, ['BranchTypeID']) || '').trim(),
+            BranchTypeName: String(getBranchTypeName(record) || '').trim(),
+            CityID: String(pickFirstValue(record, ['CityID']) || '').trim(),
+            CityName: String(getBranchCityName(record) || '').trim(),
+            CountryID: String(pickFirstValue(record, ['CountryID']) || '').trim(),
+            CountryName: String(getBranchCountryName(record) || '').trim(),
+            SWIFTCode: String(pickFirstValue(record, ['SWIFTCode']) || '').trim(),
+            Address1: String(pickFirstValue(record, ['Address1']) || '').trim(),
+            Address2: String(pickFirstValue(record, ['Address2']) || '').trim(),
+            ZipCode: String(pickFirstValue(record, ['ZipCode']) || '').trim(),
+            Phone1: String(pickFirstValue(record, ['Phone1']) || '').trim(),
+            Phone2: String(pickFirstValue(record, ['Phone2']) || '').trim(),
+            Mobile: String(pickFirstValue(record, ['Mobile']) || '').trim(),
+            EMail: String(pickFirstValue(record, ['Email', 'EMail', 'EMailID', 'EmailID']) || '').trim(),
+            Fax: String(pickFirstValue(record, ['Fax']) || '').trim(),
+            Remarks: String(pickFirstValue(record, ['Remarks']) || '').trim(),
+            IsUpcountry: pickFirstValue(record, ['IsUpCountry', 'IsUpcountry']),
+            ClearingCenter: String(pickFirstValue(record, ['ClearingCenter', 'ClearingDays']) || '').trim(),
+            UpdateCount: Number(pickFirstValue(record, ['UpdateCount']) || 0),
+            CreatedBy: pickFirstValue(record, ['CreatedBy']),
+            CreatedOn: pickFirstValue(record, ['CreatedOn']),
+            ModifiedBy: pickFirstValue(record, ['ModifiedBy']),
+            ModifiedOn: pickFirstValue(record, ['ModifiedOn']),
+            SupervisedBy: pickFirstValue(record, ['SupervisedBy']),
+            SupervisedOn: pickFirstValue(record, ['SupervisedOn'])
+        };
+    }
+
+    function setCurrentBranchRow(row) {
+        state.branchRows = row ? [row] : [];
+        syncBranchTypeOptions(state.branchRows);
+        renderBranches();
+    }
+
+    async function getBranchDetails(branchId, direction) {
+        const id = String(branchId || '').trim();
+        if (!id) {
+            return null;
+        }
+
+        const env = getEnv();
+        const payload = await requestBranchDetails({
+            BankID: getCurrentBankId(),
+            BranchID: id,
+            OurBranchID: env.ourBranchId,
+            OperatorID: env.operatorId,
+            Direction: typeof direction === 'number' ? direction : 0
+        });
+
+        if (!payload || payload.success === false) {
+            return null;
+        }
+
+        return payload.data ? normalizeBranchRow(payload.data) : null;
+    }
+
+    async function loadBranchById(branchId, options) {
+        const settings = options || {};
+        const id = String(branchId || '').trim();
+
+        if (!state.bankLoaded) {
+            if (!settings.silent) {
+                showToast('Load a bank first.', 'warning');
+            }
+            return null;
+        }
+
+        if (!id) {
+            clearBranchForm(false);
+            setCurrentBranchRow(null);
+            if (!settings.silent) {
+                showToast('Enter or select a branch first.', 'warning');
+            }
+            return null;
+        }
+
+        const row = await getBranchDetails(id, settings.direction);
+        if (!row) {
+            setCurrentBranchRow(null);
+            if (!settings.silent) {
+                showToast('Branch record not found for the active bank.', 'warning');
+            }
+            return null;
+        }
+
+        applyBranchRow(row);
+        setCurrentBranchRow(row);
+
+        if (!settings.silent) {
+            showToast('Branch loaded.', 'success');
+        }
+
+        return row;
+    }
+
+    async function applyLookupBranchSelection(record) {
+        const normalized = normalizeLookupBranchRow(record);
+        if (!normalized.BranchID) {
+            showToast('The selected branch is missing Branch ID.', 'warning');
+            return;
+        }
+
+        let row = null;
+        try {
+            row = await loadBranchById(normalized.BranchID, { silent: true });
+        } catch (_) {
+            row = null;
+        }
+
+        if (!row) {
+            row = normalized;
+            applyBranchRow(row);
+            setCurrentBranchRow(row);
+        }
+        setMode(MODES.VIEW);
+    }
+
+    async function openBranchLookup() {
+        initBranchSearchModal();
+        if (!branchSearchModal) {
             showToast('Search modal is unavailable.', 'warning');
             return;
         }
 
-        const env = getEnv();
-        const bankId = getCurrentBankId();
-        if (!bankId) {
-            showToast('Load a bank first.', 'warning');
+        if (!await ensureBankLoadedForBranchLookup()) {
             return;
         }
 
+        const bankId = getCurrentBankId();
+        const env = getEnv();
         const config = LOOKUP_CONFIG.branch;
-        searchModal.open({
-            title: config.title,
+        branchSearchModal.open({
             tableID: config.tableID,
-            searchFields: config.searchFields,
-            displayFields: config.displayFields,
             advFilterString: `BankID='${bankId.replace(/'/g, "''")}'`,
             moduleID: config.moduleID,
             ourbranchId: env.ourBranchId,
-            onSelect: onSelect
+            onSelect: function (record) {
+                void applyLookupBranchSelection(record);
+            }
+        });
+    }
+
+    async function ensureBankLoadedForSignatoryLookup() {
+        if (state.bankLoaded) {
+            return true;
+        }
+
+        const bankId = getCurrentBankId();
+        if (!bankId) {
+            showToast('Enter or select a Bank ID first.', 'warning');
+            return false;
+        }
+
+        await loadBank(bankId, true, false);
+        return state.bankLoaded;
+    }
+
+    async function openSignatoryLookup() {
+        initSignatorySearchModal();
+        if (!signatorySearchModal) {
+            showToast('Search modal is unavailable.', 'warning');
+            return;
+        }
+
+        if (!await ensureBankLoadedForSignatoryLookup()) {
+            return;
+        }
+
+        const bankId = getCurrentBankId();
+        if (!bankId) {
+            showToast('Enter or select a Bank ID first.', 'warning');
+            return;
+        }
+
+        const env = getEnv();
+        const config = LOOKUP_CONFIG.signatory;
+
+        signatorySearchModal.open({
+            tableID: config.tableID,
+            advFilterString: `BankID='${bankId.replace(/'/g, "''")}'`,
+            moduleID: config.moduleID,
+            ourbranchId: env.ourBranchId,
+            onSelect: function (record) {
+                applyLookupSignatorySelection(record);
+            }
+        });
+    }
+
+    function wireLookupButtons() {
+        const handlers = {
+            bank: function () {
+                openLookup('bank', function (record) {
+                    const selected = extractLookupSelection('bank', record);
+                    setValue('#bm_bankId', selected.id);
+                    setValue('#bm_bankNameSummary', selected.name);
+                    void loadBank(selected.id, false);
+                });
+            },
+            client: function () {
+                if (state.mode === MODES.ADD || state.mode === MODES.EDIT) {
+                    openLookup('client', function (record) {
+                        const selected = extractLookupSelection('client', record);
+                        setValue('#bm_clientId', selected.id);
+                        setValue('#bm_clientName', selected.name);
+                        setValue('#bm_limitClientId', selected.id);
+                        setValue('#bm_limitClientName', selected.name);
+                    });
+                } else {
+                    showToast('Client lookup is only allowed when adding or editing a bank.', 'warning');
+                }
+            },
+            signatory: async function () {
+                await openSignatoryLookup();
+            },
+            clearingThrough: function () {
+                openLookup('bank', function (record) {
+                    const selected = extractLookupSelection('bank', record);
+                    setValue('#bm_clearingThrough', selected.id);
+                    setValue('#bm_clearingThroughName', selected.name);
+                });
+            },
+            branch: async function () {
+                await openBranchLookup();
+            },
+            currency: function () {
+                openLookup('currency', function (record) {
+                    const selected = extractLookupSelection('currency', record);
+                    setValue('#bm_limitCurrencyId', selected.id);
+                    setValue('#bm_limitCurrencyName', selected.name);
+                });
+            }
+        };
+
+        qsa('.btn-lookup[data-lookup]').forEach(function (button) {
+            const lookupKey = button.getAttribute('data-lookup');
+            const handler = handlers[lookupKey];
+            if (!handler) {
+                return;
+            }
+
+            button.addEventListener('click', function () {
+                handler();
+            });
         });
     }
 
@@ -282,12 +1016,6 @@
                     toggle();
                 });
             }
-        });
-
-        qsa('[data-inline-alert-close]').forEach(function (button) {
-            button.addEventListener('click', function () {
-                setInlineAlert(button.getAttribute('data-inline-alert-close'), '');
-            });
         });
     }
 
@@ -391,9 +1119,10 @@
             });
         });
 
-        setButtonDisabled(qs('#submoduleBtnPhoto'), !state.bankLoaded || state.activeSection !== 'signatories');
-        setButtonDisabled(qs('#submoduleBtnSignature'), !state.bankLoaded || state.activeSection !== 'signatories');
-        setButtonDisabled(qs('#submoduleBtnBoth'), !state.bankLoaded || state.activeSection !== 'signatories');
+        const signatoryImageActionsDisabled = !state.bankLoaded || state.activeSection !== 'signatories' || !state.currentSignatoryRow;
+        setButtonDisabled(qs('#submoduleBtnPhoto'), signatoryImageActionsDisabled);
+        setButtonDisabled(qs('#submoduleBtnSignature'), signatoryImageActionsDisabled);
+        setButtonDisabled(qs('#submoduleBtnBoth'), signatoryImageActionsDisabled);
     }
 
     function hasSectionRecord(sectionKey) {
@@ -531,6 +1260,22 @@
         return '';
     }
 
+    function getResponseDetailsPayload(response) {
+        if (!response || typeof response !== 'object') {
+            return response;
+        }
+
+        if (response.data !== undefined && response.data !== null) {
+            return response.data;
+        }
+
+        if (response.Details !== undefined && response.Details !== null) {
+            return response.Details;
+        }
+
+        return response;
+    }
+
     function responseSucceeded(response) {
         if (!response || typeof response !== 'object') {
             return true;
@@ -590,12 +1335,59 @@
         return pickFirstValue(row, ['ClientName', 'clientName', 'CLIENTNAME', 'Name', 'name', 'CustomerName', 'customerName', 'Description']);
     }
 
+    function getLookupCurrencyId(row) {
+        return pickFirstValue(row, ['CurrencyID', 'currencyID', 'CurrencyId', 'currencyId', 'CodeID', 'ID']);
+    }
+
+    function getLookupCurrencyName(row) {
+        return pickFirstValue(row, ['CurrencyName', 'currencyName', 'Description', 'CodeDescription', 'Name']);
+    }
+
+    function getLookupSignatoryId(row) {
+        return pickFirstValue(row, [
+            'SignatoryID', 'signatoryID', 'signatoryId',
+            'ClientSignatoryID', 'clientSignatoryID',
+            'RelatedClientID', 'relatedClientID',
+            'ClientID', 'clientID',
+            'ID', 'id'
+        ]);
+    }
+
+    function getLookupSignatoryName(row) {
+        return pickFirstValue(row, [
+            'SignatoryName', 'signatoryName',
+            'RelatedClientName', 'relatedClientName',
+            'ClientName', 'clientName',
+            'Name', 'name'
+        ]);
+    }
+
     function getBranchRowId(row) {
-        return pickFirstValue(row, ['ClearingBranchID', 'BranchID', 'branchID', 'BranchId', 'branchId']);
+        return pickFirstValue(row, ['ClearingBranchID', 'BranchID', 'branchID', 'BranchId', 'branchId', 'OurBranchID', 'ourBranchID', 'OurbranchID']);
     }
 
     function getBranchRowName(row) {
         return pickFirstValue(row, ['ClearingBranchName', 'BranchName', 'branchName', 'Name']);
+    }
+
+    const LOOKUP_SELECTION_EXTRACTORS = {
+        bank: { getId: getLookupBankId, getName: getLookupBankName },
+        signatory: { getId: getLookupSignatoryId, getName: getLookupSignatoryName },
+        client: { getId: getLookupClientId, getName: getLookupClientName },
+        currency: { getId: getLookupCurrencyId, getName: getLookupCurrencyName },
+        branch: { getId: getBranchRowId, getName: getBranchRowName }
+    };
+
+    function extractLookupSelection(lookupKey, record) {
+        const extractor = LOOKUP_SELECTION_EXTRACTORS[lookupKey];
+        if (!extractor) {
+            return { id: '', name: '' };
+        }
+
+        return {
+            id: String(extractor.getId(record) || '').trim(),
+            name: String(extractor.getName(record) || '').trim()
+        };
     }
 
     function getLimitTypeName(row) {
@@ -610,28 +1402,169 @@
         return pickFirstValue(row, ['LimitAmount', 'Amount', 'Limit']);
     }
 
-    function looksLikeBankRow(row) {
-        return !!(getBankRowId(row) || getBankRowName(row));
+    function findBranchRow(branchId) {
+        return state.branchRows.find(function (candidate) {
+            return String(getBranchRowId(candidate) || '') === String(branchId || '');
+        }) || null;
     }
 
-    function extractBankRows(response) {
-        return extractRows(response)
-            .filter(looksLikeBankRow);
+    function findSignatoryRow(signatoryId) {
+        return state.signatoryRows.find(function (candidate) {
+            return String(candidate.SignatoryID || '') === String(signatoryId || '');
+        }) || null;
     }
 
-    async function queryBankRows(bankId, direction) {
+    function findLimitRow(record) {
+        if (!record) {
+            return null;
+        }
+
+        return state.limitRows.find(function (candidate) {
+            return String(candidate.ClientID || '') === String(record.ClientID || '') &&
+                String(candidate.LimitType || candidate.LimitTypeID || '') === String(record.LimitType || '') &&
+                String(candidate.CurrencyID || '') === String(record.CurrencyID || '');
+        }) || null;
+    }
+
+    function getRemainingRowByIndex(rows, deletedIndex) {
+        if (!rows || !rows.length) {
+            return null;
+        }
+
+        const targetIndex = deletedIndex >= 0 ? Math.min(deletedIndex, rows.length - 1) : 0;
+        return rows[targetIndex] || null;
+    }
+
+    async function getBankDetails(bankId, direction) {
         const env = getEnv();
-        const response = await service.getBanks({
+        const payload = await invokeControllerRequest('StaticData/BankMaster/api/get-bank-details', {
             BankID: bankId,
             OurBranchID: env.ourBranchId,
             OperatorID: env.operatorId,
             Direction: direction
         });
 
-        return {
-            response: response,
-            rows: extractBankRows(response)
-        };
+        if (!payload || payload.success === false) {
+            throw new Error((payload && payload.errorMessage) || 'Bank details request failed.');
+        }
+
+        return payload.data || null;
+    }
+
+    async function queryBankRow(bankId, direction) {
+        return getBankDetails(bankId, direction);
+    }
+
+    function getSelectOptionText(id, value) {
+        const element = qs(id);
+        if (!element || element.tagName !== 'SELECT') {
+            return '';
+        }
+
+        const targetValue = String(value == null ? '' : value).trim();
+        const match = Array.from(element.options || []).find(function (option) {
+            return String(option.value || '').trim() === targetValue;
+        });
+
+        return match ? String(match.text || '').trim() : '';
+    }
+
+    function ensureSelectOption(id, value, label) {
+        const element = qs(id);
+        if (!element || element.tagName !== 'SELECT') {
+            return;
+        }
+
+        const optionValue = String(value == null ? '' : value).trim();
+        if (!optionValue) {
+            return;
+        }
+
+        const exists = Array.from(element.options || []).some(function (option) {
+            return String(option.value || '').trim() === optionValue;
+        });
+
+        if (exists) {
+            return;
+        }
+
+        const option = document.createElement('option');
+        option.value = optionValue;
+        option.text = String(label || optionValue).trim();
+        element.appendChild(option);
+    }
+
+    function getBranchTypeName(row) {
+        return String(pickFirstValue(row, ['BranchTypeName', 'BranchTypeDescription', 'TypeName']) || '').trim();
+    }
+
+    function getBranchCityName(row) {
+        return String(pickFirstValue(row, ['CityName']) || '').trim();
+    }
+
+    function getBranchCountryName(row) {
+        return String(pickFirstValue(row, ['CountryName']) || '').trim();
+    }
+
+    function getBranchTypeDisplay(row) {
+        const branchTypeId = String(pickFirstValue(row, ['BranchTypeID']) || '').trim();
+        return getBranchTypeName(row) || getSelectOptionText('#bm_branchTypeId', branchTypeId) || branchTypeId;
+    }
+
+    function getBranchCityDisplay(row) {
+        const cityId = String(pickFirstValue(row, ['CityID']) || '').trim();
+        return getBranchCityName(row) || getSelectOptionText('#bm_branchCityId', cityId) || cityId;
+    }
+
+    function getBranchCountryDisplay(row) {
+        const countryId = String(pickFirstValue(row, ['CountryID']) || '').trim();
+        return getBranchCountryName(row) || getSelectOptionText('#bm_branchCountryId', countryId) || countryId;
+    }
+
+    function syncBranchTypeOptions(rows) {
+        const options = (rows || []).reduce(function (accumulator, row) {
+            const branchTypeId = String(pickFirstValue(row, ['BranchTypeID']) || '').trim();
+            if (!branchTypeId || accumulator.some(function (candidate) { return candidate.value === branchTypeId; })) {
+                return accumulator;
+            }
+
+            accumulator.push({
+                value: branchTypeId,
+                label: getBranchTypeName(row) || branchTypeId
+            });
+            return accumulator;
+        }, []);
+
+        const select = qs('#bm_branchTypeId');
+        if (select && select.tagName === 'SELECT') {
+            options.forEach(function (option) {
+                ensureSelectOption('#bm_branchTypeId', option.value, option.label);
+            });
+            return;
+        }
+
+        const datalist = qs('#bm_branchTypeOptions');
+        if (!datalist) {
+            return;
+        }
+
+        datalist.innerHTML = options.map(function (option) {
+            return '<option value="' + escapeHtml(option.value) + '" label="' + escapeHtml(option.label) + '"></option>';
+        }).join('');
+    }
+
+    async function requestBankSignatories(requestData) {
+        return invokeControllerRequest('StaticData/BankMaster/api/get-bank-signatories', requestData || {});
+    }
+
+    async function requestBranchSearch(bankId) {
+        return invokeControllerRequest('StaticData/BankMaster/api/search-branches', {
+            BankID: bankId
+        });
+    }
+
+    async function requestBranchDetails(requestData) {
+        return invokeControllerRequest('StaticData/BankMaster/api/get-branch-details', requestData || {});
     }
 
     function textValue(id) {
@@ -642,7 +1575,11 @@
     function setValue(id, value) {
         const element = qs(id);
         if (element) {
-            element.value = value == null ? '' : value;
+            if (element.tagName === 'SELECT') {
+                element.value = value == null ? '' : value;
+            } else {
+                element.value = value == null ? '' : value;
+            }
         }
     }
 
@@ -654,10 +1591,34 @@
     }
 
     function setAudit(row) {
-        qs('#bm_createdBy').textContent = row && (row.CreatedBy || row.createdBy) ? (row.CreatedBy || row.createdBy) : '-';
-        qs('#bm_createdOn').textContent = row && (row.CreatedOn || row.createdOn) ? (row.CreatedOn || row.createdOn) : '-';
-        qs('#bm_supervisedBy').textContent = row && (row.SupervisedBy || row.supervisedBy) ? (row.SupervisedBy || row.supervisedBy) : '-';
-        qs('#bm_supervisedOn').textContent = row && (row.SupervisedOn || row.supervisedOn) ? (row.SupervisedOn || row.supervisedOn) : '-';
+        const values = {
+            createdBy: row && (row.CreatedBy || row.createdBy) ? (row.CreatedBy || row.createdBy) : '-',
+            createdOn: row && (row.CreatedOn || row.createdOn) ? (row.CreatedOn || row.createdOn) : '-',
+            modifiedBy: row && (row.ModifiedBy || row.modifiedBy) ? (row.ModifiedBy || row.modifiedBy) : '-',
+            modifiedOn: row && (row.ModifiedOn || row.modifiedOn) ? (row.ModifiedOn || row.modifiedOn) : '-',
+            supervisedBy: row && (row.SupervisedBy || row.supervisedBy) ? (row.SupervisedBy || row.supervisedBy) : '-',
+            supervisedOn: row && (row.SupervisedOn || row.supervisedOn) ? (row.SupervisedOn || row.supervisedOn) : '-'
+        };
+
+        const legacyTargets = {
+            createdBy: '#bm_createdBy',
+            createdOn: '#bm_createdOn',
+            modifiedBy: '#bm_modifiedBy',
+            modifiedOn: '#bm_modifiedOn',
+            supervisedBy: '#bm_supervisedBy',
+            supervisedOn: '#bm_supervisedOn'
+        };
+
+        Object.keys(values).forEach(function (key) {
+            const legacy = qs(legacyTargets[key]);
+            if (legacy) {
+                legacy.textContent = values[key];
+            }
+
+            qsa('[data-audit-field="' + key + '"]').forEach(function (element) {
+                element.textContent = values[key];
+            });
+        });
     }
 
     function getCurrentBankId() {
@@ -700,8 +1661,6 @@
         setValue('#bm_clientName', pickFirstValue(row, ['ClientName', 'clientName', 'CLIENTNAME', 'Name']));
         setValue('#bm_clearingThrough', pickFirstValue(row, ['ClearingThrough', 'clearingThrough']));
         setValue('#bm_clearingThroughName', pickFirstValue(row, ['ClearingThroughName', 'clearingThroughName', 'ClearingBankName']));
-        setValue('#bm_clearingAccountId', pickFirstValue(row, ['ClearingAccountID', 'clearingAccountID', 'ClearingAccountId', 'clearingAccountId']));
-        setValue('#bm_bankAccountId', pickFirstValue(row, ['BankAccountID', 'bankAccountID', 'BankAccountId', 'bankAccountId']));
         setValue('#bm_limitClientId', pickFirstValue(row, ['ClientID', 'clientID', 'ClientId', 'clientId']));
         setValue('#bm_limitClientName', pickFirstValue(row, ['ClientName', 'clientName', 'CLIENTNAME', 'Name']));
         setChecked('#bm_isLocalClearing', pickFirstValue(row, ['IsLocalClearingBank', 'isLocalClearingBank']));
@@ -723,8 +1682,6 @@
         setValue('#bm_clientName', '');
         setValue('#bm_clearingThrough', '');
         setValue('#bm_clearingThroughName', '');
-        setValue('#bm_clearingAccountId', '');
-        setValue('#bm_bankAccountId', '');
         setChecked('#bm_isLocalClearing', false);
         setChecked('#bm_isForeignClearing', false);
         setAudit(null);
@@ -751,7 +1708,7 @@
         renderLimits();
     }
 
-    async function loadBank(bankId, silent, fallbackRecord, useDialogAlerts) {
+    async function loadBank(bankId, silent, useDialogAlerts) {
         const id = String(bankId || getCurrentBankId()).trim();
         if (!id) {
             if (useDialogAlerts) {
@@ -763,24 +1720,7 @@
         }
 
         try {
-            clearAlerts();
-            const normalizedId = normalizeIdentity(id);
-            const exactLookup = await queryBankRows(id, 0);
-
-            let row = exactLookup.rows.find(function (candidate) {
-                return normalizeIdentity(getBankRowId(candidate)) === normalizedId;
-            }) || null;
-
-            if (!row) {
-                const forwardLookup = await queryBankRows(id, 1);
-                row = forwardLookup.rows.find(function (candidate) {
-                    return normalizeIdentity(getBankRowId(candidate)) === normalizedId;
-                }) || null;
-            }
-
-            if (!row && fallbackRecord && normalizeIdentity(getLookupBankId(fallbackRecord)) === normalizedId) {
-                row = fallbackRecord;
-            }
+            const row = await queryBankRow(id, 0);
 
             if (!row) {
                 clearBankForm(true);
@@ -816,8 +1756,10 @@
             return;
         }
 
+        clearBranchForm(false);
+        setCurrentBranchRow(null);
+
         await Promise.all([
-            loadBranches(true),
             loadSignatories(true),
             loadLimits(true)
         ]);
@@ -828,22 +1770,25 @@
         state.branchUpdateCount = Number(row.UpdateCount || 0);
         setValue('#bm_branchId', getBranchRowId(row));
         setValue('#bm_branchNameSummary', getBranchRowName(row));
+        ensureSelectOption('#bm_branchTypeId', row.BranchTypeID, getBranchTypeName(row));
         setValue('#bm_branchTypeId', row.BranchTypeID || '');
         setValue('#bm_branchName', getBranchRowName(row));
         setValue('#bm_branchAddress1', row.Address1 || '');
         setValue('#bm_branchAddress2', row.Address2 || '');
+        ensureSelectOption('#bm_branchCityId', row.CityID, getBranchCityDisplay(row));
         setValue('#bm_branchCityId', row.CityID || '');
+        ensureSelectOption('#bm_branchCountryId', row.CountryID, getBranchCountryDisplay(row));
         setValue('#bm_branchCountryId', row.CountryID || '');
         setValue('#bm_branchZipCode', row.ZipCode || '');
         setValue('#bm_branchPhone1', row.Phone1 || '');
         setValue('#bm_branchPhone2', row.Phone2 || '');
         setValue('#bm_branchMobile', row.Mobile || '');
-        setValue('#bm_branchEmail', row.EMail || row.EMailID || '');
+        setValue('#bm_branchEmail', row.Email || row.EMail || row.EMailID || '');
         setValue('#bm_branchFax', row.Fax || '');
         setValue('#bm_branchSwiftCode', row.SWIFTCode || '');
         setValue('#bm_branchRemarks', row.Remarks || '');
-        setChecked('#bm_isUpcountry', row.IsUpcountry);
-        setValue('#bm_clearingCenter', row.ClearingDays || row.ClearingCenter || '');
+        setChecked('#bm_isUpcountry', pickFirstValue(row, ['IsUpCountry', 'IsUpcountry']));
+        setValue('#bm_clearingCenter', pickFirstValue(row, ['ClearingCenter', 'ClearingDays']));
         setAudit(row);
     }
 
@@ -877,7 +1822,7 @@
         qs('#bm_branchCount').textContent = rows.length + ' rows';
 
         if (!rows.length) {
-            tbody.innerHTML = '<tr><td colspan="3" class="text-muted">No branches loaded.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="text-muted">No branches loaded.</td></tr>';
             return;
         }
 
@@ -887,6 +1832,9 @@
             return '<tr data-branch-id="' + escapeHtml(branchId) + '" class="' + (selected ? 'is-selected' : '') + '">' +
                 '<td>' + escapeHtml(branchId) + '</td>' +
                 '<td>' + escapeHtml(getBranchRowName(row)) + '</td>' +
+                '<td>' + escapeHtml(getBranchTypeDisplay(row)) + '</td>' +
+                '<td>' + escapeHtml(getBranchCityDisplay(row)) + '</td>' +
+                '<td>' + escapeHtml(getBranchCountryDisplay(row)) + '</td>' +
                 '<td>' + escapeHtml(row.SWIFTCode || '') + '</td>' +
                 '</tr>';
         }).join('');
@@ -908,31 +1856,19 @@
 
     async function loadBranches(silent) {
         if (!state.bankLoaded) {
-            state.branchRows = [];
-            renderBranches();
-            return;
+            setCurrentBranchRow(null);
+            return false;
         }
 
-        const env = getEnv();
         try {
-            const response = await service.getBranches({
-                BankID: getCurrentBankId(),
-                BranchID: '',
-                OurBranchID: env.ourBranchId,
-                OperatorID: env.operatorId,
-                Direction: 0
-            });
-
-            state.branchRows = extractRows(response).filter(function (row) {
-                return getBranchRowId(row) || getBranchRowName(row);
-            });
-            renderBranches();
-
-            if (!silent) {
-                showToast('Branches refreshed.', 'success');
+            const row = await loadBranchById(textValue('#bm_branchId'), { silent: true });
+            if (!row && !silent && textValue('#bm_branchId')) {
+                showToast('Branch record not found for the active bank.', 'warning');
             }
+            return !!row;
         } catch (error) {
             showToast('Unable to load branches.', 'danger');
+            return false;
         }
     }
 
@@ -944,6 +1880,39 @@
         setValue('#bm_imageId', row.ImageID || '');
         setAudit(row);
         clearImagePreview();
+        updateActionState();
+        void refreshSignatoryPreviews(true);
+    }
+
+    function normalizeLookupSignatoryRow(record) {
+        return {
+            SignatoryID: String(getLookupSignatoryId(record) || '').trim(),
+            SignatoryName: String(getLookupSignatoryName(record) || '').trim(),
+            ImageID: String(pickFirstValue(record, ['ImageID', 'imageID', 'ImageId', 'imageId']) || '').trim()
+        };
+    }
+
+    function applyLookupSignatorySelection(record) {
+        const normalized = normalizeLookupSignatoryRow(record);
+        if (!normalized.SignatoryID) {
+            showToast('The selected signatory is missing Signatory ID.', 'warning');
+            return;
+        }
+
+        let row = findSignatoryRow(normalized.SignatoryID);
+        if (!row) {
+            row = normalized;
+            state.signatoryRows = state.signatoryRows.concat([row]).sort(function (left, right) {
+                return String(left.SignatoryID || '').localeCompare(String(right.SignatoryID || ''));
+            });
+        } else {
+            row.SignatoryName = row.SignatoryName || normalized.SignatoryName;
+            row.ImageID = row.ImageID || normalized.ImageID;
+        }
+
+        applySignatoryRow(row);
+        renderSignatories();
+        setMode(MODES.VIEW);
     }
 
     function clearSignatoryForm(keepId) {
@@ -954,12 +1923,19 @@
         state.currentSignatoryRow = null;
         state.signatoryUpdateCount = 0;
         clearImagePreview();
+        updateActionState();
     }
 
     function renderSignatories() {
         const tbody = qs('#bm_signatoryRows');
+        const count = qs('#bm_signatoryCount');
         const rows = state.signatoryRows;
-        qs('#bm_signatoryCount').textContent = rows.length + ' rows';
+
+        if (!tbody || !count) {
+            return;
+        }
+
+        count.textContent = rows.length + ' rows';
 
         if (!rows.length) {
             tbody.innerHTML = '<tr><td colspan="3" class="text-muted">No signatories loaded.</td></tr>';
@@ -995,20 +1971,28 @@
         if (!state.bankLoaded) {
             state.signatoryRows = [];
             renderSignatories();
-            return;
+            return false;
         }
 
         const env = getEnv();
         try {
-            const response = await service.getBankSignatories({
+            const response = await requestBankSignatories({
                 BankID: getCurrentBankId(),
                 SignatoryID: '',
                 OurBranchID: env.ourBranchId,
                 OperatorID: env.operatorId,
-                Direction: 0
+                Direction: 0,
+                GetAll: 1
             });
 
-            state.signatoryRows = extractRows(response).filter(function (row) {
+            if (!responseSucceeded(response)) {
+                state.signatoryRows = [];
+                renderSignatories();
+                showToast(extractResponseMessage(response) || 'Unable to load signatories.', 'danger');
+                return false;
+            }
+
+            state.signatoryRows = extractRows(getResponseDetailsPayload(response)).filter(function (row) {
                 return row.SignatoryID || row.SignatoryName;
             });
             renderSignatories();
@@ -1016,9 +2000,35 @@
             if (!silent) {
                 showToast('Signatories refreshed.', 'success');
             }
+            return true;
         } catch (error) {
-            showToast('Unable to load signatories.', 'danger');
+            state.signatoryRows = [];
+            renderSignatories();
+            showToast((error && error.message) ? error.message : 'Unable to load signatories.', 'danger');
+            return false;
         }
+    }
+
+    async function getSignatoryDetails(signatoryId, direction) {
+        const env = getEnv();
+        const response = await requestBankSignatories({
+            BankID: getCurrentBankId(),
+            SignatoryID: signatoryId || '',
+            OurBranchID: env.ourBranchId,
+            OperatorID: env.operatorId,
+            Direction: typeof direction === 'number' ? direction : 0,
+            GetAll: 0
+        });
+
+        if (!responseSucceeded(response)) {
+            return null;
+        }
+
+        const rows = extractRows(getResponseDetailsPayload(response)).filter(function (row) {
+            return row.SignatoryID || row.SignatoryName;
+        });
+
+        return rows.length ? rows[0] : null;
     }
 
     function applyLimitRow(row) {
@@ -1161,8 +2171,6 @@
             IsLocalClearingBank: qs('#bm_isLocalClearing').checked ? 1 : 0,
             IsForeignClearingBank: qs('#bm_isForeignClearing').checked ? 1 : 0,
             ClearingThrough: textValue('#bm_clearingThrough'),
-            ClearingAccountID: textValue('#bm_clearingAccountId'),
-            BankAccountID: textValue('#bm_bankAccountId'),
             OurBranchID: env.ourBranchId,
             OperatorID: env.operatorId,
             CreatedBy: state.mode === MODES.ADD ? env.operatorId : '',
@@ -1176,14 +2184,20 @@
         try {
             const response = await service.addEditBank(payload);
             if (!responseSucceeded(response)) {
-                showToast(extractResponseMessage(response) || 'Save failed.', 'danger');
+                await showAlertDialog('Error', extractResponseMessage(response) || 'Save failed.');
                 return;
             }
-            await loadBank(bankId, true);
+
+            try {
+                await loadBank(bankId, true);
+            } catch (_) {
+                await showAlertDialog('Warning', 'Bank saved, but the screen could not refresh automatically. Use View to reload the record.');
+            }
+
             setMode(MODES.VIEW);
             showToast('Bank saved.', 'success');
         } catch (error) {
-            showToast('Bank save failed.', 'danger');
+            await showAlertDialog('Error', (error && error.message) ? error.message : 'Bank save failed.');
         }
     }
 
@@ -1263,11 +2277,11 @@
                 showToast(extractResponseMessage(response) || 'Save failed.', 'danger');
                 return;
             }
-            await loadBranches(true);
-            const row = state.branchRows.find(function (candidate) { return String(candidate.BranchID || '') === branchId; });
+
+            const row = await loadBranchById(branchId, { silent: true });
             if (row) {
                 applyBranchRow(row);
-                renderBranches();
+                setCurrentBranchRow(row);
             }
             setMode(MODES.VIEW);
             showToast('Branch saved.', 'success');
@@ -1283,22 +2297,42 @@
             return;
         }
 
+        const deletedIndex = state.branchRows.findIndex(function (candidate) {
+            return String(getBranchRowId(candidate) || '') === String(branchId);
+        });
+
         if (!await showConfirmationDialog('Delete Branch', 'Are you sure you want to delete branch ' + branchId + '?')) {
             return;
         }
 
         try {
+            const env = getEnv();
             const response = await service.deleteBranch({
+                OurBranchID: env.ourBranchId,
                 BankID: getCurrentBankId(),
                 BranchID: branchId,
-                UpdateCount: state.branchUpdateCount
+                UpdateCount: state.branchUpdateCount,
+                NewRecord: 0
             });
             if (!responseSucceeded(response)) {
                 showToast(extractResponseMessage(response) || 'Delete failed.', 'danger');
                 return;
             }
-            clearBranchForm(false);
-            await loadBranches(true);
+
+            state.branchRows = state.branchRows.filter(function (candidate) {
+                return String(getBranchRowId(candidate) || '') !== String(branchId);
+            });
+            syncBranchTypeOptions(state.branchRows);
+            const nextRow = state.branchRows.length
+                ? state.branchRows[Math.min(Math.max(deletedIndex, 0), state.branchRows.length - 1)]
+                : null;
+            if (nextRow) {
+                applyBranchRow(nextRow);
+                renderBranches();
+            } else {
+                clearBranchForm(false);
+                renderBranches();
+            }
             setMode(MODES.VIEW);
             showToast('Branch deleted.', 'success');
         } catch (error) {
@@ -1341,7 +2375,7 @@
                 return;
             }
             await loadSignatories(true);
-            const row = state.signatoryRows.find(function (candidate) { return String(candidate.SignatoryID || '') === signatoryId; });
+            const row = findSignatoryRow(signatoryId);
             if (row) {
                 applySignatoryRow(row);
                 renderSignatories();
@@ -1360,6 +2394,10 @@
             return;
         }
 
+        const deletedIndex = state.signatoryRows.findIndex(function (candidate) {
+            return String(candidate.SignatoryID || '') === String(signatoryId);
+        });
+
         if (!await showConfirmationDialog('Delete Signatory', 'Are you sure you want to delete signatory ' + signatoryId + '?')) {
             return;
         }
@@ -1374,8 +2412,15 @@
                 showToast(extractResponseMessage(response) || 'Delete failed.', 'danger');
                 return;
             }
-            clearSignatoryForm(false);
             await loadSignatories(true);
+            const nextRow = getRemainingRowByIndex(state.signatoryRows, deletedIndex);
+            if (nextRow) {
+                applySignatoryRow(nextRow);
+                renderSignatories();
+            } else {
+                clearSignatoryForm(false);
+                renderSignatories();
+            }
             setMode(MODES.VIEW);
             showToast('Signatory deleted.', 'success');
         } catch (error) {
@@ -1447,6 +2492,11 @@
                 return;
             }
             await loadLimits(true);
+            const row = findLimitRow(record);
+            if (row) {
+                applyLimitRow(row);
+                renderLimits();
+            }
             setMode(MODES.VIEW);
             showToast('Bank limit saved.', 'success');
         } catch (error) {
@@ -1459,6 +2509,8 @@
             showToast('Load a limit row first.', 'warning');
             return;
         }
+
+        const deletedIndex = state.limitRows.indexOf(state.currentLimitRow);
 
         if (!await showConfirmationDialog('Delete Bank Limit', 'Are you sure you want to delete the selected bank limit?')) {
             return;
@@ -1476,8 +2528,15 @@
                 showToast(extractResponseMessage(response) || 'Delete failed.', 'danger');
                 return;
             }
-            clearLimitForm(false);
             await loadLimits(true);
+            const nextRow = getRemainingRowByIndex(state.limitRows, deletedIndex);
+            if (nextRow) {
+                applyLimitRow(nextRow);
+                renderLimits();
+            } else {
+                clearLimitForm(false);
+                renderLimits();
+            }
             setMode(MODES.VIEW);
             showToast('Bank limit deleted.', 'success');
         } catch (error) {
@@ -1485,42 +2544,61 @@
         }
     }
 
-    async function loadImage(kind) {
+    async function refreshSignatoryPreviews(silent) {
         const signatoryId = textValue('#bm_signatoryId');
         if (!signatoryId) {
-            showToast('Select a signatory first.', 'warning');
+            clearImagePreview();
+            return;
+        }
+
+        await loadImage('photo', { silent: silent !== false });
+        await loadImage('signature', { silent: silent !== false });
+    }
+
+    async function loadImage(kind, options) {
+        const settings = options || {};
+        const signatoryId = textValue('#bm_signatoryId');
+        if (!signatoryId) {
+            if (!settings.silent) {
+                showToast('Select a signatory first.', 'warning');
+            }
             return;
         }
 
         const env = getEnv();
         try {
-            const response = await fetch('/StaticData/BankMaster/api/get-' + (kind === 'photo' ? 'photo' : 'signature') + '-image', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    OurBranchID: env.ourBranchId,
-                    SignatoryID: signatoryId,
-                    OperatorID: env.operatorId
-                })
+            const payload = await invokeControllerRequest('StaticData/BankMaster/api/get-' + (kind === 'photo' ? 'photo' : 'signature') + '-image', {
+                OurBranchID: env.ourBranchId,
+                SignatoryID: signatoryId,
+                OperatorID: env.operatorId
             });
-
-            const payload = await response.json();
             if (!payload || !payload.success || !payload.imageData) {
-                showToast('No ' + kind + ' image found.', 'warning');
+                const target = kind === 'photo' ? qs('#bm_photoPreview') : qs('#bm_signaturePreview');
+                if (target) {
+                    target.removeAttribute('src');
+                }
+                if (!settings.silent) {
+                    showToast('No ' + kind + ' image found.', 'warning');
+                }
                 return;
             }
 
             const target = kind === 'photo' ? qs('#bm_photoPreview') : qs('#bm_signaturePreview');
+            if (!target) {
+                return;
+            }
             target.src = payload.imageData.indexOf('data:image') === 0 ? payload.imageData : ('data:image/png;base64,' + payload.imageData);
         } catch (error) {
-            showToast('Unable to load ' + kind + ' image.', 'danger');
+            if (!settings.silent) {
+                showToast('Unable to load ' + kind + ' image.', 'danger');
+            }
         }
     }
 
     function beginAdd() {
         state.canAdd = true;
         if (state.activeSection === 'banks') {
-            clearBankForm(true);
+            clearBankForm(false);
         } else if (state.activeSection === 'branches') {
             clearBranchForm(false);
         } else if (state.activeSection === 'signatories') {
@@ -1547,13 +2625,12 @@
             const effectiveId = currentId || currentRowId;
 
             if (state.bankLoaded && state.currentBankRow && normalizeIdentity(currentRowId) === normalizeIdentity(effectiveId)) {
-                clearAlerts();
                 applyBankRow(state.currentBankRow, effectiveId);
                 await loadChildSections();
                 return;
             }
 
-            await loadBank(effectiveId, false, state.currentBankRow, true);
+            await loadBank(effectiveId, false, true);
             return;
         }
 
@@ -1564,11 +2641,25 @@
 
         if (state.activeSection === 'branches') {
             const branchId = textValue('#bm_branchId');
-            const row = state.branchRows.find(function (candidate) { return String(getBranchRowId(candidate) || '') === branchId; });
+            let row = findBranchRow(branchId);
             if (row) {
                 applyBranchRow(row);
                 renderBranches();
+                return;
             }
+
+            try {
+                row = await loadBranchById(branchId, { silent: true });
+            } catch (_) {
+                row = null;
+            }
+
+            if (row) {
+                setMode(MODES.VIEW);
+                return;
+            }
+
+            showToast(branchId ? 'Branch record not found for the active bank.' : 'Enter or select a branch first.', 'warning');
             return;
         }
 
@@ -1652,7 +2743,12 @@
             return;
         }
 
-        showToast((SECTION_LABELS.banks || 'Current section') + ' is the active section.', 'info');
+        if (window.history.length > 1) {
+            window.history.back();
+            return;
+        }
+
+        showToast('No previous page is available.', 'info');
     }
 
     async function populateLimitTypes() {
@@ -1735,63 +2831,10 @@
             });
         });
 
-        qs('#bm_searchBank').addEventListener('click', function () {
-            openLookup('bank', function (record) {
-                const bankId = getLookupBankId(record);
-                const bankName = getLookupBankName(record);
-                setValue('#bm_bankId', bankId);
-                setValue('#bm_bankNameSummary', bankName);
-                void loadBank(bankId, false, record);
-            });
-        });
-
-        qs('#bm_searchClient').addEventListener('click', function () {
-            openLookup('client', function (record) {
-                setValue('#bm_clientId', getLookupClientId(record));
-                setValue('#bm_clientName', getLookupClientName(record));
-            });
-        });
-
-        qs('#bm_searchClearingThrough').addEventListener('click', function () {
-            openLookup('bank', function (record) {
-                setValue('#bm_clearingThrough', getLookupBankId(record));
-                setValue('#bm_clearingThroughName', getLookupBankName(record));
-            });
-        });
-
-        const branchLookupButton = qs('#bm_searchBranch');
-        if (branchLookupButton) {
-            branchLookupButton.addEventListener('click', function () {
-                openBranchLookup(async function (record) {
-                    const branchId = getBranchRowId(record);
-                    setValue('#bm_branchId', branchId);
-                    setValue('#bm_branchNameSummary', getBranchRowName(record));
-
-                    if (!state.branchRows.length) {
-                        await loadBranches(true);
-                    }
-
-                    const row = state.branchRows.find(function (candidate) {
-                        return String(getBranchRowId(candidate) || '') === String(branchId || '');
-                    });
-
-                    if (row) {
-                        applyBranchRow(row);
-                        renderBranches();
-                    }
-                });
-            });
-        }
-
-        qs('#bm_searchLimitCurrency').addEventListener('click', function () {
-            openLookup('currency', function (record) {
-                setValue('#bm_limitCurrencyId', record.CurrencyID || '');
-                setValue('#bm_limitCurrencyName', record.Description || '');
-            });
-        });
+        wireLookupButtons();
 
         qs('#bm_bankId').addEventListener('blur', function () {
-            if (textValue('#bm_bankId')) {
+            if (state.mode === MODES.VIEW && textValue('#bm_bankId')) {
                 void loadBank(textValue('#bm_bankId'), true);
             }
         });
