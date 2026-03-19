@@ -9,14 +9,22 @@
     return;
   }
 
-  // Other Static Data uses the common base URL
-  const BASE_URL = (
-    Environment.baseUrlCommon ||
-    Environment.baseUrlSystemCodes ||
-    "http://localhost:5059"
-  ).replace(/\/+$/g, "");
+  function resolveOldApiEndpoint() {
+    if (Environment.useLocalOldApiProxy === true) {
+      return '/api/OldAPI';
+    }
 
-  const OLD_API_ENDPOINT = `${BASE_URL}/api/OldAPI`;
+    const baseUrl = (
+      Environment.baseUrlOldApi ||
+      Environment.baseUrlCommon ||
+      Environment.baseUrlSystemCodes ||
+      ''
+    ).toString().replace(/\/+$/g, '');
+
+    return baseUrl ? `${baseUrl}/api/OldAPI` : '/api/OldAPI';
+  }
+
+  const OLD_API_ENDPOINT = resolveOldApiEndpoint();
   const APP_NAME = "PROJECT_KAIRO";
 
   // OldAPI samples commonly show: MM/DD/YYYY HH:mm:ss
@@ -108,8 +116,6 @@
    * @param {boolean|number} payload.IsLocalClearingBank - Is local clearing bank (0/1 or true/false)
    * @param {boolean|number} payload.IsForeignClearingBank - Is foreign clearing bank (0/1 or true/false)
    * @param {string} payload.ClearingThrough - Clearing bank ID
-   * @param {string} payload.ClearingAccountID - Clearing account ID
-   * @param {string} payload.BankAccountID - Bank account ID
    * @param {number} payload.NewRecord - Is new record (0/1)
    * @param {string} payload.OperatorID - Operator ID
    * @param {string} payload.OurBranchID - Branch ID
@@ -240,14 +246,16 @@
   // ============================
   /**
    * Get Bank Signatories
-   * @param {Object} requestData - { BankID, OurBranchID, SignatoryID, OperatorID, Direction }
+   * V8 proc expects fields under $.RequestData.* inside the JSON payload.
+   * @param {Object} requestData - { BankID, OurBranchID, SignatoryID, OperatorID, Direction, GetAll }
    * @returns {Promise}
    */
   svc.getBankSignatories = function getBankSignatories(requestData) {
     console.log('✍️ OtherStaticDataService.getBankSignatories called with:', requestData);
     console.log('🌐 API Endpoint:', OLD_API_ENDPOINT);
 
-    const result = postOldApi("dbo.p_GetBankSignatories", requestData || {}, APP_NAME);
+    // using kairo @v8 
+    const result = postV8Api("dbo.p_V8_GetBankSignatories", { RequestData: requestData || {} }, APP_NAME);
     result.then(response => {
       console.log('✍️ getBankSignatories response:', response);
     }).catch(error => {
